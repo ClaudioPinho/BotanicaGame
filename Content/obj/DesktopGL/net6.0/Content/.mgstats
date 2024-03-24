@@ -1,0 +1,2 @@
+Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
+"/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Fonts/myFont.spritefont","/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/bin/DesktopGL/Content/Fonts/myFont.xnb","FontDescriptionProcessor","SpriteFontContent",2008,21535,0.2511786
