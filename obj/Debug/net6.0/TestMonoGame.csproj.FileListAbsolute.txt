@@ -25,3 +25,4 @@
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/obj/Debug/net6.0/TestMonoGame.genruntimeconfig.cache
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Fonts/Onest-Regular.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Fonts/myFont.xnb
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Models/test-cube.xnb

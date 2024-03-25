@@ -5,8 +5,10 @@
   <Config />
   <SourceFiles>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Fonts/myFont.spritefont</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/test-cube.fbx</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
   </DestFiles>
 </SourceFileCollection>

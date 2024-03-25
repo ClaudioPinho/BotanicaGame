@@ -1,2 +1,3 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
 "/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Fonts/myFont.spritefont","/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/bin/DesktopGL/Fonts/myFont.xnb","FontDescriptionProcessor","SpriteFontContent",2008,21535,0.2485512
+"/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/test-cube.fbx","/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/bin/DesktopGL/Models/test-cube.xnb","ModelProcessor","ModelContent",11708,1497,0.2293967
