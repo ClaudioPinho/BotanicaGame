@@ -5,7 +5,7 @@ namespace TestMonoGame.Game;
 
 public class Camera : GameObject
 {
-    public float CameraFOV = 45f;
+    public float CameraFOV = 80f;
     public float NearPlane = 1f;
     public float FarPlane = 1000f;
 

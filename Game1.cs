@@ -22,11 +22,13 @@ public class Game1 : Microsoft.Xna.Framework.Game
 
     private Model _testModel;
 
+    private Texture2D[] skyboxTextures;
+
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
-        IsMouseVisible = true;
+        IsMouseVisible = false;
     }
 
     protected override void Initialize()
@@ -37,7 +39,15 @@ public class Game1 : Microsoft.Xna.Framework.Game
         _camera.Transform.Position.Z = -5f;
 
         _testModel = Content.Load<Model>("Models/test-cube");
-        
+
+        skyboxTextures = new Texture2D[6];
+        skyboxTextures[0] = Content.Load<Texture2D>("Textures/Skybox/skybox_front");
+        skyboxTextures[1] = Content.Load<Texture2D>("Textures/Skybox/skybox_back");
+        skyboxTextures[2] = Content.Load<Texture2D>("Textures/Skybox/skybox_left");
+        skyboxTextures[3] = Content.Load<Texture2D>("Textures/Skybox/skybox_right");
+        skyboxTextures[4] = Content.Load<Texture2D>("Textures/Skybox/skybox_up");
+        skyboxTextures[5] = Content.Load<Texture2D>("Textures/Skybox/skybox_down");
+
         base.Initialize();
     }
 
@@ -59,7 +69,7 @@ public class Game1 : Microsoft.Xna.Framework.Game
 
         if (IsActive)
             UpdateInput();
-        
+
         _camera.Update();
 
         base.Update(gameTime);
@@ -67,17 +77,19 @@ public class Game1 : Microsoft.Xna.Framework.Game
 
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(Color.CornflowerBlue);
+        GraphicsDevice.Clear(Color.White);
 
         foreach (var mesh in _testModel.Meshes)
         {
-            foreach (var basicEffect in mesh.Effects.Cast<BasicEffect>())
+            int i = 0;
+            foreach (BasicEffect effect in mesh.Effects)
             {
-                basicEffect.AmbientLightColor = Vector3.Left;
-                basicEffect.View = _camera.ViewMatrix;
-                // basicEffect.World = _worldMatrix;
-                basicEffect.World = Matrix.Identity;
-                basicEffect.Projection = _camera.ProjectionMatrix;
+                effect.Texture = skyboxTextures[i++];
+                effect.TextureEnabled = true;
+                
+                effect.World = Matrix.Identity;
+                effect.View = _camera.ViewMatrix;
+                effect.Projection = _camera.ProjectionMatrix;
             }
             mesh.Draw();
         }
@@ -95,29 +107,36 @@ public class Game1 : Microsoft.Xna.Framework.Game
         base.Draw(gameTime);
     }
 
+    private float yaw = 0f;
+    private float pitch = 0f;
+    
     private void UpdateInput()
     {
-        // todo: this sucks! I need to check a better way to reposition the mouse on the screen
+        // var mouseNow = Mouse.GetState();
+
         var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
         var delta = Mouse.GetState().Position - center;
-        
+
         // Reset mouse position to center of window
         Mouse.SetPosition(center.X, center.Y);
-        
+
         // Adjust camera orientation based on mouse movement
-        float sensitivity = 10.1f;
+        float sensitivity = 0.005f;
+
+        // Calculate rotation angles based on mouse movement
+        yaw -= delta.X * sensitivity;
+        pitch -= delta.Y * sensitivity;
         
-        _camera.Transform.Rotation *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, delta.X * sensitivity);
-        _camera.Transform.Rotation *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, -delta.X * sensitivity);
-        
+        _camera.Transform.Rotation = Quaternion.CreateFromYawPitchRoll(yaw, pitch, 0f);
+
         if (Keyboard.GetState().IsKeyDown(Keys.A))
         {
-            _camera.Transform.Position += _camera.Transform.Right * .1f;
+            _camera.Transform.Position -= _camera.Transform.Right * .1f;
         }
 
         if (Keyboard.GetState().IsKeyDown(Keys.D))
         {
-            _camera.Transform.Position -= _camera.Transform.Right * .1f;
+            _camera.Transform.Position += _camera.Transform.Right * .1f;
         }
 
         if (Keyboard.GetState().IsKeyDown(Keys.W))
@@ -130,38 +149,14 @@ public class Game1 : Microsoft.Xna.Framework.Game
             _camera.Transform.Position -= _camera.Transform.Forward * .1f;
         }
         
-        // if (Keyboard.GetState().IsKeyDown(Keys.Left))
-        // {
-        //     _camera.Transform.Rotation *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, .1f);
-        // }
-        //
-        // if (Keyboard.GetState().IsKeyDown(Keys.Right))
-        // {
-        //     _camera.Transform.Rotation *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, -.1f);
-        // }
-        
-        // if (Keyboard.GetState().IsKeyDown(Keys.Up))
-        // {
-        //     _camera.Transform.Rotation *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, .1f);
-        // }
-        //
-        // if (Keyboard.GetState().IsKeyDown(Keys.Down))
-        // {
-        //     _camera.Transform.Rotation *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, -.1f);
-        // }
-        
-        if (Keyboard.GetState().IsKeyDown(Keys.OemPlus))
+        if (Keyboard.GetState().IsKeyDown(Keys.E))
         {
-            _camera.Transform.Position.Y += 1f;
+            _camera.Transform.Position.Y -= .1f;
         }
         
-        if (Keyboard.GetState().IsKeyDown(Keys.OemMinus))
+        if (Keyboard.GetState().IsKeyDown(Keys.Q))
         {
-            _camera.Transform.Position.Y -= 1f;
+            _camera.Transform.Position.Y += .1f;
         }
-        // if (Keyboard.GetState().IsKeyDown(Keys.Space))
-        // {
-        //     orbit = !orbit;
-        // }
     }
 }

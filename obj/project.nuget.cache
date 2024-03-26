@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "JxzSIk5BptekINC9MklZcFe68txYzxQZcU7bo0mjDSc4NnPjTmOSeMt5FN9LtW5HouFIsRyj88Mb+jN9SY/otw==",
+  "dgSpecHash": "5TRVzSNNeWaLurE3t36WhrqoVHsKTYS6kZu+2yteIbsNsxSfAlZXTzyn+EgOMcpV6L9H0uiwdDYran6SjeIXlg==",
   "success": true,
-  "projectFilePath": "/home/clawd/Projects/MonoGameProjects/TestMonoGame/TestMonoGame.csproj",
+  "projectFilePath": "/home/clawd/Projects/MonoGame/BotanicaGame/TestMonoGame.csproj",
   "expectedPackageFiles": [
     "/home/clawd/.nuget/packages/monogame.content.builder.task/3.8.1.303/monogame.content.builder.task.3.8.1.303.nupkg.sha512",
     "/home/clawd/.nuget/packages/monogame.framework.desktopgl/3.8.1.303/monogame.framework.desktopgl.3.8.1.303.nupkg.sha512"
