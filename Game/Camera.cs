@@ -1,12 +1,11 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace TestMonoGame.Game;
 
-public class Camera : GameObject
+public class Camera : Component
 {
     public float CameraFOV = 80f;
-    public float NearPlane = 1f;
+    public float NearPlane = .01f;
     public float FarPlane = 1000f;
 
     public float AspectRatio;
@@ -15,9 +14,12 @@ public class Camera : GameObject
 
     public Matrix ViewMatrix;
 
-    public Camera(GraphicsDevice graphics)
+    private Transform _transform;
+
+    public Camera(Transform transform)
     {
-        AspectRatio = graphics.DisplayMode.AspectRatio;
+        _transform = transform;
+        AspectRatio = MainGame.GraphicsDeviceManager.GraphicsDevice.DisplayMode.AspectRatio;
         UpdateProjectionMatrix();
         UpdateViewMatrix();
     }
@@ -30,13 +32,17 @@ public class Camera : GameObject
 
     public void UpdateViewMatrix()
     {
-        ViewMatrix = Matrix.CreateLookAt(Transform.Position,
-            Transform.Position + Vector3.Transform(-Vector3.Forward, Transform.Rotation), Vector3.Up);
+        ViewMatrix = Matrix.CreateLookAt(_transform.Position,
+            _transform.Position + Vector3.Transform(-Vector3.Forward, _transform.Rotation), Vector3.Up);
+    }
+
+    public override void Initialize()
+    {
+        
     }
 
     public override void Update()
     {
-        base.Update();
         UpdateViewMatrix();
     }
 }

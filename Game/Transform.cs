@@ -8,5 +8,5 @@ public class Transform
     public Quaternion Rotation = Quaternion.Identity;
 
     public Vector3 Forward => Vector3.Transform(Vector3.UnitZ, Rotation);
-    public Vector3 Right => Vector3.Transform(Vector3.UnitX, Rotation);
+    public Vector3 Right => Vector3.Transform(-Vector3.UnitX, Rotation);
 }

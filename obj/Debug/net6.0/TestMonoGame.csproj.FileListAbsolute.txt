@@ -60,3 +60,8 @@
 /home/clawd/Projects/MonoGame/BotanicaGame/bin/Debug/net6.0/Content/Textures/Skybox/skybox_left.xnb
 /home/clawd/Projects/MonoGame/BotanicaGame/bin/Debug/net6.0/Content/Textures/Skybox/skybox_right.xnb
 /home/clawd/Projects/MonoGame/BotanicaGame/bin/Debug/net6.0/Content/Textures/Skybox/skybox_up.xnb
+/home/clawd/Projects/MonoGame/BotanicaGame/bin/Debug/net6.0/Content/Models/sphere-inv-normal.xnb
+/home/clawd/Projects/MonoGame/BotanicaGame/bin/Debug/net6.0/Content/Models/sphere.xnb
+/home/clawd/Projects/MonoGame/BotanicaGame/bin/Debug/net6.0/Content/Textures/Skybox/sky-sphere-1.xnb
+/home/clawd/Projects/MonoGame/BotanicaGame/bin/Debug/net6.0/Content/Textures/Ground/Grass_02.xnb
+/home/clawd/Projects/MonoGame/BotanicaGame/bin/Debug/net6.0/Content/Textures/Ground/Grass_02_Nrm.xnb

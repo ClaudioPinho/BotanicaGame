@@ -5,7 +5,12 @@
   <Config />
   <SourceFiles>
     <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Fonts/myFont.spritefont</File>
+    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Models/sphere-inv-normal.fbx</File>
+    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Models/sphere.fbx</File>
     <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Models/test-cube.fbx</File>
+    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Ground/Grass_02_Nrm.png</File>
+    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Ground/Grass_02.png</File>
+    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Skybox/sky-sphere-1.png</File>
     <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Skybox/skybox_back.png</File>
     <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Skybox/skybox_down.png</File>
     <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Skybox/skybox_front.png</File>
@@ -14,6 +19,11 @@
     <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Skybox/skybox_up.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
