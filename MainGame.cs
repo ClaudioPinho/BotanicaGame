@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using TestMonoGame.Extensions;
 using TestMonoGame.Game;
-using TestMonoGame.Rendering;
 
 namespace TestMonoGame;
 
@@ -20,21 +18,16 @@ public class MainGame : Microsoft.Xna.Framework.Game
     private SpriteBatch _spriteBatch;
     private SpriteFont _fontSprite;
 
-    // World settings
-    private Matrix _worldMatrix;
-
-    private Model _testModel;
-    private Model _sphereModel;
-    private PrimitivePlane _plane;
-
-    private Texture2D _skyboxTexture;
-    private Texture2D _grassTexture;
-    private Texture2D[] skyboxTextures;
-
     private Player _player;
-    private Camera _playerCamera;
+    private MeshObject _testCube;
+    private MeshObject _skybox;
+    private MeshObject _plane;
+
+    private Vector2 _reticlePosition;
+    private Texture2D _reticle;
 
     private List<GameObject> _gameObjects;
+    private List<MeshObject> _meshObjects;
 
     public MainGame()
     {
@@ -44,35 +37,71 @@ public class MainGame : Microsoft.Xna.Framework.Game
         IsMouseVisible = false;
     }
 
+    public T CreateNewGameObject<T>() where T : GameObject
+    {
+        var createdGameObject = Activator.CreateInstance<T>();
+        _gameObjects.Add(createdGameObject);
+        if (createdGameObject is MeshObject meshObject)
+        {
+            _meshObjects.Add(meshObject);
+        }
+
+        createdGameObject.Initialize();
+        return createdGameObject;
+    }
+
+    public void RemoveGameObject(GameObject gameObjectToRemove)
+    {
+        if (!_gameObjects.Contains(gameObjectToRemove))
+        {
+            //todo: we are trying to remove a game object that is not registered in the game
+            return;
+        }
+
+        if (gameObjectToRemove is MeshObject meshObject)
+        {
+            _meshObjects.Remove(meshObject);
+        }
+
+        _gameObjects.Remove(gameObjectToRemove);
+        gameObjectToRemove.Dispose();
+        //todo: should I clean something else
+    }
+
     protected override void Initialize()
     {
         GraphicsDeviceManager.IsFullScreen = false;
         GraphicsDeviceManager.PreferredBackBufferWidth = 1280;
         GraphicsDeviceManager.PreferredBackBufferHeight = 720;
         GraphicsDeviceManager.ApplyChanges();
-        
+
+        _meshObjects = new List<MeshObject>();
         _gameObjects = new List<GameObject>();
 
-        _player = new Player();
-        _playerCamera = _player.GetComponent<Camera>();
+        _skybox = CreateNewGameObject<MeshObject>();
+        _skybox.Model = Content.Load<Model>("Models/sphere-inv-normal");
+        _skybox.Texture = Content.Load<Texture2D>("Textures/Skybox/sky-sphere-1");
+        _skybox.Transform.Scale = Vector3.One * 500f;
+        _skybox.Transform.Rotation.SetEulerAngles(0f, -90f, 0f);
 
-        _gameObjects.Add(_player);
+        _plane = CreateNewGameObject<MeshObject>();
+        _plane.Model = Content.Load<Model>("Models/Primitives/plane");
+        _plane.Texture = Content.Load<Texture2D>("Textures/Ground/Grass_02");
+        _plane.Transform.Scale = new Vector3(100f, 1f, 100f);
+        _plane.Transform.Rotation.SetEulerAngles(0f, -90f, 0f);
 
-        _testModel = Content.Load<Model>("Models/test-cube");
-        _sphereModel = Content.Load<Model>("Models/sphere-inv-normal");
+        _testCube = CreateNewGameObject<MeshObject>();
+        _testCube.Transform.Position.X = 5f;
+        _testCube.Model = Content.Load<Model>("Models/test-cube");
+        _testCube.Texture = Content.Load<Texture2D>("Textures/wooden-box");
 
-        skyboxTextures = new Texture2D[6];
-        skyboxTextures[0] = Content.Load<Texture2D>("Textures/Skybox/skybox_front");
-        skyboxTextures[1] = Content.Load<Texture2D>("Textures/Skybox/skybox_back");
-        skyboxTextures[2] = Content.Load<Texture2D>("Textures/Skybox/skybox_left");
-        skyboxTextures[3] = Content.Load<Texture2D>("Textures/Skybox/skybox_right");
-        skyboxTextures[4] = Content.Load<Texture2D>("Textures/Skybox/skybox_up");
-        skyboxTextures[5] = Content.Load<Texture2D>("Textures/Skybox/skybox_down");
+        _player = CreateNewGameObject<Player>();
+        _player.Model = Content.Load<Model>("Models/Player/player");
 
-        _skyboxTexture = Content.Load<Texture2D>("Textures/Skybox/sky-sphere-1");
-        _grassTexture = Content.Load<Texture2D>("Textures/Ground/Grass_02");
+        _reticle = Content.Load<Texture2D>("Textures/UI/reticle");
+        _reticlePosition = new Vector2(GraphicsDevice.Viewport.Width / 2f, GraphicsDevice.Viewport.Height / 2f);
 
-        _plane = new PrimitivePlane(GraphicsDevice);
+        CreateNewGameObject<MeshObject>().Model = Content.Load<Model>("Models/Player/player");
 
         base.Initialize();
     }
@@ -104,53 +133,24 @@ public class MainGame : Microsoft.Xna.Framework.Game
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.CornflowerBlue);
+        GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-        DrawModel(_sphereModel, Matrix.CreateScale(200f) * Matrix.CreateRotationX(MathHelper.Pi), _skyboxTexture);
-
-        _plane.Draw(_playerCamera, _grassTexture);
-        DrawModel(_testModel, Matrix.Identity, skyboxTextures[0]);
+        foreach (var meshObject in _meshObjects)
+        {
+            meshObject.Draw(gameTime);
+        }
 
         _spriteBatch.Begin();
 
         _spriteBatch.DrawString(_fontSprite, $"Player position| {_player.Transform.Position.ToString()}", Vector2.Zero,
             Color.Red);
         _spriteBatch.DrawString(_fontSprite,
-            $"Player rotation| {_player.Transform.Rotation.ToEulerAngles().ToString()}", new Vector2(0f, 20f),
+            $"Player rotation| {_player.Transform.Rotation.ToEuler().ToString()}", new Vector2(0f, 20f),
             Color.Red);
+        _spriteBatch.Draw(_reticle, _reticlePosition, Color.White);
 
         _spriteBatch.End();
 
         base.Draw(gameTime);
-    }
-
-    private void DrawModel(Model model, Matrix world, Texture2D texture2D = null)
-    {
-        foreach (var mesh in model.Meshes)
-        {
-            // MeshUtils.InvertNormals(mesh);
-
-            foreach (var basicEffect in mesh.Effects.Cast<BasicEffect>())
-            {
-                if (texture2D != null)
-                {
-                    basicEffect.TextureEnabled = true;
-                    basicEffect.Texture = texture2D;
-                }
-                else
-                {
-                    basicEffect.TextureEnabled = false;
-                }
-
-                // effect.EnableDefaultLighting();
-                // effect.DiffuseColor = Color.Gray.ToVector3();
-                basicEffect.AmbientLightColor = Color.Wheat.ToVector3();
-
-                basicEffect.World = world;
-                basicEffect.View = _playerCamera.ViewMatrix;
-                basicEffect.Projection = _playerCamera.ProjectionMatrix;
-            }
-
-            mesh.Draw();
-        }
     }
 }

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <SourceFile>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Ground/Grass_02_Nrm.png</SourceFile>
-  <SourceTime>2019-04-02T23:37:18+01:00</SourceTime>
-  <DestFile>/home/clawd/Projects/MonoGame/BotanicaGame/Content/bin/DesktopGL/Content/Textures/Ground/Grass_02_Nrm.xnb</DestFile>
-  <DestTime>2024-03-28T22:55:40.979474+00:00</DestTime>
+  <SourceFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Ground/Grass_02_Nrm.png</SourceFile>
+  <SourceTime>2024-03-30T17:10:47.2878667+00:00</SourceTime>
+  <DestFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/bin/DesktopGL/Content/Textures/Ground/Grass_02_Nrm.xnb</DestFile>
+  <DestTime>2024-03-30T17:11:13.7439771+00:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2022-07-26T12:44:56+01:00</ImporterTime>
   <Processor>TextureProcessor</Processor>

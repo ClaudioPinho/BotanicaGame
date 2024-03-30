@@ -1,14 +1,20 @@
 using System;
+using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using TestMonoGame.Extensions;
 
 namespace TestMonoGame.Game;
 
-public class Player : GameObject
+public class Player : MeshObject
 {
-    public Player()
+    public Camera Camera { private set; get; }
+
+    public override void Initialize()
     {
-        Components.Add(new Camera(Transform));
+        base.Initialize();
+        Camera = MainGame.GameInstance.CreateNewGameObject<Camera>();
+        Camera.Transform.Rotation.SetEulerAngles(0f, 90f, 0f);
     }
 
     public override void Update()
@@ -16,22 +22,22 @@ public class Player : GameObject
         base.Update();
         if (Keyboard.GetState().IsKeyDown(Keys.A))
         {
-            Transform.Position -= Transform.Right * .1f;
+            Transform.Position -= Camera.Transform.Right * .1f;
         }
 
         if (Keyboard.GetState().IsKeyDown(Keys.D))
         {
-            Transform.Position += Transform.Right * .1f;
+            Transform.Position += Camera.Transform.Right * .1f;
         }
 
         if (Keyboard.GetState().IsKeyDown(Keys.W))
         {
-            Transform.Position += Transform.Forward * .1f;
+            Transform.Position += Camera.Transform.Forward.ProjectOntoPlane(Vector3.Up) * .1f;
         }
 
         if (Keyboard.GetState().IsKeyDown(Keys.S))
         {
-            Transform.Position -= Transform.Forward * .1f;
+            Transform.Position -= Camera.Transform.Forward.ProjectOntoPlane(Vector3.Up) * .1f;
         }
 
         if (Keyboard.GetState().IsKeyDown(Keys.E))
@@ -46,6 +52,11 @@ public class Player : GameObject
 
         Transform.Position.Y = 2f;
 
+        // lock camera transform to the player transform
+        Camera.Transform.Position = Transform.Position;
+        // Camera.Transform.Rotation = Transform.Rotation;
+        Transform.Rotation.SetYaw(Camera.Transform.Rotation.Yaw());
+        
         if (MainGame.GameInstance.IsActive)
             UpdateInput();
     }
@@ -75,6 +86,6 @@ public class Player : GameObject
         // Clamp the pitch angle to prevent camera inversion
         pitch = MathHelper.Clamp(pitch, _minPitch, _maxPitch);
 
-        Transform.Rotation = Quaternion.CreateFromYawPitchRoll(yaw, pitch, 0f);
+        Camera.Transform.Rotation = Quaternion.CreateFromYawPitchRoll(yaw, pitch, 0f);
     }
 }

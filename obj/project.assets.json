@@ -107,11 +107,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/clawd/Projects/MonoGame/BotanicaGame/TestMonoGame.csproj",
+      "projectUniqueName": "/home/clawd/Projects/MonoGameProjects/TestMonoGame/TestMonoGame.csproj",
       "projectName": "TestMonoGame",
-      "projectPath": "/home/clawd/Projects/MonoGame/BotanicaGame/TestMonoGame.csproj",
+      "projectPath": "/home/clawd/Projects/MonoGameProjects/TestMonoGame/TestMonoGame.csproj",
       "packagesPath": "/home/clawd/.nuget/packages/",
-      "outputPath": "/home/clawd/Projects/MonoGame/BotanicaGame/obj/",
+      "outputPath": "/home/clawd/Projects/MonoGameProjects/TestMonoGame/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/clawd/.nuget/NuGet/NuGet.Config"

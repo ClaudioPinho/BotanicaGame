@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <SourceFile>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Models/sphere.fbx</SourceFile>
-  <SourceTime>2024-03-28T22:06:05.0854341+00:00</SourceTime>
-  <DestFile>/home/clawd/Projects/MonoGame/BotanicaGame/Content/bin/DesktopGL/Models/sphere.xnb</DestFile>
-  <DestTime>2024-03-28T22:08:07.4201443+00:00</DestTime>
+  <SourceFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/sphere.fbx</SourceFile>
+  <SourceTime>2024-03-30T17:10:47.2758666+00:00</SourceTime>
+  <DestFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/bin/DesktopGL/Models/sphere.xnb</DestFile>
+  <DestTime>2024-03-30T17:50:12.4957891+00:00</DestTime>
   <Importer>FbxImporter</Importer>
   <ImporterTime>2022-07-26T12:44:56+01:00</ImporterTime>
   <Processor>ModelProcessor</Processor>

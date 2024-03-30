@@ -4,21 +4,29 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
-    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Fonts/myFont.spritefont</File>
-    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Models/sphere-inv-normal.fbx</File>
-    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Models/sphere.fbx</File>
-    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Models/test-cube.fbx</File>
-    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Ground/Grass_02_Nrm.png</File>
-    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Ground/Grass_02.png</File>
-    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Skybox/sky-sphere-1.png</File>
-    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Skybox/skybox_back.png</File>
-    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Skybox/skybox_down.png</File>
-    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Skybox/skybox_front.png</File>
-    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Skybox/skybox_left.png</File>
-    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Skybox/skybox_right.png</File>
-    <File>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Skybox/skybox_up.png</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Fonts/myFont.spritefont</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/Player/player.fbx</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/Primitives/plane.fbx</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/sphere-inv-normal.fbx</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/sphere.fbx</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/test-cube.fbx</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Ground/Grass_02_Nrm.png</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Ground/Grass_02.png</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Skybox/sky-sphere-1.png</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Skybox/skybox_back.png</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Skybox/skybox_down.png</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Skybox/skybox_front.png</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Skybox/skybox_left.png</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Skybox/skybox_right.png</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Skybox/skybox_up.png</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/UI/reticle.png</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/wooden-box.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

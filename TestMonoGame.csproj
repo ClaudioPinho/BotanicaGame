@@ -26,6 +26,9 @@
     <Content Include="obj\project.packagespec.json" />
     <Content Include="obj\rider.project.restore.info" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Rendering\" />
+  </ItemGroup>
   <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
     <Message Text="Restoring dotnet tools" Importance="High" />
     <Exec Command="dotnet tool restore" />

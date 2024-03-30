@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <SourceFile>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Textures/Skybox/skybox_down.png</SourceFile>
-  <SourceTime>2024-03-26T01:03:35.8845465+00:00</SourceTime>
-  <DestFile>/home/clawd/Projects/MonoGame/BotanicaGame/Content/bin/DesktopGL/Content/Textures/Skybox/skybox_down.xnb</DestFile>
-  <DestTime>2024-03-26T01:10:55.6378371+00:00</DestTime>
+  <SourceFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Skybox/skybox_down.png</SourceFile>
+  <SourceTime>2024-03-30T17:10:47.3438669+00:00</SourceTime>
+  <DestFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/bin/DesktopGL/Content/Textures/Skybox/skybox_down.xnb</DestFile>
+  <DestTime>2024-03-30T17:11:15.9799864+00:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2022-07-26T12:44:56+01:00</ImporterTime>
   <Processor>TextureProcessor</Processor>

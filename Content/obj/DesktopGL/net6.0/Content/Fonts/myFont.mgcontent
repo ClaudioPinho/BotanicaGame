@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <SourceFile>/home/clawd/Projects/MonoGame/BotanicaGame/Content/Fonts/myFont.spritefont</SourceFile>
-  <SourceTime>2024-03-24T21:21:47.9169417+00:00</SourceTime>
-  <DestFile>/home/clawd/Projects/MonoGame/BotanicaGame/Content/bin/DesktopGL/Content/Fonts/myFont.xnb</DestFile>
-  <DestTime>2024-03-24T21:27:39.8639487+00:00</DestTime>
+  <SourceFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Fonts/myFont.spritefont</SourceFile>
+  <SourceTime>2024-03-22T21:09:32.9198023+00:00</SourceTime>
+  <DestFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/bin/DesktopGL/Content/Fonts/myFont.xnb</DestFile>
+  <DestTime>2024-03-30T17:11:13.5279762+00:00</DestTime>
   <Importer>FontDescriptionImporter</Importer>
   <ImporterTime>2022-07-26T12:44:56+01:00</ImporterTime>
   <Processor>FontDescriptionProcessor</Processor>

@@ -2,8 +2,13 @@ using Microsoft.Xna.Framework;
 
 namespace TestMonoGame.Game;
 
-public class Camera : Component
+public class Camera : GameObject
 {
+    /// <summary>
+    /// The current camera being used to render the scene
+    /// </summary>
+    public static Camera Current { private set; get; }
+    
     public float CameraFOV = 80f;
     public float NearPlane = .01f;
     public float FarPlane = 1000f;
@@ -14,11 +19,9 @@ public class Camera : Component
 
     public Matrix ViewMatrix;
 
-    private Transform _transform;
-
-    public Camera(Transform transform)
+    public Camera()
     {
-        _transform = transform;
+        Current = this;
         AspectRatio = MainGame.GraphicsDeviceManager.GraphicsDevice.DisplayMode.AspectRatio;
         UpdateProjectionMatrix();
         UpdateViewMatrix();
@@ -32,8 +35,8 @@ public class Camera : Component
 
     public void UpdateViewMatrix()
     {
-        ViewMatrix = Matrix.CreateLookAt(_transform.Position,
-            _transform.Position + Vector3.Transform(-Vector3.Forward, _transform.Rotation), Vector3.Up);
+        ViewMatrix = Matrix.CreateLookAt(Transform.Position,
+            Transform.Position + Vector3.Transform(-Vector3.Forward, Transform.Rotation), Vector3.Up);
     }
 
     public override void Initialize()
