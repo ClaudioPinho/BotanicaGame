@@ -52,7 +52,6 @@
 /home/clawd/Projects/MonoGame/BotanicaGame/obj/Debug/net6.0/ref/TestMonoGame.dll
 /home/clawd/Projects/MonoGame/BotanicaGame/obj/Debug/net6.0/TestMonoGame.pdb
 /home/clawd/Projects/MonoGame/BotanicaGame/obj/Debug/net6.0/TestMonoGame.genruntimeconfig.cache
-/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Models/test-cube.xnb
 /home/clawd/Projects/MonoGame/BotanicaGame/bin/Debug/net6.0/Content/Models/test-cube.xnb
 /home/clawd/Projects/MonoGame/BotanicaGame/bin/Debug/net6.0/Content/Textures/Skybox/skybox_back.xnb
 /home/clawd/Projects/MonoGame/BotanicaGame/bin/Debug/net6.0/Content/Textures/Skybox/skybox_down.xnb
@@ -69,14 +68,12 @@
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Models/sphere.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/Ground/Grass_02.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/Ground/Grass_02_Nrm.xnb
-/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/Skybox/sky-sphere-1.xnb
-/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/Skybox/skybox_back.xnb
-/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/Skybox/skybox_down.xnb
-/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/Skybox/skybox_front.xnb
-/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/Skybox/skybox_left.xnb
-/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/Skybox/skybox_right.xnb
-/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/Skybox/skybox_up.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Models/Primitives/plane.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/wooden-box.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Models/Player/player.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/UI/reticle.xnb
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Shaders/Skybox.xnb
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Models/cube-inv-normals.xnb
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Models/cube.xnb
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/Skybox/SkyWater.xnb
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/Skybox/SkyRed.xnb

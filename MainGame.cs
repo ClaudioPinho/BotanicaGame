@@ -9,6 +9,8 @@ using TestMonoGame.Game;
 
 namespace TestMonoGame;
 
+// http://rbwhitaker.wikidot.com/monogame-collision-detection
+
 public class MainGame : Microsoft.Xna.Framework.Game
 {
     public static MainGame GameInstance;
@@ -20,9 +22,11 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
     private Player _player;
     private MeshObject _testCube;
-    private MeshObject _skybox;
+    // private MeshObject _skybox;
     private MeshObject _plane;
 
+    private Skybox _skybox;
+    
     private Vector2 _reticlePosition;
     private Texture2D _reticle;
 
@@ -78,11 +82,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
         _meshObjects = new List<MeshObject>();
         _gameObjects = new List<GameObject>();
 
-        _skybox = CreateNewGameObject<MeshObject>();
-        _skybox.Model = Content.Load<Model>("Models/sphere-inv-normal");
-        _skybox.Texture = Content.Load<Texture2D>("Textures/Skybox/sky-sphere-1");
-        _skybox.Transform.Scale = Vector3.One * 500f;
-        _skybox.Transform.Rotation.SetEulerAngles(0f, -90f, 0f);
+        _skybox = new Skybox("Textures/Skybox/SkyRed", Content);
 
         _plane = CreateNewGameObject<MeshObject>();
         _plane.Model = Content.Load<Model>("Models/Primitives/plane");
@@ -90,18 +90,17 @@ public class MainGame : Microsoft.Xna.Framework.Game
         _plane.Transform.Scale = new Vector3(100f, 1f, 100f);
         _plane.Transform.Rotation.SetEulerAngles(0f, -90f, 0f);
 
-        _testCube = CreateNewGameObject<MeshObject>();
+        _testCube = CreateNewGameObject<PhysicsObject>();
         _testCube.Transform.Position.X = 5f;
-        _testCube.Model = Content.Load<Model>("Models/test-cube");
+        _testCube.Transform.Position.Y = 1f;
+        _testCube.Model = Content.Load<Model>("Models/cube");
         _testCube.Texture = Content.Load<Texture2D>("Textures/wooden-box");
+        _testCube.DiffuseColor = Color.Red;
 
         _player = CreateNewGameObject<Player>();
-        _player.Model = Content.Load<Model>("Models/Player/player");
-
+        
         _reticle = Content.Load<Texture2D>("Textures/UI/reticle");
         _reticlePosition = new Vector2(GraphicsDevice.Viewport.Width / 2f, GraphicsDevice.Viewport.Height / 2f);
-
-        CreateNewGameObject<MeshObject>().Model = Content.Load<Model>("Models/Player/player");
 
         base.Initialize();
     }
@@ -135,20 +134,22 @@ public class MainGame : Microsoft.Xna.Framework.Game
         GraphicsDevice.Clear(Color.CornflowerBlue);
         GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
+        _skybox.Draw();
+        
         foreach (var meshObject in _meshObjects)
         {
             meshObject.Draw(gameTime);
         }
 
         _spriteBatch.Begin();
-
+        
         _spriteBatch.DrawString(_fontSprite, $"Player position| {_player.Transform.Position.ToString()}", Vector2.Zero,
             Color.Red);
         _spriteBatch.DrawString(_fontSprite,
             $"Player rotation| {_player.Transform.Rotation.ToEuler().ToString()}", new Vector2(0f, 20f),
             Color.Red);
         _spriteBatch.Draw(_reticle, _reticlePosition, Color.White);
-
+        
         _spriteBatch.End();
 
         base.Draw(gameTime);

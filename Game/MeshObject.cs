@@ -1,47 +1,37 @@
-using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using TestMonoGame.Rendering;
 
 namespace TestMonoGame.Game;
 
 public class MeshObject : GameObject
 {
+    public IEffect MeshEffect;
+
     public Texture2D Texture;
+
+    public Color DiffuseColor = Color.White;
+
+    public bool ReceiveLighting = true;
+
     public Model Model;
 
     public void Draw(GameTime gameTime)
     {
         // todo: should we output an error or something here?
         if (Model == null)
-        {
             return;
-        }
+
+        // crreates the default mesh effect if none defined
+        MeshEffect ??= new BasicEffectAdapter(new BasicEffect(MainGame.GameInstance.GraphicsDevice));
+
         foreach (var mesh in Model.Meshes)
         {
-            foreach (var basicEffect in mesh.Effects.Cast<BasicEffect>())
-            {
-                if (Texture != null)
-                {
-                    basicEffect.TextureEnabled = true;
-                    basicEffect.Texture = Texture;
-                }
-                else
-                {
-                    basicEffect.TextureEnabled = false;
-                }
-
-                // effect.EnableDefaultLighting();
-                // effect.DiffuseColor = Color.Gray.ToVector3();
-                basicEffect.AmbientLightColor = Color.White.ToVector3();
-
-                basicEffect.World = Matrix.CreateWorld(Transform.Position, Vector3.Forward, Vector3.Up) *
-                                    Matrix.CreateFromQuaternion(Transform.Rotation) *
-                                    Matrix.CreateScale(Transform.Scale);
-                basicEffect.View = Camera.Current.ViewMatrix;
-                basicEffect.Projection = Camera.Current.ProjectionMatrix;
-            }
-
-            mesh.Draw();
+            MeshEffect.SetWorldViewProj(Transform.WorldMatrix, Camera.Current.ViewMatrix,
+                Camera.Current.ProjectionMatrix);
+            MeshEffect.SetTexture2D(Texture);
+            MeshEffect.SetDiffuseColor(DiffuseColor);
+            MeshEffect.Draw(mesh);
         }
     }
 }

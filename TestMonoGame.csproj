@@ -27,7 +27,8 @@
     <Content Include="obj\rider.project.restore.info" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Rendering\" />
+    <Folder Include="Content\Shaders\" />
+    <Folder Include="Content\Textures\Skybox\" />
   </ItemGroup>
   <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
     <Message Text="Restoring dotnet tools" Importance="High" />

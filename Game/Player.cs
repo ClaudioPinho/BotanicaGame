@@ -1,61 +1,84 @@
 using System;
-using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using TestMonoGame.Extensions;
 
 namespace TestMonoGame.Game;
 
-public class Player : MeshObject
+public class Player : PhysicsObject
 {
     public Camera Camera { private set; get; }
+
+    private float _playerSpeed = .1f;
+    private const float _playerCamHeight = 1.8f;
 
     public override void Initialize()
     {
         base.Initialize();
         Camera = MainGame.GameInstance.CreateNewGameObject<Camera>();
+        Camera.CameraFOV = 45f;
         Camera.Transform.Rotation.SetEulerAngles(0f, 90f, 0f);
     }
 
     public override void Update()
     {
         base.Update();
-        if (Keyboard.GetState().IsKeyDown(Keys.A))
-        {
-            Transform.Position -= Camera.Transform.Right * .1f;
-        }
+        
+        _playerSpeed = Keyboard.GetState().IsKeyDown(Keys.LeftShift) ? .3f : .1f;
+        
+        // Get forward and right vectors on the XZ plane
+        Vector3 forwardXZ = new Vector3(Camera.Transform.Forward.X, 0f, Camera.Transform.Forward.Z);
+        Vector3 rightXZ = new Vector3(Camera.Transform.Right.X, 0f, Camera.Transform.Right.Z);
+        forwardXZ.Normalize(); // Ensure the vectors have unit length
+        rightXZ.Normalize();
 
-        if (Keyboard.GetState().IsKeyDown(Keys.D))
-        {
-            Transform.Position += Camera.Transform.Right * .1f;
-        }
+        // Calculate movement direction based on keyboard input
+        Vector3 movementDirection = Vector3.Zero;
 
         if (Keyboard.GetState().IsKeyDown(Keys.W))
         {
-            Transform.Position += Camera.Transform.Forward.ProjectOntoPlane(Vector3.Up) * .1f;
+            movementDirection += forwardXZ;
         }
 
         if (Keyboard.GetState().IsKeyDown(Keys.S))
         {
-            Transform.Position -= Camera.Transform.Forward.ProjectOntoPlane(Vector3.Up) * .1f;
+            movementDirection -= forwardXZ;
         }
 
+        if (Keyboard.GetState().IsKeyDown(Keys.A))
+        {
+            movementDirection -= rightXZ;
+        }
+
+        if (Keyboard.GetState().IsKeyDown(Keys.D))
+        {
+            movementDirection += rightXZ;
+        }
+
+        // Normalize movement direction to maintain consistent speed regardless of diagonal movement
+        if (movementDirection != Vector3.Zero)
+        {
+            movementDirection.Normalize();
+        }
+
+        // Apply player movement
+        Transform.Position += movementDirection * _playerSpeed;
+        
         if (Keyboard.GetState().IsKeyDown(Keys.E))
         {
             Transform.Position.Y -= .1f;
         }
-
+        
         if (Keyboard.GetState().IsKeyDown(Keys.Q))
         {
             Transform.Position.Y += .1f;
         }
 
-        Transform.Position.Y = 2f;
-
+        if (Transform.Position.Y < 0)
+            Transform.Position.Y = 0;
+        
         // lock camera transform to the player transform
-        Camera.Transform.Position = Transform.Position;
-        // Camera.Transform.Rotation = Transform.Rotation;
-        Transform.Rotation.SetYaw(Camera.Transform.Rotation.Yaw());
+        Camera.Transform.Position = Transform.Position + Vector3.Up * _playerCamHeight;
         
         if (MainGame.GameInstance.IsActive)
             UpdateInput();
@@ -87,5 +110,6 @@ public class Player : MeshObject
         pitch = MathHelper.Clamp(pitch, _minPitch, _maxPitch);
 
         Camera.Transform.Rotation = Quaternion.CreateFromYawPitchRoll(yaw, pitch, 0f);
+        Transform.Rotation = Quaternion.CreateFromYawPitchRoll(yaw - MathF.PI / 2, 0f, 0f);
     }
 }

@@ -3,7 +3,7 @@
   <SourceFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Fonts/myFont.spritefont</SourceFile>
   <SourceTime>2024-03-22T21:09:32.9198023+00:00</SourceTime>
   <DestFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/bin/DesktopGL/Fonts/myFont.xnb</DestFile>
-  <DestTime>2024-03-30T17:50:12.3757881+00:00</DestTime>
+  <DestTime>2024-04-01T18:03:15.9678736+01:00</DestTime>
   <Importer>FontDescriptionImporter</Importer>
   <ImporterTime>2022-07-26T12:44:56+01:00</ImporterTime>
   <Processor>FontDescriptionProcessor</Processor>
