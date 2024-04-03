@@ -3,7 +3,7 @@
   <SourceFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/wooden-box.png</SourceFile>
   <SourceTime>2024-03-30T17:58:27.4232166+00:00</SourceTime>
   <DestFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/bin/DesktopGL/Content/Textures/wooden-box.xnb</DestFile>
-  <DestTime>2024-03-30T17:59:45.9476689+00:00</DestTime>
+  <DestTime>2024-04-03T17:46:16.2000098+01:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2022-07-26T12:44:56+01:00</ImporterTime>
   <Processor>TextureProcessor</Processor>

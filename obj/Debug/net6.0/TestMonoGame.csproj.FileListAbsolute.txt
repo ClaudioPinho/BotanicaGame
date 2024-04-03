@@ -79,6 +79,6 @@
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Effects/Skybox.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Effects/TilingEffect.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Models/monkey.xnb
-/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Jitter2.dll
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/obj/Debug/net6.0/TestMonoGame.sourcelink.json
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/obj/Debug/net6.0/refint/TestMonoGame.dll
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Jitter.dll

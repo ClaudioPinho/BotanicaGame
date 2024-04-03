@@ -8,7 +8,7 @@
     ".NETCoreApp,Version=v6.0": {
       "TestMonoGame/1.0.0": {
         "dependencies": {
-          "Jitter2": "2.2.0",
+          "JitterPhysics": "0.2.0.20",
           "MonoGame.Content.Builder.Task": "3.8.1.303",
           "MonoGame.Framework.DesktopGL": "3.8.1.303"
         },
@@ -16,11 +16,11 @@
           "TestMonoGame.dll": {}
         }
       },
-      "Jitter2/2.2.0": {
+      "JitterPhysics/0.2.0.20": {
         "runtime": {
-          "lib/net6.0/Jitter2.dll": {
-            "assemblyVersion": "2.0.0.0",
-            "fileVersion": "2.2.0.0"
+          "lib/net4/Jitter.dll": {
+            "assemblyVersion": "0.2.0.0",
+            "fileVersion": "0.2.0.20"
           }
         }
       },
@@ -83,12 +83,12 @@
       "serviceable": false,
       "sha512": ""
     },
-    "Jitter2/2.2.0": {
+    "JitterPhysics/0.2.0.20": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-O+OQuCWIetzu/7yIUF0TU6IkAyXIn/iLWtoefr4hJBs0OgY4mCNCH0Bmct+i5nxOjUGrNaXubYKHBMIPSvIoAw==",
-      "path": "jitter2/2.2.0",
-      "hashPath": "jitter2.2.2.0.nupkg.sha512"
+      "sha512": "sha512-Kgju3DCxS6ot55LX5+tFcALVcEDEfQ7jFkhjY+FR1bOn8Dh1YitomA9E6ZWIFGdKXeYDW1SKhGvKOnqJYjz4gQ==",
+      "path": "jitterphysics/0.2.0.20",
+      "hashPath": "jitterphysics.0.2.0.20.nupkg.sha512"
     },
     "MonoGame.Content.Builder.Task/3.8.1.303": {
       "type": "package",

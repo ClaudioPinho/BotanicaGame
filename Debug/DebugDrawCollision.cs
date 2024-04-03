@@ -1,24 +1,24 @@
-using Jitter2;
-using Jitter2.LinearMath;
+using Jitter;
+using Jitter.LinearMath;
 using TestMonoGame.Extensions;
 
 namespace TestMonoGame.Debug;
 
 public class DebugDrawCollision : IDebugDrawer
 {
-    public void DrawSegment(in JVector pA, in JVector pB)
+
+    public void DrawLine(JVector start, JVector end)
     {
-        // DebugUtils.PrintMessage("drawing segment");
+        DebugUtils.PrintMessage("should be drawing a line!");
     }
 
-    public void DrawTriangle(in JVector pA, in JVector pB, in JVector pC)
+    public void DrawPoint(JVector pos)
     {
-        DebugUtils.DrawTriangle(pA.ToVector3(), pB.ToVector3(), pC.ToVector3());
+        DebugUtils.DrawWirePoint(pos.ToVector3());
     }
 
-    public void DrawPoint(in JVector p)
-    {
-        DebugUtils.DrawWirePoint(p.ToVector3());
-        DebugUtils.PrintMessage("drawing point");
+    public void DrawTriangle(JVector pos1, JVector pos2, JVector pos3)
+    {   
+        DebugUtils.DrawTriangle(pos1.ToVector3(), pos2.ToVector3(), pos3.ToVector3());
     }
 }

@@ -3,7 +3,7 @@
   <SourceFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Ground/ground-sand.png</SourceFile>
   <SourceTime>2024-04-02T12:54:59.8222801+01:00</SourceTime>
   <DestFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/bin/DesktopGL/Content/Textures/Ground/ground-sand.xnb</DestFile>
-  <DestTime>2024-04-02T12:56:13.4906567+01:00</DestTime>
+  <DestTime>2024-04-03T17:46:15.2280071+01:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2022-07-26T12:44:56+01:00</ImporterTime>
   <Processor>TextureProcessor</Processor>

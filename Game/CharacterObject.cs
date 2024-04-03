@@ -1,59 +1,41 @@
-using System;
-using Jitter2.Collision.Shapes;
-using Jitter2.Dynamics.Constraints;
-using Jitter2.LinearMath;
+using Jitter.Collision.Shapes;
+using Jitter.Dynamics;
+using Jitter.Dynamics.Constraints;
+using Jitter.LinearMath;
 using Microsoft.Xna.Framework;
 using TestMonoGame.Debug;
 using TestMonoGame.Extensions;
+using FixedAngle = Jitter.Dynamics.Constraints.SingleBody.FixedAngle;
 
 namespace TestMonoGame.Game;
 
 public class CharacterObject : PhysicsObject
 {
-    public LinearMotor FrictionMotor { get; private set; }
-    public AngularMotor AngularMovement { get; private set; }
+    // public LinearMotor FrictionMotor { get; private set; }
+    // public AngularMotor AngularMovement { get; private set; }
+    public float MaxVelocity { get; set; }
 
     public override void Initialize(Vector3? objectPosition = null, Quaternion? objectRotation = null, Vector3? objectScale = null)
     {
         base.Initialize(objectPosition, objectRotation, objectScale);
 
-        var characterShape = new CapsuleShape(0.5f, 1.0f);
-        RigidBody.AddShape(characterShape);
-        RigidBody.Position = Transform.Position.ToJVector();
+        MaxVelocity = 10f;
+        
+        var characterShape = new CapsuleShape(2f, 1.0f);
+        RigidBody.Shape = characterShape;
+        RigidBody.Shape.UpdateShape();
 
-        RigidBody.Damping = (0, 0);
-        
-        RigidBody.DeactivationTime = TimeSpan.MaxValue;
-        
-        // Add two arms - to be able to visually tell how the player is orientated
-        var arm1 = new TransformedShape(new BoxShape(0.2f, 0.8f, 0.2f), new JVector(+0.5f, 0.3f, 0));
-        var arm2 = new TransformedShape(new BoxShape(0.2f, 0.8f, 0.2f), new JVector(-0.5f, 0.3f, 0));
+        var constraint = new FixedAngle(RigidBody);
+        PhysicsWorld.AddConstraint(constraint);
 
-        // Add the shapes without recalculating mass and inertia, we take mass and inertia from the capsule
-        // shape we added before.
-        RigidBody.AddShape(arm1, false);
-        RigidBody.AddShape(arm2, false);
-        
-        // Make the capsule stand upright, but able to rotate 360 degrees.
-        var ur = PhysicsWorld.CreateConstraint<HingeAngle>(RigidBody, PhysicsWorld.NullBody);
-        ur.Initialize(JVector.UnitY, AngularLimit.Full);
-        // DebugUtils.PrintMessage("constraint created!");
-        
-        
-        // Add a "motor" to the body. The motor target velocity is zero.
-        // This acts like friction and stops the player.
-        // FrictionMotor = PhysicsWorld.CreateConstraint<LinearMotor>(RigidBody, PhysicsWorld.NullBody);
-        // FrictionMotor.Initialize(JVector.UnitZ, JVector.UnitX);
-        // FrictionMotor.MaximumForce = 10;
-        //
-        // // An angular motor for turning.
-        // AngularMovement = PhysicsWorld.CreateConstraint<AngularMotor>(RigidBody, PhysicsWorld.NullBody);
-        // AngularMovement.Initialize(JVector.UnitY, JVector.UnitY);
-        // AngularMovement.MaximumForce = 1000;
+        RigidBody.Damping = RigidBody.DampingType.None;
+        RigidBody.Material.KineticFriction = 0f;
+        RigidBody.Material.StaticFriction = 0f;
+        RigidBody.Material.Restitution = 0f;
+        RigidBody.AllowDeactivation = false;
+
+        UsePhysicsRotation = false;
+
     }
 
-    // private bool IsOnFloor()
-    // {
-    //     
-    // }
 }

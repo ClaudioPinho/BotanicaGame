@@ -1,9 +1,8 @@
 using System;
-using Jitter2.Collision.Shapes;
-using Jitter2.Dynamics.Constraints;
-using Jitter2.LinearMath;
+using Jitter.LinearMath;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using TestMonoGame.Debug;
 using TestMonoGame.Extensions;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
@@ -15,7 +14,10 @@ public class Player : CharacterObject
 {
     public Camera Camera { get; private set; }
 
-    private float _playerSpeed = 10f;
+    public float PlayerRunningSpeed = 20f;
+    public float PlayerWalkingSpeed = 15f;
+    
+    private float _playerSpeed;
     private const float _playerCamHeight = 1.8f;
 
     public override void Initialize(Vector3? objectPosition = null, Quaternion? objectRotation = null,
@@ -31,7 +33,7 @@ public class Player : CharacterObject
     {
         base.Update(gameTime);
 
-        _playerSpeed = Keyboard.GetState().IsKeyDown(Keys.LeftShift) ? 10f : 6f;
+        _playerSpeed = Keyboard.GetState().IsKeyDown(Keys.LeftShift) ? PlayerRunningSpeed : PlayerWalkingSpeed;
 
         // Get forward and right vectors on the XZ plane
         var forwardXZ = new Vector3(Camera.Transform.Forward.X, 0f, Camera.Transform.Forward.Z);
@@ -70,27 +72,15 @@ public class Player : CharacterObject
             movementDirection.Normalize();
         }
 
-        // Apply player movement
-        // Transform.Position += movementDirection * _playerSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
-        // RigidBody.AddForce(new JVector(movementDirection.X, movementDirection.Y, movementDirection.Z) * _playerSpeed);
+        // var velocityChange = movementDirection.ToJVector() * _playerSpeed - RigidBody.LinearVelocity;
+        // RigidBody.ApplyImpulse(velocityChange);
+        var desiredVelocity = movementDirection.ToJVector() * _playerSpeed;
+        RigidBody.LinearVelocity = new JVector(desiredVelocity.X, RigidBody.LinearVelocity.Y, desiredVelocity.Z);
 
-        // if (Keyboard.GetState().IsKeyDown(Keys.Space))
-        // {
-        //     RigidBody.AddForce(JVector.UnitY * 10f);
-        // }
-
-        // if (Keyboard.GetState().IsKeyDown(Keys.E))
-        // {
-        //     Transform.Position.Y -= .1f;
-        // }
-        //
-        // if (Keyboard.GetState().IsKeyDown(Keys.Q))
-        // {
-        //     Transform.Position.Y += .1f;
-        // }
-
-        // if (Transform.Position.Y < 0)
-        //     Transform.Position.Y = 0;
+        if (Keyboard.GetState().IsKeyDown(Keys.Space) && Transform.Position.Y < 2.2f)
+        {
+            RigidBody.ApplyImpulse(JVector.Up * 100f);
+        }
 
         // lock camera transform to the player transform
         Camera.Transform.Position = Transform.Position + Vector3.Up * _playerCamHeight;

@@ -1,4 +1,4 @@
-using Jitter2.LinearMath;
+using Jitter.LinearMath;
 using Microsoft.Xna.Framework;
 
 namespace TestMonoGame.Extensions;

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Jitter2.Collision.Shapes;
-using Jitter2.Dynamics.Constraints;
+using Jitter.Collision.Shapes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -44,8 +43,11 @@ public class MainGame : Microsoft.Xna.Framework.Game
     {
         GameInstance = this;
         GraphicsDeviceManager = new GraphicsDeviceManager(this);
+        GraphicsDeviceManager.GraphicsProfile = GraphicsProfile.HiDef;
+        GraphicsDeviceManager.SynchronizeWithVerticalRetrace = true;
         Content.RootDirectory = "Content";
         IsMouseVisible = false;
+        IsFixedTimeStep = false;
     }
 
     public T CreateNewGameObject<T>(Vector3? objectPosition = null, Quaternion? objectRotation = null,
@@ -103,21 +105,24 @@ public class MainGame : Microsoft.Xna.Framework.Game
         _plane.Model = Content.Load<Model>("Models/Primitives/plane");
         _plane.Texture = Content.Load<Texture2D>("Textures/Ground/ground-sand");
         _plane.TextureTiling = Vector2.One * 20f;
-        _plane.RigidBody.AddShape(new BoxShape(100f, .1f, 100f));
+        _plane.RigidBody.Shape = new BoxShape(200f, .1f, 200f);
+        _plane.RigidBody.Shape.UpdateShape();
         _plane.RigidBody.IsStatic = true;
+        _plane.UsePhysicsRotation = false;
 
-        // _testMonkey = CreateNewGameObject<PhysicsObject>();
-        // _testMonkey.MeshEffect = new GenericEffectAdapter(Content.Load<Effect>("Effects/TilingEffect"));
-        // _testMonkey.Transform.Scale = Vector3.One * 1f;
-        // _testMonkey.Model = Content.Load<Model>("Models/monkey");
-        // _testMonkey.Texture = Content.Load<Texture2D>("Textures/wooden-box");
-        // _testMonkey.TextureTiling = Vector2.One * 2f;
-        // _testMonkey.DiffuseColor = Color.Green;
-        // _testMonkey.SetPositionAndRotation(new Vector3(5f, 5f, 0f),
-        //     Quaternion.CreateFromYawPitchRoll(0f, MathF.PI / 4, 0f));
-        // _testMonkey.RigidBody.AddShape(new BoxShape(1));
+        _testMonkey = CreateNewGameObject<PhysicsObject>(new Vector3(5f, 5f, 0f),
+            Quaternion.CreateFromYawPitchRoll(0f, MathF.PI / 4, 0f));
+        _testMonkey.MeshEffect = new GenericEffectAdapter(Content.Load<Effect>("Effects/TilingEffect"));
+        _testMonkey.Model = Content.Load<Model>("Models/monkey");
+        _testMonkey.Texture = Content.Load<Texture2D>("Textures/wooden-box");
+        _testMonkey.TextureTiling = Vector2.One * 2f;
+        _testMonkey.DiffuseColor = Color.Green;
+        _testMonkey.RigidBody.Shape = new SphereShape(1f);
+        _testMonkey.RigidBody.Shape.UpdateShape();
+        _testMonkey.RigidBody.Mass = 5f;
 
         _player = CreateNewGameObject<Player>(new Vector3(0f, 20f, 0f), Quaternion.Identity);
+        _player.RigidBody.Mass = 100f;
 
         _reticle = Content.Load<Texture2D>("Textures/UI/reticle");
         _reticlePosition = new Vector2(GraphicsDevice.Viewport.Width / 2f, GraphicsDevice.Viewport.Height / 2f);
@@ -141,14 +146,10 @@ public class MainGame : Microsoft.Xna.Framework.Game
             Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
 
-        GamePhysics.UpdatePhysics(gameTime);
-
         foreach (var gameObject in _gameObjects)
         {
             gameObject.Update(gameTime);
         }
-
-        // DebugUtils.DrawWireCube(_testCube.Transform.Position, _testCube.Transform.Rotation, Vector3.One, Color.Yellow);
 
         DebugUtils.Update(gameTime);
 
@@ -158,9 +159,11 @@ public class MainGame : Microsoft.Xna.Framework.Game
     protected override void Draw(GameTime gameTime)
     {
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-        
+
         _frameCounter.Update(deltaTime);
-        
+
+        GamePhysics.UpdatePhysics(gameTime);
+
         GraphicsDevice.Clear(Color.CornflowerBlue);
         GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
@@ -175,8 +178,11 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
         _spriteBatch.Begin();
 
-        _spriteBatch.DrawString(_fontSprite, $"FPS: {_frameCounter.CurrentFramesPerSecond}", Vector2.Zero, Color.Yellow);
-        _spriteBatch.DrawString(_fontSprite, $"Player position| {_player.Transform.Position.ToString()}", new Vector2(0f, 20f),
+        _spriteBatch.DrawString(_fontSprite, $"FPS: {_frameCounter.CurrentFramesPerSecond}", Vector2.Zero,
+            Color.Yellow);
+        _spriteBatch.DrawString(_fontSprite,
+            $"Player restitution: {_player.RigidBody.Material.Restitution} data: {_player.Transform} velocity: {MathF.Round(_player.RigidBody.LinearVelocity.Length(), 2):00.00}",
+            new Vector2(0f, 20f),
             Color.Yellow);
         // _spriteBatch.DrawString(_fontSprite,
         //     $"Player rotation| {_player.Transform.Rotation.ToEuler().ToString()}", new Vector2(0f, 20f),

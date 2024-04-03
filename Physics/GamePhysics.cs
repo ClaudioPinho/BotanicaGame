@@ -1,5 +1,6 @@
 using System.Collections.Generic;
-using Jitter2;
+using Jitter;
+using Jitter.Collision;
 using Microsoft.Xna.Framework;
 using TestMonoGame.Debug;
 using TestMonoGame.Game;
@@ -9,6 +10,8 @@ namespace TestMonoGame.Physics;
 // https://jitterphysics.com/docs/quickstart/hello-world
 public static class GamePhysics
 {
+    public const bool IsMultithread = true;
+    
     public static World World { get; private set; }
 
     private static List<PhysicsObject> _physicsObjects;
@@ -17,12 +20,20 @@ public static class GamePhysics
     {
         // ThreadPool.Instance.ChangeThreadCount(1);
         _physicsObjects = new List<PhysicsObject>();
-        World = new World(100, 300, 300);
+        CollisionSystem collision = new CollisionSystemPersistentSAP();
+        World = new World(collision)
+        {
+            AllowDeactivation = true,
+        };
     }
     
     public static void UpdatePhysics(GameTime gameTime)
     {
-        World.Step((float)gameTime.ElapsedGameTime.TotalSeconds, true);
+        // World.Step((float)gameTime.ElapsedGameTime.TotalSeconds, true);
+        var step = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+        if(step > 1.0f / 100.0f) step = 1.0f / 100.0f;
+        World.Step(step,IsMultithread);
     }
 
     public static void RegisterPhysicsObject(PhysicsObject physicsObject)
@@ -33,6 +44,7 @@ public static class GamePhysics
             return;
         }
         physicsObject.PhysicsWorld = World;
+        World.AddBody(physicsObject.RigidBody);
         _physicsObjects.Add(physicsObject);
     }
     
@@ -44,6 +56,7 @@ public static class GamePhysics
             return;
         }
         physicsObject.PhysicsWorld = null;
+        World.RemoveBody(physicsObject.RigidBody);
         _physicsObjects.Remove(physicsObject);
     }
     

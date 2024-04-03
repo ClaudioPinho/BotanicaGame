@@ -1,5 +1,5 @@
 using System;
-using Jitter2.LinearMath;
+using Jitter.LinearMath;
 using Microsoft.Xna.Framework;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 

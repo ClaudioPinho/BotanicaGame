@@ -38,9 +38,9 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "dependencies": {
-            "Jitter2": {
+            "JitterPhysics": {
               "target": "Package",
-              "version": "[2.1.0, )"
+              "version": "[0.2.0.20, )"
             },
             "MonoGame.Content.Builder.Task": {
               "target": "Package",
