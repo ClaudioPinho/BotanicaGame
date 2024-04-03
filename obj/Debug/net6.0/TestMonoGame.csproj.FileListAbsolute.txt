@@ -2,7 +2,6 @@
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/TestMonoGame.deps.json
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/TestMonoGame.runtimeconfig.json
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/TestMonoGame.dll
-/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/ref/TestMonoGame.dll
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/TestMonoGame.pdb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/MonoGame.Framework.dll
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/runtimes/linux-x64/native/libSDL2-2.0.so.0
@@ -81,3 +80,5 @@
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Effects/TilingEffect.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Models/monkey.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Jitter2.dll
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/obj/Debug/net6.0/TestMonoGame.sourcelink.json
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/obj/Debug/net6.0/refint/TestMonoGame.dll

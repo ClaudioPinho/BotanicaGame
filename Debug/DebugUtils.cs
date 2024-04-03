@@ -8,16 +8,21 @@ namespace TestMonoGame.Debug;
 
 public static class DebugUtils
 {
-    private static Queue<WireCube> _wireCubesToDraw;
-    private static Queue<WireSphere> _wireSpheresToDraw;
+    public static DebugDrawCollision CollisionDrawer { get; private set; }
+
+    private static Queue<WireObject> _wireObjectsToDraw;
+    private static Queue<DebugTriangle> _debugTrianglesToDraw;
 
     private static BasicEffect _wireframeEffect;
 
-    public static void Initialize()
+    private static readonly Color DefaultDebugDrawColor = Color.Yellow;
+
+    public static void Initialize(GraphicsDevice graphicsDevice)
     {
-        _wireCubesToDraw = new Queue<WireCube>();
-        _wireSpheresToDraw = new Queue<WireSphere>();
-        _wireframeEffect = new BasicEffect(MainGame.GameInstance.GraphicsDevice)
+        CollisionDrawer = new DebugDrawCollision();
+        _wireObjectsToDraw = new Queue<WireObject>();
+        _debugTrianglesToDraw = new Queue<DebugTriangle>();
+        _wireframeEffect = new BasicEffect(graphicsDevice)
         {
             VertexColorEnabled = true,
             LightingEnabled = false
@@ -28,53 +33,59 @@ public static class DebugUtils
     {
     }
 
-    public static void Draw(GameTime gameTime)
+    public static void Draw(GraphicsDevice graphicsDevice, GameTime gameTime)
     {
-        while (_wireCubesToDraw.Count > 0)
+        while (_wireObjectsToDraw.Count > 0)
         {
-            var wireCubeToDraw = _wireCubesToDraw.Dequeue();
-            _wireframeEffect.World = wireCubeToDraw.Transform.WorldMatrix;
+            var wireObjectToDraw = _wireObjectsToDraw.Dequeue();
+            _wireframeEffect.World = wireObjectToDraw.Transform.WorldMatrix;
             _wireframeEffect.View = Camera.Current.ViewMatrix;
             _wireframeEffect.Projection = Camera.Current.ProjectionMatrix;
-            _wireframeEffect.DiffuseColor = wireCubeToDraw.WireframeColor.ToVector3();
 
             _wireframeEffect.CurrentTechnique.Passes[0].Apply();
-            MainGame.GameInstance.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineList,
-                wireCubeToDraw.VertexPositions, 0, wireCubeToDraw.VertexPositions.Length, wireCubeToDraw.Indices, 0,
-                wireCubeToDraw.Indices.Length / 2);
+            graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineList, wireObjectToDraw.VertexPositions, 0,
+                wireObjectToDraw.VertexPositions.Length, wireObjectToDraw.Indices, 0,
+                wireObjectToDraw.Indices.Length / 2);
         }
 
-        while (_wireSpheresToDraw.Count > 0)
+        while (_debugTrianglesToDraw.Count > 0)
         {
-            var wireSphereToDraw = _wireSpheresToDraw.Dequeue();
-
-            _wireframeEffect.World = wireSphereToDraw.Transform.WorldMatrix;
+            var triangleObjectToDraw = _debugTrianglesToDraw.Dequeue();
+            _wireframeEffect.World = Matrix.Identity;
             _wireframeEffect.View = Camera.Current.ViewMatrix;
             _wireframeEffect.Projection = Camera.Current.ProjectionMatrix;
-            _wireframeEffect.DiffuseColor = wireSphereToDraw.WireframeColor.ToVector3();
 
             _wireframeEffect.CurrentTechnique.Passes[0].Apply();
-            MainGame.GameInstance.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineList,
-                wireSphereToDraw.VertexPositions, 0, wireSphereToDraw.VertexPositions.Length, wireSphereToDraw.Indices,
-                0, wireSphereToDraw.Indices.Length / 2);
+            graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineList, triangleObjectToDraw.VertexPositions, 0,
+                triangleObjectToDraw.VertexPositions.Length, triangleObjectToDraw.Indices, 0,
+                triangleObjectToDraw.Indices.Length / 2);
         }
     }
 
-    public static void DrawWireSphere(Vector3 position, Quaternion rotation, Vector3 scale, float radius, Color color)
+    public static void DrawTriangle(Vector3 pA, Vector3 pB, Vector3 pC, Color? color = null)
     {
-        _wireSpheresToDraw.Enqueue(new WireSphere(position, rotation, scale, radius, color));
+        _debugTrianglesToDraw.Enqueue(new DebugTriangle(pA, pB, pC, color ?? DefaultDebugDrawColor));
     }
 
-    public static void DrawWireCube(Transform transform, Color color, Vector3[] customCorners = null)
+    public static void DrawWirePoint(Vector3 position, Quaternion? rotation = null, Vector3? scale = null,
+        Color? color = null)
     {
-        _wireCubesToDraw.Enqueue(new WireCube(transform.Position, transform.Rotation, transform.Scale, color,
-            customCorners));
+        _wireObjectsToDraw.Enqueue(new WirePoint(position, rotation ?? Quaternion.Identity, scale ?? Vector3.One,
+            color ?? DefaultDebugDrawColor));
     }
 
-    public static void DrawWireCube(Vector3 position, Quaternion rotation, Vector3 scale, Color color,
-        Vector3[] customCorners = null)
+    public static void DrawWireSphere(Vector3 position, Quaternion? rotation = null, Vector3? scale = null,
+        float? radius = null, Color? color = null)
     {
-        _wireCubesToDraw.Enqueue(new WireCube(position, rotation, scale, color, customCorners));
+        _wireObjectsToDraw.Enqueue(new WireSphere(position, rotation ?? Quaternion.Identity, scale ?? Vector3.One,
+            radius ?? 1f, color ?? DefaultDebugDrawColor));
+    }
+
+    public static void DrawWireCube(Vector3 position, Quaternion? rotation = null, Vector3? scale = null,
+        Color? color = null, Vector3[] customCorners = null)
+    {
+        _wireObjectsToDraw.Enqueue(new WireCube(position, rotation ?? Quaternion.Identity, scale ?? Vector3.One,
+            color ?? DefaultDebugDrawColor, customCorners));
     }
 
     public static void PrintError(string error, object reference = null)
@@ -91,24 +102,83 @@ public static class DebugUtils
     {
         Console.WriteLine($"WARNING | {warning}");
     }
-    
-    private class WireCube
+
+    private class WireObject
     {
-        public readonly Transform Transform;
+        public Transform Transform;
         public Color WireframeColor;
 
-        public readonly VertexPosition[] VertexPositions;
+        public VertexPositionColor[] VertexPositions;
+        public short[] Indices;
+    }
 
-        public readonly short[] Indices =
+    private class DebugTriangle
+    {
+        public VertexPositionColor[] VertexPositions;
+        public short[] Indices;
+
+        public DebugTriangle(Vector3 pA, Vector3 pB, Vector3 pC, Color color)
         {
-            0, 1, 1, 2, 2, 3, 3, 0, // Bottom face
-            4, 5, 5, 6, 6, 7, 7, 4, // Top face
-            0, 4, 1, 5, 2, 6, 3, 7 // Vertical edges
-        };
+            VertexPositions = new[]
+            {
+                new VertexPositionColor(pA, color),
+                new VertexPositionColor(pB, color),
+                new VertexPositionColor(pC, color)
+            };
+            Indices = new short[]
+            {
+                0, 1, 2, 0
+            };
+        }
+    }
 
+    private class WirePoint : WireObject
+    {
+        public WirePoint(Vector3 position, Quaternion rotation, Vector3 scale, Color wireFrameColor)
+        {
+            WireframeColor = wireFrameColor;
+
+            Transform = new Transform
+            {
+                Position = position,
+                Rotation = rotation,
+                Scale = scale
+            };
+
+            VertexPositions = new[]
+            {
+                // Define vertices for lines from the origin to the local origin in each cardinal direction
+                new VertexPositionColor(Vector3.Zero, WireframeColor), // Origin
+                new VertexPositionColor(Vector3.Left, WireframeColor), // Line towards left
+                new VertexPositionColor(Vector3.Right, WireframeColor), // Line towards right
+                new VertexPositionColor(Vector3.Up, WireframeColor), // Line towards up
+                new VertexPositionColor(Vector3.Down, WireframeColor), // Line towards down
+                new VertexPositionColor(Vector3.Forward, WireframeColor), // Line towards forward
+                new VertexPositionColor(Vector3.Backward, WireframeColor) // Line towards backward
+            };
+            Indices = new short[]
+            {
+                0, 1, // Connect origin to left
+                0, 2, // Connect origin to right
+                0, 3, // Connect origin to up
+                0, 4, // Connect origin to down
+                0, 5, // Connect origin to forward
+                0, 6 // Connect origin to backward
+            };
+        }
+    }
+
+    private class WireCube : WireObject
+    {
         public WireCube(Vector3 position, Quaternion rotation, Vector3 scale, Color wireframeColor,
             IReadOnlyList<Vector3> customCorners = null)
         {
+            Indices = new short[]
+            {
+                0, 1, 1, 2, 2, 3, 3, 0, // Bottom face
+                4, 5, 5, 6, 6, 7, 7, 4, // Top face
+                0, 4, 1, 5, 2, 6, 3, 7 // Vertical edges
+            };
             Transform = new Transform
             {
                 Position = position,
@@ -120,36 +190,30 @@ public static class DebugUtils
             {
                 VertexPositions = new[]
                 {
-                    new VertexPosition(new Vector3(-0.5f, -0.5f, -0.5f)),
-                    new VertexPosition(new Vector3(0.5f, -0.5f, -0.5f)),
-                    new VertexPosition(new Vector3(0.5f, -0.5f, 0.5f)),
-                    new VertexPosition(new Vector3(-0.5f, -0.5f, 0.5f)),
-                    new VertexPosition(new Vector3(-0.5f, 0.5f, -0.5f)),
-                    new VertexPosition(new Vector3(0.5f, 0.5f, -0.5f)),
-                    new VertexPosition(new Vector3(0.5f, 0.5f, 0.5f)),
-                    new VertexPosition(new Vector3(-0.5f, 0.5f, 0.5f))
+                    new VertexPositionColor(new Vector3(-0.5f, -0.5f, -0.5f), WireframeColor),
+                    new VertexPositionColor(new Vector3(0.5f, -0.5f, -0.5f), WireframeColor),
+                    new VertexPositionColor(new Vector3(0.5f, -0.5f, 0.5f), WireframeColor),
+                    new VertexPositionColor(new Vector3(-0.5f, -0.5f, 0.5f), WireframeColor),
+                    new VertexPositionColor(new Vector3(-0.5f, 0.5f, -0.5f), WireframeColor),
+                    new VertexPositionColor(new Vector3(0.5f, 0.5f, -0.5f), WireframeColor),
+                    new VertexPositionColor(new Vector3(0.5f, 0.5f, 0.5f), WireframeColor),
+                    new VertexPositionColor(new Vector3(-0.5f, 0.5f, 0.5f), WireframeColor)
                 };
             }
             else
             {
-                VertexPositions = new VertexPosition[customCorners.Count];
+                VertexPositions = new VertexPositionColor[customCorners.Count];
                 for (var i = 0; i < customCorners.Count; i++)
                 {
-                    VertexPositions[i] = new VertexPosition(customCorners[i]);
+                    VertexPositions[i] = new VertexPositionColor(customCorners[i], WireframeColor);
                 }
             }
         }
     }
 
-    private class WireSphere
+    private class WireSphere : WireObject
     {
-        public readonly Transform Transform;
-        public Color WireframeColor;
-
         public float Radius;
-
-        public readonly VertexPosition[] VertexPositions;
-        public readonly short[] Indices;
 
         public WireSphere(Vector3 position, Quaternion rotation, Vector3 scale, float radius, Color wireframeColor)
         {
@@ -164,7 +228,7 @@ public static class DebugUtils
 
             var latitudeBands = 16;
             var longitudeBands = 16;
-            var vertices = new List<VertexPosition>();
+            var vertices = new List<VertexPositionColor>();
 
             // Generate vertices along the surface of the sphere
             for (var lat = 0; lat <= latitudeBands; lat++)
@@ -184,7 +248,7 @@ public static class DebugUtils
                     var z = (float)(sinPhi * sinTheta);
 
                     var vertexPosition = position + new Vector3(x, y, z) * radius;
-                    vertices.Add(new VertexPosition(vertexPosition));
+                    vertices.Add(new VertexPositionColor(vertexPosition, WireframeColor));
                 }
             }
 

@@ -5,30 +5,26 @@ using Jitter2.LinearMath;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using TestMonoGame.Extensions;
-using TestMonoGame.Physics;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace TestMonoGame.Game;
 
 // https://github.com/notgiven688/jitterphysics2/blob/main/src/JitterDemo/Demos/Player/Player.cs
-public class Player : PhysicsObject
+// https://jitterphysics.com/docs/demo/jitterdemo
+public class Player : CharacterObject
 {
-    public Camera Camera { private set; get; }
+    public Camera Camera { get; private set; }
 
     private float _playerSpeed = 10f;
     private const float _playerCamHeight = 1.8f;
 
-    public override void Initialize()
+    public override void Initialize(Vector3? objectPosition = null, Quaternion? objectRotation = null,
+        Vector3? objectScale = null)
     {
-        base.Initialize();
         Camera = MainGame.GameInstance.CreateNewGameObject<Camera>();
         Camera.CameraFOV = 45f;
         Camera.Transform.Rotation.SetEulerAngles(0f, 90f, 0f);
-        RigidBody.AddShape(new SphereShape());
-        RigidBody.Damping = (0f, 0f);
-        RigidBody.DeactivationTime = TimeSpan.MaxValue;
-        // var ur = GamePhysics.World.CreateConstraint<HingeAngle>(RigidBody, GamePhysics.World.NullBody);
-        // ur.Initialize(JVector.UnitY, AngularLimit.Full);
+        base.Initialize(objectPosition, objectRotation, objectScale);
     }
 
     public override void Update(GameTime gameTime)
@@ -76,13 +72,13 @@ public class Player : PhysicsObject
 
         // Apply player movement
         // Transform.Position += movementDirection * _playerSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
-        RigidBody.AddForce(new JVector(movementDirection.X, movementDirection.Y, movementDirection.Z) * _playerSpeed);
+        // RigidBody.AddForce(new JVector(movementDirection.X, movementDirection.Y, movementDirection.Z) * _playerSpeed);
 
-        if (Keyboard.GetState().IsKeyDown(Keys.Space))
-        {
-            RigidBody.AddForce(JVector.UnitY * 10f);
-        }
-        
+        // if (Keyboard.GetState().IsKeyDown(Keys.Space))
+        // {
+        //     RigidBody.AddForce(JVector.UnitY * 10f);
+        // }
+
         // if (Keyboard.GetState().IsKeyDown(Keys.E))
         // {
         //     Transform.Position.Y -= .1f;

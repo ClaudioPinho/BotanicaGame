@@ -40,7 +40,7 @@
           "dependencies": {
             "Jitter2": {
               "target": "Package",
-              "version": "[2.2.0, )"
+              "version": "[2.1.0, )"
             },
             "MonoGame.Content.Builder.Task": {
               "target": "Package",
@@ -57,16 +57,31 @@
             "net47",
             "net471",
             "net472",
-            "net48"
+            "net48",
+            "net481"
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[6.0.28, 6.0.28]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.linux-x64",
+              "version": "[6.0.28, 6.0.28]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[6.0.28, 6.0.28]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/6.0.127/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.103/RuntimeIdentifierGraph.json"
         }
       }
     }

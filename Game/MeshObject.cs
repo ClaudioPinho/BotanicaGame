@@ -18,14 +18,14 @@ public class MeshObject : GameObject
 
     public Model Model;
 
-    public void Draw(GameTime gameTime)
+    public virtual void Draw(GraphicsDevice graphicsDevice, GameTime gameTime)
     {
         // todo: should we output an error or something here?
         if (Model == null)
             return;
 
         // creates the default mesh effect if none defined
-        MeshEffect ??= new BasicEffectAdapter(new BasicEffect(MainGame.GameInstance.GraphicsDevice));
+        MeshEffect ??= new BasicEffectAdapter(new BasicEffect(graphicsDevice));
 
         foreach (var mesh in Model.Meshes)
         {

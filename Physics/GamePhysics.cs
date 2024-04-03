@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using Jitter2;
-using Jitter2.Parallelization;
 using Microsoft.Xna.Framework;
 using TestMonoGame.Debug;
 using TestMonoGame.Game;
@@ -17,11 +15,11 @@ public static class GamePhysics
 
     public static void Initialize()
     {
-        ThreadPool.Instance.ChangeThreadCount(1);
+        // ThreadPool.Instance.ChangeThreadCount(1);
         _physicsObjects = new List<PhysicsObject>();
-        World = new World();
+        World = new World(100, 300, 300);
     }
-
+    
     public static void UpdatePhysics(GameTime gameTime)
     {
         World.Step((float)gameTime.ElapsedGameTime.TotalSeconds, true);
@@ -34,6 +32,7 @@ public static class GamePhysics
             DebugUtils.PrintWarning("Tried to register the same physics object twice!", physicsObject);
             return;
         }
+        physicsObject.PhysicsWorld = World;
         _physicsObjects.Add(physicsObject);
     }
     
@@ -44,6 +43,7 @@ public static class GamePhysics
             DebugUtils.PrintWarning("Tried to unregister a physics object that is not registered!", physicsObject);
             return;
         }
+        physicsObject.PhysicsWorld = null;
         _physicsObjects.Remove(physicsObject);
     }
     
