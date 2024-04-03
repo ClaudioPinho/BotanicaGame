@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Xna.Framework;
 
 namespace TestMonoGame.Game;
 
@@ -11,12 +12,12 @@ public class GameObject : IDisposable
         
     }
 
-    public virtual void Update()
+    public virtual void Update(GameTime gameTime)
     {
     }
 
     public virtual void Dispose()
     {
-        
+        GC.SuppressFinalize(this);
     }
 }

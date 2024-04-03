@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using Jitter2.Collision.Shapes;
+using Jitter2.Dynamics.Constraints;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using TestMonoGame.Debug;
 using TestMonoGame.Extensions;
 using TestMonoGame.Game;
+using TestMonoGame.Physics;
+using TestMonoGame.Rendering;
 
 namespace TestMonoGame;
 
@@ -21,12 +25,14 @@ public class MainGame : Microsoft.Xna.Framework.Game
     private SpriteFont _fontSprite;
 
     private Player _player;
-    private MeshObject _testCube;
+
+    private PhysicsObject _testMonkey;
+
     // private MeshObject _skybox;
-    private MeshObject _plane;
+    private PhysicsObject _plane;
 
     private Skybox _skybox;
-    
+
     private Vector2 _reticlePosition;
     private Texture2D _reticle;
 
@@ -79,26 +85,41 @@ public class MainGame : Microsoft.Xna.Framework.Game
         GraphicsDeviceManager.PreferredBackBufferHeight = 720;
         GraphicsDeviceManager.ApplyChanges();
 
+        GamePhysics.Initialize();
+
+        DebugUtils.Initialize();
+
         _meshObjects = new List<MeshObject>();
         _gameObjects = new List<GameObject>();
 
         _skybox = new Skybox("Textures/Skybox/SkyRed", Content);
 
-        _plane = CreateNewGameObject<MeshObject>();
+        _plane = CreateNewGameObject<PhysicsObject>();
+        _plane.MeshEffect = new GenericEffectAdapter(Content.Load<Effect>("Effects/TilingEffect"));
         _plane.Model = Content.Load<Model>("Models/Primitives/plane");
-        _plane.Texture = Content.Load<Texture2D>("Textures/Ground/Grass_02");
-        _plane.Transform.Scale = new Vector3(100f, 1f, 100f);
-        _plane.Transform.Rotation.SetEulerAngles(0f, -90f, 0f);
+        _plane.Texture = Content.Load<Texture2D>("Textures/Ground/ground-sand");
+        _plane.TextureTiling = Vector2.One * 20f;
+        _plane.Transform.Scale = new Vector3(100f, 100f, 1f);
+        _plane.SetPositionAndRotation(Vector3.Zero, Quaternion.CreateFromYawPitchRoll(0f, -MathF.PI / 2, 0f));
+        
+        _plane.RigidBody.AddShape(new BoxShape(100f, 100f, .01f));
+        _plane.RigidBody.IsStatic = true;
 
-        _testCube = CreateNewGameObject<PhysicsObject>();
-        _testCube.Transform.Position.X = 5f;
-        _testCube.Transform.Position.Y = 1f;
-        _testCube.Model = Content.Load<Model>("Models/cube");
-        _testCube.Texture = Content.Load<Texture2D>("Textures/wooden-box");
-        _testCube.DiffuseColor = Color.Red;
+        _testMonkey = CreateNewGameObject<PhysicsObject>();
+        _testMonkey.MeshEffect = new GenericEffectAdapter(Content.Load<Effect>("Effects/TilingEffect"));
+        _testMonkey.Transform.Scale = Vector3.One * 1f;
+        _testMonkey.Model = Content.Load<Model>("Models/monkey");
+        _testMonkey.Texture = Content.Load<Texture2D>("Textures/wooden-box");
+        _testMonkey.TextureTiling = Vector2.One * 2f;
+        _testMonkey.DiffuseColor = Color.Green;
+        _testMonkey.SetPositionAndRotation(new Vector3(5f, 5f, 0f),
+            Quaternion.CreateFromYawPitchRoll(0f, MathF.PI / 4, 0f));
+        
+        _testMonkey.RigidBody.AddShape(new BoxShape(1));
 
         _player = CreateNewGameObject<Player>();
-        
+        _player.SetPositionAndRotation(new Vector3(0f, 20f, 0f), Quaternion.Identity);
+
         _reticle = Content.Load<Texture2D>("Textures/UI/reticle");
         _reticlePosition = new Vector2(GraphicsDevice.Viewport.Width / 2f, GraphicsDevice.Viewport.Height / 2f);
 
@@ -110,7 +131,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
         _fontSprite = Content.Load<SpriteFont>("Fonts/myFont");
-        Debug.WriteLine(_fontSprite.Characters.Count);
+        // Debug.WriteLine(_fontSprite.Characters.Count);
 
         // TODO: use this.Content to load your game content here
     }
@@ -121,10 +142,16 @@ public class MainGame : Microsoft.Xna.Framework.Game
             Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
 
+        GamePhysics.UpdatePhysics(gameTime);
+        
         foreach (var gameObject in _gameObjects)
         {
-            gameObject.Update();
+            gameObject.Update(gameTime);
         }
+
+        // DebugUtils.DrawWireCube(_testCube.Transform.Position, _testCube.Transform.Rotation, Vector3.One, Color.Yellow);
+
+        DebugUtils.Update(gameTime);
 
         base.Update(gameTime);
     }
@@ -135,21 +162,25 @@ public class MainGame : Microsoft.Xna.Framework.Game
         GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
         _skybox.Draw();
-        
+
         foreach (var meshObject in _meshObjects)
         {
             meshObject.Draw(gameTime);
         }
 
+        DebugUtils.Draw(gameTime);
+
         _spriteBatch.Begin();
-        
+
         _spriteBatch.DrawString(_fontSprite, $"Player position| {_player.Transform.Position.ToString()}", Vector2.Zero,
             Color.Red);
-        _spriteBatch.DrawString(_fontSprite,
-            $"Player rotation| {_player.Transform.Rotation.ToEuler().ToString()}", new Vector2(0f, 20f),
-            Color.Red);
+        // _spriteBatch.DrawString(_fontSprite,
+        //     $"Player rotation| {_player.Transform.Rotation.ToEuler().ToString()}", new Vector2(0f, 20f),
+        //     Color.Red);
+        // _spriteBatch.DrawString(_fontSprite, $"Player colliding with '{_player.CollidingObjects.Count}' objects",
+        //     new Vector2(0f, 20f), Color.Red);
         _spriteBatch.Draw(_reticle, _reticlePosition, Color.White);
-        
+
         _spriteBatch.End();
 
         base.Draw(gameTime);

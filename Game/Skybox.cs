@@ -19,7 +19,7 @@ public class Skybox
     {
         _skyboxModel = content.Load<Model>("Models/cube-inv-normals");
         _skyboxTexture = content.Load<TextureCube>(skyboxTextureName);
-        _skyboxEffect = content.Load<Effect>("Shaders/Skybox");
+        _skyboxEffect = content.Load<Effect>("Effects/Skybox");
     }
 
     public void Draw()

@@ -10,6 +10,8 @@ public class MeshObject : GameObject
 
     public Texture2D Texture;
 
+    public Vector2 TextureTiling = new(1f, 1f);
+
     public Color DiffuseColor = Color.White;
 
     public bool ReceiveLighting = true;
@@ -22,7 +24,7 @@ public class MeshObject : GameObject
         if (Model == null)
             return;
 
-        // crreates the default mesh effect if none defined
+        // creates the default mesh effect if none defined
         MeshEffect ??= new BasicEffectAdapter(new BasicEffect(MainGame.GameInstance.GraphicsDevice));
 
         foreach (var mesh in Model.Meshes)
@@ -30,6 +32,7 @@ public class MeshObject : GameObject
             MeshEffect.SetWorldViewProj(Transform.WorldMatrix, Camera.Current.ViewMatrix,
                 Camera.Current.ProjectionMatrix);
             MeshEffect.SetTexture2D(Texture);
+            MeshEffect.SetTiling(TextureTiling.X, TextureTiling.Y);
             MeshEffect.SetDiffuseColor(DiffuseColor);
             MeshEffect.Draw(mesh);
         }

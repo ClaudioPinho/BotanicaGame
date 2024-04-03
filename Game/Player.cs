@@ -1,15 +1,21 @@
 using System;
+using Jitter2.Collision.Shapes;
+using Jitter2.Dynamics.Constraints;
+using Jitter2.LinearMath;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using TestMonoGame.Extensions;
+using TestMonoGame.Physics;
+using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace TestMonoGame.Game;
 
+// https://github.com/notgiven688/jitterphysics2/blob/main/src/JitterDemo/Demos/Player/Player.cs
 public class Player : PhysicsObject
 {
     public Camera Camera { private set; get; }
 
-    private float _playerSpeed = .1f;
+    private float _playerSpeed = 10f;
     private const float _playerCamHeight = 1.8f;
 
     public override void Initialize()
@@ -18,22 +24,29 @@ public class Player : PhysicsObject
         Camera = MainGame.GameInstance.CreateNewGameObject<Camera>();
         Camera.CameraFOV = 45f;
         Camera.Transform.Rotation.SetEulerAngles(0f, 90f, 0f);
+        RigidBody.AddShape(new SphereShape());
+        RigidBody.Damping = (0f, 0f);
+        RigidBody.DeactivationTime = TimeSpan.MaxValue;
+        // var ur = GamePhysics.World.CreateConstraint<HingeAngle>(RigidBody, GamePhysics.World.NullBody);
+        // ur.Initialize(JVector.UnitY, AngularLimit.Full);
     }
 
-    public override void Update()
+    public override void Update(GameTime gameTime)
     {
-        base.Update();
-        
-        _playerSpeed = Keyboard.GetState().IsKeyDown(Keys.LeftShift) ? .3f : .1f;
-        
+        base.Update(gameTime);
+
+        _playerSpeed = Keyboard.GetState().IsKeyDown(Keys.LeftShift) ? 10f : 6f;
+
         // Get forward and right vectors on the XZ plane
-        Vector3 forwardXZ = new Vector3(Camera.Transform.Forward.X, 0f, Camera.Transform.Forward.Z);
-        Vector3 rightXZ = new Vector3(Camera.Transform.Right.X, 0f, Camera.Transform.Right.Z);
+        var forwardXZ = new Vector3(Camera.Transform.Forward.X, 0f, Camera.Transform.Forward.Z);
+        var rightXZ = new Vector3(Camera.Transform.Right.X, 0f, Camera.Transform.Right.Z);
+        // var forwardXZ = Vector3.UnitZ;
+        // var rightXZ = Vector3.UnitX;
         forwardXZ.Normalize(); // Ensure the vectors have unit length
         rightXZ.Normalize();
 
         // Calculate movement direction based on keyboard input
-        Vector3 movementDirection = Vector3.Zero;
+        var movementDirection = Vector3.Zero;
 
         if (Keyboard.GetState().IsKeyDown(Keys.W))
         {
@@ -62,24 +75,30 @@ public class Player : PhysicsObject
         }
 
         // Apply player movement
-        Transform.Position += movementDirection * _playerSpeed;
-        
-        if (Keyboard.GetState().IsKeyDown(Keys.E))
-        {
-            Transform.Position.Y -= .1f;
-        }
-        
-        if (Keyboard.GetState().IsKeyDown(Keys.Q))
-        {
-            Transform.Position.Y += .1f;
-        }
+        // Transform.Position += movementDirection * _playerSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+        RigidBody.AddForce(new JVector(movementDirection.X, movementDirection.Y, movementDirection.Z) * _playerSpeed);
 
-        if (Transform.Position.Y < 0)
-            Transform.Position.Y = 0;
+        if (Keyboard.GetState().IsKeyDown(Keys.Space))
+        {
+            RigidBody.AddForce(JVector.UnitY * 10f);
+        }
         
+        // if (Keyboard.GetState().IsKeyDown(Keys.E))
+        // {
+        //     Transform.Position.Y -= .1f;
+        // }
+        //
+        // if (Keyboard.GetState().IsKeyDown(Keys.Q))
+        // {
+        //     Transform.Position.Y += .1f;
+        // }
+
+        // if (Transform.Position.Y < 0)
+        //     Transform.Position.Y = 0;
+
         // lock camera transform to the player transform
         Camera.Transform.Position = Transform.Position + Vector3.Up * _playerCamHeight;
-        
+
         if (MainGame.GameInstance.IsActive)
             UpdateInput();
     }
@@ -89,7 +108,7 @@ public class Player : PhysicsObject
 
     private const float _maxPitch = MathF.PI / 2 - 0.01f; // Just shy of 90 degrees
     private const float _minPitch = -_maxPitch;
-    
+
     private void UpdateInput()
     {
         var center = new Point(MainGame.GameInstance.Window.ClientBounds.Width / 2,
@@ -104,12 +123,12 @@ public class Player : PhysicsObject
 
         // Calculate rotation angles based on mouse movement
         yaw -= delta.X * sensitivity;
-        pitch += delta.Y * sensitivity;
-        
+        pitch -= delta.Y * sensitivity;
+
         // Clamp the pitch angle to prevent camera inversion
         pitch = MathHelper.Clamp(pitch, _minPitch, _maxPitch);
 
         Camera.Transform.Rotation = Quaternion.CreateFromYawPitchRoll(yaw, pitch, 0f);
-        Transform.Rotation = Quaternion.CreateFromYawPitchRoll(yaw - MathF.PI / 2, 0f, 0f);
+        // Transform.Rotation = Quaternion.CreateFromYawPitchRoll(yaw - MathF.PI / 2, 0f, 0f);
     }
 }

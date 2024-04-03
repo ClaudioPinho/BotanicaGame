@@ -4,22 +4,28 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Effects/Skybox.fx</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Effects/TilingEffect.fx</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Fonts/myFont.spritefont</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/cube-inv-normals.fbx</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/cube.fbx</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/monkey.fbx</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/Player/player.fbx</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/Primitives/plane.fbx</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/sphere-inv-normal.fbx</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/sphere.fbx</File>
-    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Shaders/Skybox.fx</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Ground/Grass_02_Nrm.png</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Ground/Grass_02.png</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Ground/ground-sand.png</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Skybox/SkyRed.dds</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Skybox/SkyWater.dds</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/UI/reticle.png</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/wooden-box.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

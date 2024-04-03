@@ -30,6 +30,11 @@ public class BasicEffectAdapter : IEffect
         _effect.DiffuseColor = color.ToVector3();
     }
 
+    public void SetTiling(float tilingX, float tilingY)
+    {
+        // no texture tiling for this effect
+    }
+
     public void Draw(ModelMesh mesh)
     {
         foreach (var meshPart in mesh.MeshParts)

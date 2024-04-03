@@ -1,10 +1,45 @@
 using System;
+using Jitter2.LinearMath;
 using Microsoft.Xna.Framework;
+using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace TestMonoGame.Extensions;
 
 public static class QuaternionExtensions
 {
+
+    public static JQuaternion ToJQuaternion(this Quaternion quaternion)
+    {
+        return new JQuaternion(quaternion.X, quaternion.Y, quaternion.Z, quaternion.W);
+    }
+
+    public static void FromJQuaternion(this ref Quaternion quaternion, JQuaternion jQuaternion)
+    {
+        quaternion.X = jQuaternion.X;
+        quaternion.Y = jQuaternion.Y;
+        quaternion.Z = jQuaternion.Z;
+        quaternion.W = jQuaternion.W;
+    }
+    
+    public static void RotateAroundAxis(this ref Quaternion quaternion, Vector3 axis, float angle)
+    {
+        // Normalize the axis
+        axis.Normalize();
+
+        // Calculate half angle
+        var halfAngle = angle * 0.5f;
+
+        // Calculate sin and cos of the half angle
+        var sinHalfAngle = (float)Math.Sin(halfAngle);
+        var cosHalfAngle = (float)Math.Cos(halfAngle);
+
+        // Create a new quaternion representing the rotation
+        var rotationQuaternion = new Quaternion(axis.X * sinHalfAngle, axis.Y * sinHalfAngle, axis.Z * sinHalfAngle, cosHalfAngle);
+
+        // Multiply the original quaternion by the rotation quaternion
+        quaternion *= rotationQuaternion;
+    }
+    
     public static float Yaw(this Quaternion quaternion)
     {
         return (float)Math.Atan2(2 * (quaternion.Y * quaternion.Z + quaternion.W * quaternion.X),

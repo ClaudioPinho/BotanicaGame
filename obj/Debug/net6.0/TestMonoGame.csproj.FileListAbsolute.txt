@@ -72,8 +72,12 @@
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/wooden-box.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Models/Player/player.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/UI/reticle.xnb
-/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Shaders/Skybox.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Models/cube-inv-normals.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Models/cube.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/Skybox/SkyWater.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/Skybox/SkyRed.xnb
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Textures/Ground/ground-sand.xnb
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Effects/Skybox.xnb
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Effects/TilingEffect.xnb
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Content/Models/monkey.xnb
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Jitter2.dll

@@ -1,43 +1,44 @@
+using Jitter2.Collision.Shapes;
+using Jitter2.Dynamics;
+using Jitter2.LinearMath;
 using Microsoft.Xna.Framework;
+using TestMonoGame.Debug;
 using TestMonoGame.Extensions;
+using TestMonoGame.Physics;
 
 namespace TestMonoGame.Game;
 
 public class PhysicsObject : MeshObject
 {
-    public enum EBoundingMode
+    public RigidBody RigidBody { get; private set; }
+    
+    public override void Initialize()
     {
-        Box = 0,
-        Sphere = 1,
-        CustomMesh = 2
+        base.Initialize();
+        DebugUtils.PrintMessage(Transform.Position.ToString());
+        RigidBody = GamePhysics.World.CreateRigidBody();
+        SetPositionAndRotation(Transform.Position, Transform.Rotation);
+        GamePhysics.RegisterPhysicsObject(this);
     }
 
-    public EBoundingMode BoundingMode = EBoundingMode.Box;
-
-    private Vector3 _currentVelocity = Vector3.Zero;
-
-    public override void Update()
+    public override void Update(GameTime gameTime)
     {
-        // physics should update first!
-        UpdatePhysics();
-        base.Update();
+        base.Update(gameTime);
+        Transform.Position.FromJVector(RigidBody.Position);
+        Transform.Rotation.FromJQuaternion(JQuaternion.CreateFromMatrix(RigidBody.Orientation));
     }
 
-    public virtual void UpdatePhysics()
+    public override void Dispose()
     {
-        
+        GamePhysics.UnRegisterPhysicsObject(this);
+        base.Dispose();
     }
 
-    public BoundingBox GetBoundingBox()
+    public void SetPositionAndRotation(Vector3 position, Quaternion rotation)
     {
-        var boundingBox = new BoundingBox();
-        
-        foreach (var mesh in Model.Meshes)
-        {
-            var meshBox = BoundingBox.CreateFromSphere(mesh.BoundingSphere).Transform(Transform.WorldMatrix);
-            boundingBox = BoundingBox.CreateMerged(boundingBox, meshBox);
-        }
-
-        return boundingBox;
+        Transform.Position = position;
+        Transform.Rotation = rotation;
+        RigidBody.Position = position.ToJVector();
+        RigidBody.Orientation = JMatrix.CreateFromQuaternion(rotation.ToJQuaternion());
     }
 }

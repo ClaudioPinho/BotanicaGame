@@ -36,16 +36,12 @@ public class Camera : GameObject
     public void UpdateViewMatrix()
     {
         ViewMatrix = Matrix.CreateLookAt(Transform.Position,
-            Transform.Position + Vector3.Transform(-Vector3.Forward, Transform.Rotation), Vector3.Up);
+            Transform.Position + Vector3.Transform(Vector3.Forward, Transform.Rotation), Vector3.Up);
     }
 
-    public override void Initialize()
+    public override void Update(GameTime gameTime)
     {
-        
-    }
-
-    public override void Update()
-    {
+        base.Update(gameTime);
         UpdateViewMatrix();
     }
 }
