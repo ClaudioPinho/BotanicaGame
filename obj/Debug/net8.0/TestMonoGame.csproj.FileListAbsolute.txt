@@ -21,7 +21,6 @@
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/TestMonoGame.runtimeconfig.json
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/TestMonoGame.dll
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/TestMonoGame.pdb
-/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/Jitter2.dll
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/MonoGame.Framework.dll
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/runtimes/linux-x64/native/libSDL2-2.0.so.0
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/runtimes/linux-x64/native/libopenal.so.1
@@ -43,3 +42,4 @@
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/obj/Debug/net8.0/TestMonoGame.pdb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/obj/Debug/net8.0/TestMonoGame.genruntimeconfig.cache
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/obj/Debug/net8.0/ref/TestMonoGame.dll
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/WorldEngine.dll

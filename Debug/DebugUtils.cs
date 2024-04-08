@@ -8,8 +8,6 @@ namespace TestMonoGame.Debug;
 
 public static class DebugUtils
 {
-    public static DebugDrawCollision CollisionDrawer { get; private set; }
-
     private static Queue<WireObject> _wireObjectsToDraw;
     private static Queue<DebugTriangle> _debugTrianglesToDraw;
 
@@ -19,7 +17,6 @@ public static class DebugUtils
 
     public static void Initialize(GraphicsDevice graphicsDevice)
     {
-        CollisionDrawer = new DebugDrawCollision();
         _wireObjectsToDraw = new Queue<WireObject>();
         _debugTrianglesToDraw = new Queue<DebugTriangle>();
         _wireframeEffect = new BasicEffect(graphicsDevice)

@@ -1,11 +1,5 @@
-using Jitter.Collision.Shapes;
-using Jitter.Dynamics;
-using Jitter.LinearMath;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using TestMonoGame.Debug;
-using TestMonoGame.Extensions;
-using TestMonoGame.Physics;
 
 namespace TestMonoGame.Game.World;
 
@@ -19,8 +13,6 @@ public class Block
     private static short[] _indices;
     private static BasicEffect _basicEffect;
 
-    private RigidBody _createdBody;
-    
     public Block(Vector3 position, Color color, float blockSize = 1)
     {
         Position = position;
@@ -63,20 +55,6 @@ public class Block
             1, 6, 2
         };
         _basicEffect ??= new BasicEffect(MainGame.GameInstance.GraphicsDevice);
-        _createdBody = new RigidBody(new BoxShape(JVector.One * blockSize), new Material()
-        {
-            KineticFriction = -100f,
-            Restitution = -100f,
-            StaticFriction = -100f
-        }, true)
-        {
-            Position = Position.ToJVector(),
-            IsStatic = true,
-            
-            EnableSpeculativeContacts = false,
-            EnableDebugDraw = true
-        };
-        GamePhysics.World.AddBody(_createdBody);
     }
 
     public void Draw(GraphicsDevice graphicsDevice)

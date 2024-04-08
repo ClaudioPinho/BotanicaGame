@@ -4,7 +4,13 @@ using TestMonoGame.Rendering;
 
 namespace TestMonoGame.Game;
 
-public class MeshObject(string name) : GameObject(name)
+public class MeshObject(
+    string name,
+    Vector3? position = null,
+    Quaternion? rotation = null,
+    Vector3? scale = null,
+    Transform parent = null)
+    : GameObject(name, position, rotation, scale, parent)
 {
     public IEffect MeshEffect;
     public Model Model;

@@ -8,7 +8,7 @@ public class Camera : GameObject
     /// The current camera being used to render the scene
     /// </summary>
     public static Camera Current { private set; get; }
-    
+
     public float CameraFOV = 80f;
     public float NearPlane = .01f;
     public float FarPlane = 1000f;
@@ -19,7 +19,8 @@ public class Camera : GameObject
 
     public Matrix ViewMatrix;
 
-    public Camera()
+    public Camera(string name, Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null,
+        Transform parent = null) : base(name, position, rotation, scale, parent)
     {
         Current = this;
         AspectRatio = MainGame.GraphicsDeviceManager.GraphicsDevice.DisplayMode.AspectRatio;

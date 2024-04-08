@@ -2,35 +2,6 @@
   "version": 3,
   "targets": {
     "net8.0": {
-      "BepuPhysics/2.5.0-beta.23": {
-        "type": "package",
-        "dependencies": {
-          "BepuUtilities": "2.5.0-beta.23"
-        },
-        "compile": {
-          "lib/net8.0/BepuPhysics.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/BepuPhysics.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "BepuUtilities/2.5.0-beta.23": {
-        "type": "package",
-        "compile": {
-          "lib/net8.0/BepuUtilities.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/BepuUtilities.dll": {
-            "related": ".xml"
-          }
-        }
-      },
       "MonoGame.Content.Builder.Task/3.8.1.303": {
         "type": "package",
         "build": {
@@ -87,34 +58,6 @@
     }
   },
   "libraries": {
-    "BepuPhysics/2.5.0-beta.23": {
-      "sha512": "/wfKGWkK2gL7jlZrU5lylNcsWFrL3d9ohTSdvh7F5brSMxAl2YfOFVWdaqnObdKc9wszL7f25r1de/4G0NPMhQ==",
-      "type": "package",
-      "path": "bepuphysics/2.5.0-beta.23",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "bepuphysics.2.5.0-beta.23.nupkg.sha512",
-        "bepuphysics.nuspec",
-        "bepuphysicslogo256.png",
-        "lib/net8.0/BepuPhysics.dll",
-        "lib/net8.0/BepuPhysics.xml"
-      ]
-    },
-    "BepuUtilities/2.5.0-beta.23": {
-      "sha512": "NlY01uMcPtRYL+faXCK1u16dq5JEe1424M7hKoBnQeoHQZdhxYwgTmVw4feTL/kMaCBTDnSUiECgX5+i6k+nBA==",
-      "type": "package",
-      "path": "bepuutilities/2.5.0-beta.23",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "bepuphysicslogo256.png",
-        "bepuutilities.2.5.0-beta.23.nupkg.sha512",
-        "bepuutilities.nuspec",
-        "lib/net8.0/BepuUtilities.dll",
-        "lib/net8.0/BepuUtilities.xml"
-      ]
-    },
     "MonoGame.Content.Builder.Task/3.8.1.303": {
       "sha512": "9Ilzzje62LhWElbPNEl7vh7XsRSbze+lvCJdZtTZUGu48FRgvYN6THURwIB9PN98EI33/Wnf6iuShNUtD7hL4Q==",
       "type": "package",
@@ -154,8 +97,6 @@
   },
   "projectFileDependencyGroups": {
     "net8.0": [
-      "BepuPhysics >= 2.5.0-beta.23",
-      "BepuUtilities >= 2.5.0-beta.23",
       "MonoGame.Content.Builder.Task >= 3.8.1.303",
       "MonoGame.Framework.DesktopGL >= 3.8.1.303"
     ]
@@ -197,14 +138,6 @@
       "net8.0": {
         "targetAlias": "net8.0",
         "dependencies": {
-          "BepuPhysics": {
-            "target": "Package",
-            "version": "[2.5.0-beta.23, )"
-          },
-          "BepuUtilities": {
-            "target": "Package",
-            "version": "[2.5.0-beta.23, )"
-          },
           "MonoGame.Content.Builder.Task": {
             "target": "Package",
             "version": "[3.8.1.303, )"

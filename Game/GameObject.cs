@@ -3,20 +3,21 @@ using Microsoft.Xna.Framework;
 
 namespace TestMonoGame.Game;
 
-public class GameObject(string name) : IDisposable
+public class GameObject : IDisposable
 {
-    public string Name = name;
-    
-    public readonly Transform Transform = new()
+    public string Name;
+
+    public readonly Transform Transform;
+
+    public GameObject(string name, Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null,
+        Transform parent = null)
     {
-        Position = Vector3.Zero,
-        Rotation = Quaternion.Identity,
-        Scale = Vector3.One
-    };
+        Name = name;
+        Transform = new Transform(position, rotation, scale);
+    }
 
     public virtual void Initialize()
     {
-        
     }
 
     public virtual void Update(GameTime gameTime)

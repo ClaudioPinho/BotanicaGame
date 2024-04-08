@@ -1,4 +1,3 @@
-using Jitter.LinearMath;
 using Microsoft.Xna.Framework;
 
 namespace TestMonoGame.Extensions;
@@ -17,21 +16,4 @@ public static class VectorExtensions
         return projectedVector;
     }
     
-    public static JVector ToJVector(this Vector3 vector)
-    {
-        return new JVector(vector.X, vector.Y, vector.Z);
-    }
-
-    public static Vector3 ToVector3(this JVector vector)
-    {
-        return new Vector3(vector.X, vector.Y, vector.Z);
-    }
-
-    public static void FromJVector(this ref Vector3 vector, JVector jVector)
-    {
-        vector.X = jVector.X;
-        vector.Y = jVector.Y;
-        vector.Z = jVector.Z;
-    }
-
 }

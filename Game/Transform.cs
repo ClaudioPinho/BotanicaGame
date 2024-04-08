@@ -3,11 +3,11 @@ using Microsoft.Xna.Framework;
 
 namespace TestMonoGame.Game;
 
-public class Transform
+public class Transform(Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null)
 {
-    public Vector3 Position = new(0f, 0f, 0f);
-    public Quaternion Rotation = Quaternion.Identity;
-    public Vector3 Scale = new(1f, 1f, 1f);
+    public Vector3 Position = position ?? Vector3.Zero;
+    public Quaternion Rotation = rotation ?? Quaternion.Identity;
+    public Vector3 Scale = scale ?? Vector3.One;
 
     public Matrix WorldMatrix => Matrix.CreateScale(Scale) * Matrix.CreateFromQuaternion(Rotation) *
                                  Matrix.CreateTranslation(Position);
@@ -20,6 +20,6 @@ public class Transform
         var roundPosX = MathF.Round(Position.X, 2).ToString("00.00");
         var roundPosY = MathF.Round(Position.Y, 2).ToString("00.00");
         var roundPosZ = MathF.Round(Position.Z, 2).ToString("00.00");
-        return $"Position| X:{roundPosX} Y:{roundPosY} Z:{roundPosZ}";
+        return $"Position| X:{roundPosX} Y:{roundPosY} Z:{roundPosZ} Rotation| {rotation.ToString()}";
     }
 }
