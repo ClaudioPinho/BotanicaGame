@@ -112,14 +112,15 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
         _skybox = new Skybox("Textures/Skybox/SkyRed", Content);
 
-        _plane = new PhysicsObject("WorldPlane", true, new Vector3(0, -2, 0),
+        _plane = new PhysicsObject("WorldPlane", true, new Vector3(200, 1f, 200f), new Vector3(0, 0, 0),
             Quaternion.CreateFromYawPitchRoll(0, -MathF.PI / 2, 0), new Vector3(100f, 100f, 1f));
         _plane.MeshEffect = new GenericEffectAdapter(Content.Load<Effect>("Effects/TilingEffect"));
         _plane.Model = Content.Load<Model>("Models/Primitives/plane");
         _plane.Texture = Content.Load<Texture2D>("Textures/Ground/ground-sand");
         _plane.TextureTiling = Vector2.One * 20f;
+        _plane.CollisionOffset = new Vector3(0, -.5f, 0);
 
-        _testMonkey = new PhysicsObject("The monkey", false, new Vector3(5f, 5f, 0f),
+        _testMonkey = new PhysicsObject("The monkey", false, null, new Vector3(5f, 5f, 0f),
             Quaternion.CreateFromYawPitchRoll(0f, MathF.PI / 4, 0f));
         _testMonkey.MeshEffect = new GenericEffectAdapter(Content.Load<Effect>("Effects/TilingEffect"));
         _testMonkey.Model = Content.Load<Model>("Models/monkey");
@@ -127,22 +128,25 @@ public class MainGame : Microsoft.Xna.Framework.Game
         _testMonkey.TextureTiling = Vector2.One * 2f;
         _testMonkey.DiffuseColor = Color.Green;
 
-        var cubeTest = new PhysicsObject("cube test 1", false, new Vector3(0f, 1f, 0f));
+        var cubeTest = new PhysicsObject("cube test 1", true, null, new Vector3(5, 0f, 0f));
         cubeTest.Model = Content.Load<Model>("Models/cube");
         cubeTest.DiffuseColor = Color.White;
         cubeTest.ReceiveLighting = true;
+        cubeTest.DebugDrawCollision = true;
+        cubeTest.CollisionSize = Vector3.One * 2;
 
-        var cubeTest2 = new PhysicsObject("cube test 2", false, new Vector3(0f, 2f, 0f));
+        var cubeTest2 = new PhysicsObject("cube test 2", false, null, new Vector3(0f, 2f, 0f));
         cubeTest.Model = Content.Load<Model>("Models/cube");
         cubeTest.DiffuseColor = Color.White;
         cubeTest.ReceiveLighting = true;
 
         _player = new Player("Main player", new Vector3(0f, 20f, 0f), Quaternion.Identity);
+        _player.DebugDrawCollision = true;
 
         AddGameObject(_plane);
-        AddGameObject(_testMonkey);
+        // AddGameObject(_testMonkey);
         AddGameObject(cubeTest);
-        AddGameObject(cubeTest2);
+        // AddGameObject(cubeTest2);
         AddGameObject(_player);
 
         _reticle = Content.Load<Texture2D>("Textures/UI/reticle");
@@ -169,11 +173,13 @@ public class MainGame : Microsoft.Xna.Framework.Game
             Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
 
+        var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
         _mainWorld.Update(gameTime);
 
         foreach (var gameObject in _gameObjects)
         {
-            gameObject.Update(gameTime);
+            gameObject.Update(deltaTime);
         }
 
         DebugUtils.Update(gameTime);
@@ -188,14 +194,14 @@ public class MainGame : Microsoft.Xna.Framework.Game
         _frameCounter.Update(deltaTime);
 
         // update the physics simulation
-        Physics.UpdatePhysics(gameTime);
+        Physics.UpdatePhysics(deltaTime);
 
         GraphicsDevice.Clear(Color.CornflowerBlue);
         GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
         _skybox.Draw();
 
-        _mainWorld.Draw(GraphicsDevice, gameTime);
+        // _mainWorld.Draw(GraphicsDevice, gameTime);
 
         foreach (var meshObject in _meshObjects)
         {
@@ -207,8 +213,16 @@ public class MainGame : Microsoft.Xna.Framework.Game
         _spriteBatch.DrawString(_fontSprite, $"FPS: {_frameCounter.CurrentFramesPerSecond}", Vector2.Zero,
             Color.Yellow);
         _spriteBatch.DrawString(_fontSprite,
-            $"Player transform: {_player.Transform}",
+            $"Player position: {_player.Transform.Position}",
             new Vector2(0f, 20f),
+            Color.Yellow);
+        _spriteBatch.DrawString(_fontSprite,
+            $"Camera position: {_player.Camera.Transform.Position}",
+            new Vector2(0f, 40f),
+            Color.Yellow);
+        _spriteBatch.DrawString(_fontSprite,
+            $"Player velocity: {_player.Velocity}",
+            new Vector2(0f, 60f),
             Color.Yellow);
         // _spriteBatch.DrawString(_fontSprite,
         //     $"Player rotation| {_player.Transform.Rotation.ToEuler().ToString()}", new Vector2(0f, 20f),

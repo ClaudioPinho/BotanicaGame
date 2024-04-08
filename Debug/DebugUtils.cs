@@ -35,7 +35,10 @@ public static class DebugUtils
         while (_wireObjectsToDraw.Count > 0)
         {
             var wireObjectToDraw = _wireObjectsToDraw.Dequeue();
-            _wireframeEffect.World = wireObjectToDraw.Transform.WorldMatrix;
+            _wireframeEffect.World = wireObjectToDraw.UsesWorldPositions
+                ? Matrix.Identity
+                : wireObjectToDraw.Transform.WorldMatrix;
+
             _wireframeEffect.View = Camera.Current.ViewMatrix;
             _wireframeEffect.Projection = Camera.Current.ProjectionMatrix;
 
@@ -87,23 +90,25 @@ public static class DebugUtils
 
     public static void PrintError(string error, object reference = null)
     {
-        Console.WriteLine($"ERROR | {error}");
+        Console.WriteLine($"ERROR ({DateTime.Now:T}) | {error}");
     }
 
     public static void PrintMessage(string message, object reference = null)
     {
-        Console.WriteLine($"INFO | {message}");
+        Console.WriteLine($"INFO ({DateTime.Now:T}) | {message}");
     }
 
     public static void PrintWarning(string warning, object reference = null)
     {
-        Console.WriteLine($"WARNING | {warning}");
+        Console.WriteLine($"WARNING ({DateTime.Now:T}) | {warning}");
     }
 
     private class WireObject
     {
         public Transform Transform;
         public Color WireframeColor;
+
+        public bool UsesWorldPositions = false;
 
         public VertexPositionColor[] VertexPositions;
         public short[] Indices;
@@ -199,6 +204,7 @@ public static class DebugUtils
             }
             else
             {
+                UsesWorldPositions = true;
                 VertexPositions = new VertexPositionColor[customCorners.Count];
                 for (var i = 0; i < customCorners.Count; i++)
                 {

@@ -14,22 +14,23 @@ public class Player : CharacterObject
     public float PlayerWalkingSpeed = 15f;
 
     private float _playerSpeed;
-    private const float _playerCamHeight = 1.8f;
+    private const float _playerCamHeight = 1.7f;
 
     public Player(string name, Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null,
-        Transform parent = null) : base(name, position, rotation, scale, parent)
+        Transform parent = null) : base(name, new Vector3(0.5f, 1.8f, 0.5f), position, rotation, scale,
+        parent)
     {
         Camera = new Camera("Player Camera", Transform.Position + Vector3.Up * _playerCamHeight,
             Quaternion.CreateFromYawPitchRoll(0f, MathF.PI / 2, 0));
         Camera.CameraFOV = 45f;
+        CollisionOffset = new Vector3(0, CollisionSize.Y/2, 0f);
         MainGame.GameInstance.AddGameObject(Camera);
     }
 
-    public override void Update(GameTime gameTime)
+    public override void Update(float deltaTime)
     {
-        base.Update(gameTime);
+        base.Update(deltaTime);
 
-        var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         _playerSpeed = Keyboard.GetState().IsKeyDown(Keys.LeftShift) ? PlayerRunningSpeed : PlayerWalkingSpeed;
 
         // Get forward and right vectors on the XZ plane
@@ -69,34 +70,17 @@ public class Player : CharacterObject
             movementDirection.Normalize();
         }
 
-        Transform.Position += movementDirection * _playerSpeed * deltaTime;
+        // Transform.Position += movementDirection * _playerSpeed * deltaTime;
+        // LinearVelocity += movementDirection * _playerSpeed * deltaTime;
+
+        Velocity.X = movementDirection.X * _playerSpeed;
+        Velocity.Z = movementDirection.Z * _playerSpeed;
+
+        if (Keyboard.GetState().IsKeyDown(Keys.Space))
+        {
+            Velocity.Y += 1f;
+        }
         
-        // var velocityChange = movementDirection.ToJVector() * _playerSpeed - RigidBody.LinearVelocity;
-        // var desiredVelocity = movementDirection.ToJVector() * _playerSpeed;
-        // RigidBody.LinearVelocity = new JVector(desiredVelocity.X, RigidBody.LinearVelocity.Y, desiredVelocity.Z);
-
-
-        // // Clamp velocity components to ensure they don't exceed the maximum
-        // RigidBody.LinearVelocity = new JVector(
-        //     MathHelper.Clamp(RigidBody.LinearVelocity.X, -_playerSpeed, _playerSpeed),
-        //     RigidBody.LinearVelocity.Y,
-        //     MathHelper.Clamp(RigidBody.LinearVelocity.Z, -_playerSpeed, _playerSpeed)
-        // );
-        //
-        // // RigidBody.ApplyImpulse(desiredVelocity);
-        // if (MathF.Abs(movementDirection.Length()) <= 0)
-        //     RigidBody.LinearVelocity = new JVector(0, RigidBody.LinearVelocity.Y, 0);
-
-        // if (MathF.Abs(RigidBody.LinearVelocity.Length()) >= _playerSpeed)
-        // {
-        //     var normalizedVelocity = RigidBody.LinearVelocity.ToVector3();
-        //     normalizedVelocity.Y = 0;
-        //     normalizedVelocity.Normalize();
-        //     DebugUtils.PrintMessage(normalizedVelocity.ToString());
-        //     
-        //     RigidBody.LinearVelocity
-        // }
-
         // lock camera transform to the player transform
         Camera.Transform.Position = Transform.Position + Vector3.Up * _playerCamHeight;
 

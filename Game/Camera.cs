@@ -40,9 +40,9 @@ public class Camera : GameObject
             Transform.Position + Vector3.Transform(Vector3.Forward, Transform.Rotation), Vector3.Up);
     }
 
-    public override void Update(GameTime gameTime)
+    public override void Update(float deltaTime)
     {
-        base.Update(gameTime);
+        base.Update(deltaTime);
         UpdateViewMatrix();
     }
 }
