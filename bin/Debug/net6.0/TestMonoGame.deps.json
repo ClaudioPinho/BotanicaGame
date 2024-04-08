@@ -10,7 +10,8 @@
         "dependencies": {
           "JitterPhysics": "0.2.0.20",
           "MonoGame.Content.Builder.Task": "3.8.1.303",
-          "MonoGame.Framework.DesktopGL": "3.8.1.303"
+          "MonoGame.Framework.DesktopGL": "3.8.1.303",
+          "WorldEngine": "1.0.0.0"
         },
         "runtime": {
           "TestMonoGame.dll": {}
@@ -74,6 +75,14 @@
             "fileVersion": "0.0.0.0"
           }
         }
+      },
+      "WorldEngine/1.0.0.0": {
+        "runtime": {
+          "WorldEngine.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
       }
     }
   },
@@ -103,6 +112,11 @@
       "sha512": "sha512-eGYhqn0n1olk8MNYeE9EuBmoNNECN1T18rPMaQpkzsEQ0H3nVyFPXC+uCo78v5pi5juQpJ3PSFnSkjzZJ1U58A==",
       "path": "monogame.framework.desktopgl/3.8.1.303",
       "hashPath": "monogame.framework.desktopgl.3.8.1.303.nupkg.sha512"
+    },
+    "WorldEngine/1.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
     }
   }
 }

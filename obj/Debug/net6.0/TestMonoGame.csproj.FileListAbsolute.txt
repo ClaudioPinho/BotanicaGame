@@ -82,3 +82,4 @@
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/obj/Debug/net6.0/TestMonoGame.sourcelink.json
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/obj/Debug/net6.0/refint/TestMonoGame.dll
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/Jitter.dll
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net6.0/WorldEngine.dll

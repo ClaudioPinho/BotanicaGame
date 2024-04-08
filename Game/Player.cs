@@ -1,8 +1,6 @@
 using System;
-using Jitter.LinearMath;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using TestMonoGame.Debug;
 using TestMonoGame.Extensions;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
@@ -20,6 +18,11 @@ public class Player : CharacterObject
     private float _playerSpeed;
     private const float _playerCamHeight = 1.8f;
 
+    public Player() : base()
+    {
+        
+    }
+    
     public override void Initialize(Vector3? objectPosition = null, Quaternion? objectRotation = null,
         Vector3? objectScale = null)
     {
@@ -73,9 +76,30 @@ public class Player : CharacterObject
         }
 
         // var velocityChange = movementDirection.ToJVector() * _playerSpeed - RigidBody.LinearVelocity;
-        // RigidBody.ApplyImpulse(velocityChange);
         var desiredVelocity = movementDirection.ToJVector() * _playerSpeed;
         RigidBody.LinearVelocity = new JVector(desiredVelocity.X, RigidBody.LinearVelocity.Y, desiredVelocity.Z);
+        
+        
+        // Clamp velocity components to ensure they don't exceed the maximum
+        RigidBody.LinearVelocity = new JVector(
+            MathHelper.Clamp(RigidBody.LinearVelocity.X, -_playerSpeed, _playerSpeed),
+            RigidBody.LinearVelocity.Y,
+            MathHelper.Clamp(RigidBody.LinearVelocity.Z, -_playerSpeed, _playerSpeed)
+        );
+        
+        // RigidBody.ApplyImpulse(desiredVelocity);
+        if (MathF.Abs(movementDirection.Length()) <= 0)
+            RigidBody.LinearVelocity = new JVector(0, RigidBody.LinearVelocity.Y, 0);
+        
+        // if (MathF.Abs(RigidBody.LinearVelocity.Length()) >= _playerSpeed)
+        // {
+        //     var normalizedVelocity = RigidBody.LinearVelocity.ToVector3();
+        //     normalizedVelocity.Y = 0;
+        //     normalizedVelocity.Normalize();
+        //     DebugUtils.PrintMessage(normalizedVelocity.ToString());
+        //     
+        //     RigidBody.LinearVelocity
+        // }
 
         if (Keyboard.GetState().IsKeyDown(Keys.Space) && Transform.Position.Y < 2.2f)
         {

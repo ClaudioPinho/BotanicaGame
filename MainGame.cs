@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Jitter.Collision.Shapes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using TestMonoGame.Debug;
 using TestMonoGame.Game;
+using TestMonoGame.Game.World;
 using TestMonoGame.Physics;
 using TestMonoGame.Rendering;
 
@@ -16,16 +18,15 @@ namespace TestMonoGame;
 public class MainGame : Microsoft.Xna.Framework.Game
 {
     public static MainGame GameInstance;
-
     public static GraphicsDeviceManager GraphicsDeviceManager { private set; get; }
+
+    public GamePhysics Physics;
 
     private SpriteBatch _spriteBatch;
     private SpriteFont _fontSprite;
 
     private Player _player;
-
     private PhysicsObject _testMonkey;
-
     // private MeshObject _skybox;
     private PhysicsObject _plane;
 
@@ -33,6 +34,8 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
     private Vector2 _reticlePosition;
     private Texture2D _reticle;
+
+    private World _mainWorld;
 
     private List<GameObject> _gameObjects;
     private List<MeshObject> _meshObjects;
@@ -50,36 +53,34 @@ public class MainGame : Microsoft.Xna.Framework.Game
         IsFixedTimeStep = false;
     }
 
-    public T CreateNewGameObject<T>(Vector3? objectPosition = null, Quaternion? objectRotation = null,
-        Vector3? objectScale = null) where T : GameObject
+    public void AddGameObject(GameObject newGameObject)
     {
-        var createdGameObject = Activator.CreateInstance<T>();
-        _gameObjects.Add(createdGameObject);
-        if (createdGameObject is MeshObject meshObject)
+        if (_gameObjects.Contains(newGameObject))
+        {
+            DebugUtils.PrintMessage("Trying to add game object already registered!", newGameObject);
+            return;
+        }
+        _gameObjects.Add(newGameObject);
+        if (newGameObject is MeshObject meshObject)
         {
             _meshObjects.Add(meshObject);
         }
-
-        createdGameObject.Initialize(objectPosition, objectRotation, objectScale);
-        return createdGameObject;
+        newGameObject.Initialize();
     }
 
     public void RemoveGameObject(GameObject gameObjectToRemove)
     {
         if (!_gameObjects.Contains(gameObjectToRemove))
         {
-            //todo: we are trying to remove a game object that is not registered in the game
+            DebugUtils.PrintMessage("Trying to remove a game object that isn't registered!", gameObjectToRemove);
             return;
         }
-
         if (gameObjectToRemove is MeshObject meshObject)
         {
             _meshObjects.Remove(meshObject);
         }
-
         _gameObjects.Remove(gameObjectToRemove);
         gameObjectToRemove.Dispose();
-        //todo: should I clean something else
     }
 
     protected override void Initialize()
@@ -89,16 +90,17 @@ public class MainGame : Microsoft.Xna.Framework.Game
         GraphicsDeviceManager.PreferredBackBufferHeight = 720;
         GraphicsDeviceManager.ApplyChanges();
 
-        GamePhysics.Initialize();
+        // initialize the physics engine for the game
+        Physics = new GamePhysics();
 
         DebugUtils.Initialize(GraphicsDevice);
 
-        _meshObjects = new List<MeshObject>();
-        _gameObjects = new List<GameObject>();
+        _meshObjects = [];
+        _gameObjects = [];
 
         _skybox = new Skybox("Textures/Skybox/SkyRed", Content);
 
-        _plane = CreateNewGameObject<PhysicsObject>(Vector3.Zero,
+        _plane = CreateNewGameObject<PhysicsObject>(new Vector3(0, -2f, 0),
             Quaternion.CreateFromYawPitchRoll(0f, -MathF.PI / 2, 0f),
             new Vector3(100f, 100f, 1f));
         _plane.MeshEffect = new GenericEffectAdapter(Content.Load<Effect>("Effects/TilingEffect"));
@@ -121,12 +123,27 @@ public class MainGame : Microsoft.Xna.Framework.Game
         _testMonkey.RigidBody.Shape.UpdateShape();
         _testMonkey.RigidBody.Mass = 5f;
 
+        var cubeTest = CreateNewGameObject<PhysicsObject>(new Vector3(0f, 1f, 0f));
+        cubeTest.Model = Content.Load<Model>("Models/cube");
+        cubeTest.RigidBody.IsStatic = true;
+        cubeTest.DiffuseColor = Color.White;
+        cubeTest.ReceiveLighting = true;
+        
+        var cubeTest2 = CreateNewGameObject<PhysicsObject>(new Vector3(0f, 2f, 0f));
+        cubeTest2.Model = Content.Load<Model>("Models/cube");
+        cubeTest2.RigidBody.IsStatic = true;
+        cubeTest2.DiffuseColor = Color.White;
+        cubeTest2.ReceiveLighting = true;
+
+        _player = new Player();
         _player = CreateNewGameObject<Player>(new Vector3(0f, 20f, 0f), Quaternion.Identity);
-        _player.RigidBody.Mass = 100f;
+        _player.RigidBody.Mass = 90f;
 
         _reticle = Content.Load<Texture2D>("Textures/UI/reticle");
         _reticlePosition = new Vector2(GraphicsDevice.Viewport.Width / 2f, GraphicsDevice.Viewport.Height / 2f);
 
+        _mainWorld = new World(123456789, 20, 20);
+        
         base.Initialize();
     }
 
@@ -146,6 +163,8 @@ public class MainGame : Microsoft.Xna.Framework.Game
             Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
 
+        _mainWorld.Update(gameTime);
+        
         foreach (var gameObject in _gameObjects)
         {
             gameObject.Update(gameTime);
@@ -162,19 +181,20 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
         _frameCounter.Update(deltaTime);
 
-        GamePhysics.UpdatePhysics(gameTime);
+        // update the physics simulation
+        Physics.UpdatePhysics(gameTime);
 
         GraphicsDevice.Clear(Color.CornflowerBlue);
         GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
         _skybox.Draw();
 
+        _mainWorld.Draw(GraphicsDevice, gameTime);
+        
         foreach (var meshObject in _meshObjects)
         {
             meshObject.Draw(GraphicsDevice, gameTime);
         }
-
-        DebugUtils.Draw(GraphicsDevice, gameTime);
 
         _spriteBatch.Begin();
 
@@ -192,6 +212,8 @@ public class MainGame : Microsoft.Xna.Framework.Game
         _spriteBatch.Draw(_reticle, _reticlePosition, Color.White);
 
         _spriteBatch.End();
+        
+        DebugUtils.Draw(GraphicsDevice, gameTime);
 
         base.Draw(gameTime);
     }

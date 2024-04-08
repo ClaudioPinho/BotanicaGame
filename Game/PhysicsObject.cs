@@ -1,7 +1,5 @@
-using Jitter;
-using Jitter.Collision.Shapes;
-using Jitter.Dynamics;
-using Jitter.LinearMath;
+using BepuPhysics;
+using BepuPhysics.Collidables;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using TestMonoGame.Debug;
@@ -12,27 +10,33 @@ namespace TestMonoGame.Game;
 
 public class PhysicsObject : MeshObject
 {
-    public RigidBody RigidBody { get; private set; }
-    public World PhysicsWorld { get; set; }
+    public BodyHandle BodyHandle;
+    public CollidableReference Support;
+    public ConstraintHandle MotionConstraint;
 
-    public bool UsePhysicsRotation { get; set; } = true;
-
-    public override void Initialize(Vector3? objectPosition = null, Quaternion? objectRotation = null,
-        Vector3? objectScale = null)
+    private Simulation _simulationSpace;
+    
+    public PhysicsObject(string name, BodyHandle bodyHandle) : base(name)
     {
-        base.Initialize(objectPosition, objectRotation, objectScale);
-        RigidBody = new RigidBody(new BoxShape(1f, 1f, 1f))
-        {
-            Position = Transform.Position.ToJVector(),
-            Material = new Material
-            {
-                KineticFriction = 1f,
-                StaticFriction = 1f,
-                Restitution = 1f
-            },
-            EnableDebugDraw = true
-        };
-        GamePhysics.RegisterPhysicsObject(this);
+        BodyHandle = bodyHandle;
+    }
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        // RigidBody = new RigidBody(new BoxShape(2f, 2f, 2f))
+        // {
+        //     Position = Transform.Position.ToJVector(),
+        //     Material = new Material
+        //     {
+        //         KineticFriction = 100f,
+        //         StaticFriction = 100f,
+        //         Restitution = 1f
+        //     },
+        //     // EnableDebugDraw = true
+        // };
+        // GamePhysics.RegisterPhysicsObject(this);
     }
 
     public override void Update(GameTime gameTime)
