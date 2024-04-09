@@ -88,6 +88,11 @@ public static class DebugUtils
             color ?? DefaultDebugDrawColor, customCorners));
     }
 
+    public static void DrawDebugAxis(Vector3 position, Quaternion? rotation = null, Vector3? scale = null)
+    {
+        _wireObjectsToDraw.Enqueue(new WireAxis(position, rotation ?? Quaternion.Identity, scale ?? Vector3.One));
+    }
+
     public static void PrintError(string error, object reference = null)
     {
         Console.WriteLine($"ERROR ({DateTime.Now:T}) | {error}");
@@ -130,6 +135,36 @@ public static class DebugUtils
             Indices = new short[]
             {
                 0, 1, 2, 0
+            };
+        }
+    }
+
+    private class WireAxis : WireObject
+    {
+        public WireAxis(Vector3 position, Quaternion rotation, Vector3 scale)
+        {
+            Transform = new Transform
+            {
+                Position = position,
+                Rotation = rotation,
+                Scale = scale
+            };
+
+            VertexPositions = new[]
+            {
+                // Define vertices for lines from the origin to the local origin in each cardinal direction
+                new VertexPositionColor(Vector3.Zero, Color.Red),
+                new VertexPositionColor(Vector3.Zero, Color.Green),
+                new VertexPositionColor(Vector3.Zero, Color.Blue),
+                new VertexPositionColor(Vector3.UnitX, Color.Red),
+                new VertexPositionColor(Vector3.UnitY, Color.Green),
+                new VertexPositionColor(Vector3.UnitZ, Color.Blue),
+            };
+            Indices = new short[]
+            {
+                0, 3,
+                1, 4,
+                2, 5,
             };
         }
     }

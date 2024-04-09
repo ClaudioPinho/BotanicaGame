@@ -11,7 +11,7 @@ public class GamePhysics(Vector3? worldGravity = null)
 {
     public readonly List<PhysicsObject> PhysicsObjects = [];
 
-    private readonly Vector3 _worldGravity = worldGravity ?? new Vector3(0, -10f, 0);
+    public readonly Vector3 WorldGravity = worldGravity ?? new Vector3(0, -20f, 0);
 
     public void AddPhysicsObject(PhysicsObject physicsObject)
     {
@@ -35,199 +35,211 @@ public class GamePhysics(Vector3? worldGravity = null)
         PhysicsObjects.Remove(physicsObject);
     }
 
+    /// <summary>
+    /// Simple raycast that just checks if any hit occurred at all
+    /// </summary>
+    /// <param name="rayOrigin"></param>
+    /// <param name="rayDirection"></param>
+    /// <param name="maxDistance"></param>
+    /// <param name="ignoredPhysicsObjects"></param>
+    /// <returns></returns>
+    public bool RaycastHitCheck(Vector3 rayOrigin, Vector3 rayDirection, float maxDistance,
+        ICollection<PhysicsObject> ignoredPhysicsObjects = null)
+    {
+        var intersectionPoint = Vector3.Zero;
+        var hitNormal = Vector3.Zero;
+
+        return PhysicsObjects
+            .Where(physicsObject => ignoredPhysicsObjects == null || !ignoredPhysicsObjects.Contains(physicsObject))
+            .Any(physicsObject => RayIntersects(rayOrigin, rayDirection, physicsObject.CollisionBox, maxDistance,
+                ref intersectionPoint, ref hitNormal));
+    }
+
+    public bool Raycast(Vector3 rayOrigin, Vector3 rayDirection, out RaycastHit hit, float maxDistance,
+        ICollection<PhysicsObject> ignoredPhysicsObjects = null)
+    {
+        hit = new RaycastHit();
+        var closestDistance = float.MaxValue; // Initialize with a large value
+        var intersectionPoint = Vector3.Zero;
+        var hitNormal = Vector3.Zero;
+
+        foreach (var physicsObject in PhysicsObjects)
+        {
+            // ignore if this physics object was marked to be ignored
+            if (ignoredPhysicsObjects != null && ignoredPhysicsObjects.Contains(physicsObject))
+                continue;
+
+            if (!RayIntersects(rayOrigin, rayDirection, physicsObject.CollisionBox, maxDistance, ref intersectionPoint,
+                    ref hitNormal)) continue;
+
+            // Calculate the distance from the ray origin to the intersection point
+            var distance = Vector3.Distance(rayOrigin, intersectionPoint);
+
+            // Check if this intersection point is closer than the current closest one
+            if (!(distance < closestDistance)) continue;
+            // Update the closest intersection point and other hit information
+            closestDistance = distance;
+            hit.HitPosition = intersectionPoint;
+            hit.GameObjectHit = physicsObject;
+            hit.HitNormal = hitNormal;
+        }
+
+        // Check if any intersection was found
+        return closestDistance < float.MaxValue;
+    }
+
     public void UpdatePhysics(float deltaTime)
     {
-        // make sure each physics object updates
-        PhysicsObjects.ForEach(x => x.EarlyPhysicsTick(deltaTime));
+        ApplyGravity(deltaTime);
 
-        var dynamicPhysicsObjects = PhysicsObjects.Where(x => !x.IsStatic).ToList();
-
-        // check if a collision is detected
-        foreach (var dynamicPhysicsObject in dynamicPhysicsObjects)
+        // update the state of every physics object before checking for collisions
+        foreach (var physicsObject in PhysicsObjects)
         {
-            var futureBoundingBox = dynamicPhysicsObject.PredictNextBoundingBox(deltaTime);
-            
-            // add gravity to the velocity
-            dynamicPhysicsObject.Velocity += _worldGravity * deltaTime;
+            // Apply velocity to position
+            if (!physicsObject.IsStatic)
+            {
+                physicsObject.Transform.Position += physicsObject.Velocity * deltaTime;
+            }
 
+            physicsObject.PhysicsTick(deltaTime);
+        }
+
+        // check the collision for every dynamic object
+        foreach (var dynamicObject in PhysicsObjects.Where(x => !x.IsStatic))
+        {
             foreach (var otherPhysicsObject in PhysicsObjects)
             {
-                if (otherPhysicsObject == dynamicPhysicsObject ||
-                    !futureBoundingBox.Intersects(otherPhysicsObject.CollisionBox))
-                    continue;
+                // ignore if this is our physics objects
+                if (otherPhysicsObject == dynamicObject) continue;
 
-                // Perform swept AABB collision detection
-                var collisionTime = SweptAABBCollisionTime(dynamicPhysicsObject.CollisionBox, futureBoundingBox,
-                    otherPhysicsObject.CollisionBox, deltaTime);
-                
-                DebugUtils.PrintMessage(collisionTime.ToString());
-
-                if (collisionTime is >= 0 and <= 1)
+                // check if a collision occurred with this other physics object
+                if (dynamicObject.CollisionBox.Intersects(otherPhysicsObject.CollisionBox))
                 {
-                    // Handle collision between dynamicPhysicsObject and otherPhysicsObject
-                    // Adjust positions and velocities accordingly
-                    // You may also need to handle multiple collisions and resolve them properly
-                    HandleCollision(otherPhysicsObject, otherPhysicsObject, collisionTime);
+                    HandleCollision(dynamicObject, otherPhysicsObject);
                 }
             }
-
-            DebugUtils.DrawWireCube(dynamicPhysicsObject.Transform.Position,
-                customCorners: dynamicPhysicsObject.CollisionBox.GetCorners());
-        }
-
-        PhysicsObjects.ForEach(x => x.LatePhysicsTick(deltaTime));
-
-        foreach (var dynamicObject in dynamicPhysicsObjects)
-        {
-            dynamicObject.Transform.Position += dynamicObject.Velocity * deltaTime;
         }
     }
-    
-    public void HandleCollision(PhysicsObject object1, PhysicsObject object2, float collisionTime)
+
+    private void ApplyGravity(float deltaTime)
     {
-        // Calculate the new position of object1 at the time of collision
-        var newPosition1 = object1.Transform.Position + object1.Velocity * collisionTime;
-
-        // Adjust the position of object1 to prevent overlap
-        var penetrationDepth = GetPenetrationDepth(object1.CollisionBox, object2.CollisionBox);
-        object1.Transform.Position += penetrationDepth;
-
-        // If object2 is static (doesn't move), stop the movement of object1
-        if (object2.IsStatic)
+        foreach (var physicsObject in PhysicsObjects.Where(x => !x.IsStatic && x.IsAffectedByGravity))
         {
-            object1.Velocity = Vector3.Zero;
-        }
-        else
-        {
-            // Reflect velocities based on the collision normal (for elastic collisions)
-            var collisionNormal = Vector3.Normalize(object2.Transform.Position - object1.Transform.Position);
-            var relativeVelocity = object2.Velocity - object1.Velocity;
-            var dotProduct = Vector3.Dot(relativeVelocity, collisionNormal);
+            // Apply gravitational force (F = m * g)
+            var gravitationalForce = WorldGravity * physicsObject.Mass;
 
-            object1.Velocity += dotProduct * collisionNormal;
-        }
+            // Apply force to object (F = m * a => a = F / m)
+            var accelerationDueToGravity = gravitationalForce / physicsObject.Mass;
 
-        // Optionally, apply friction or other constraints to the velocities to simulate different materials or conditions
+            // Update object's velocity (v = u + at => u = 0)
+            physicsObject.Velocity += accelerationDueToGravity * deltaTime;
+        }
     }
 
-    public float SweptAABBCollisionTime(BoundingBox movingBox1, BoundingBox futureBox1, BoundingBox staticBox2,
-        float deltaTime)
+    private void HandleCollision(PhysicsObject self, PhysicsObject other)
     {
-        // Calculate relative velocity
-        var relativeVelocity = (futureBox1.Min - movingBox1.Min) / deltaTime;
+        var penetrationDirection = Vector3.Zero;
+        var penetration = CalculatePenetrationDepth(self.CollisionBox, other.CollisionBox, ref penetrationDirection);
+        self.Transform.Position += penetrationDirection * penetration;
 
-        // Calculate the time of first and last collision along each axis
-        var tFirst = new Vector3();
-        var tLast = new Vector3();
+        var relativeVelocity = other.Velocity - self.Velocity;
 
-        for (var i = 0; i < 3; i++)
+        // Use the smaller of the two restitutions
+        var restitution = MathF.Min(self.Restitution, other.Restitution);
+        var impulseMagnitude = (1 + restitution) * Vector3.Dot(relativeVelocity, penetrationDirection) /
+                               (1 / self.Mass + 1 / other.Mass);
+
+        var impulse = impulseMagnitude * penetrationDirection;
+
+        self.Velocity += impulse / self.Mass;
+        if (!other.IsStatic)
+            other.Velocity -= impulse / other.Mass;
+    }
+
+    private float CalculatePenetrationDepth(BoundingBox b1, BoundingBox b2, ref Vector3 penetrationNormal)
+    {
+        // Calculate overlap along each axis
+        var overlapX = Math.Max(0, Math.Min(b1.Max.X, b2.Max.X) - Math.Max(b1.Min.X, b2.Min.X));
+        var overlapY = Math.Max(0, Math.Min(b1.Max.Y, b2.Max.Y) - Math.Max(b1.Min.Y, b2.Min.Y));
+        var overlapZ = Math.Max(0, Math.Min(b1.Max.Z, b2.Max.Z) - Math.Max(b1.Min.Z, b2.Min.Z));
+
+        // Find the minimum overlap and corresponding axis
+        var minOverlap = Math.Min(Math.Min(overlapX, overlapY), overlapZ);
+
+        var b1Center = b1.Min + (b1.Max - b1.Min) / 2;
+        var b2Center = b2.Min + (b2.Max - b2.Min) / 2;
+
+        // Determine the penetration direction based on the axis of minimum overlap
+        if (minOverlap == overlapX)
         {
-            if (relativeVelocity.X < 0)
-            {
-                tFirst.X = (staticBox2.Max.X - movingBox1.Min.X) / relativeVelocity.X;
-                tLast.X = (staticBox2.Min.X - movingBox1.Max.X) / relativeVelocity.X;
-            }
-            else if (relativeVelocity.X > 0)
-            {
-                tFirst.X = (staticBox2.Min.X - movingBox1.Max.X) / relativeVelocity.X;
-                tLast.X = (staticBox2.Max.X - movingBox1.Min.X) / relativeVelocity.X;
-            }
-            else
-            {
-                // If relative velocity is zero along an axis, set tFirst and tLast to positive infinity
-                // This ensures that the division doesn't produce NaN and prevents division by zero
-                tFirst.X = float.PositiveInfinity;
-                tLast.X = float.PositiveInfinity;
-            }
-
-            if (relativeVelocity.Y < 0)
-            {
-                tFirst.Y = (staticBox2.Max.Y - movingBox1.Min.Y) / relativeVelocity.Y;
-                tLast.Y = (staticBox2.Min.Y - movingBox1.Max.Y) / relativeVelocity.Y;
-            }
-            else if (relativeVelocity.Y > 0)
-            {
-                tFirst.Y = (staticBox2.Min.Y - movingBox1.Max.Y) / relativeVelocity.Y;
-                tLast.Y = (staticBox2.Max.Y - movingBox1.Min.Y) / relativeVelocity.Y;
-            }
-            else
-            {
-                // If relative velocity is zero along an axis, set tFirst and tLast to positive infinity
-                // This ensures that the division doesn't produce NaN and prevents division by zero
-                tFirst.Y = float.PositiveInfinity;
-                tLast.Y = float.PositiveInfinity;
-            }
-
-            if (relativeVelocity.Z < 0)
-            {
-                tFirst.Z = (staticBox2.Max.Z - movingBox1.Min.Z) / relativeVelocity.Z;
-                tLast.Z = (staticBox2.Min.Z - movingBox1.Max.Z) / relativeVelocity.Z;
-            }
-            else if (relativeVelocity.Z > 0)
-            {
-                tFirst.Z = (staticBox2.Min.Z - movingBox1.Max.Z) / relativeVelocity.Z;
-                tLast.Z = (staticBox2.Max.Z - movingBox1.Min.Z) / relativeVelocity.Z;
-            }
-            else
-            {
-                // If relative velocity is zero along an axis, set tFirst and tLast to positive infinity
-                // This ensures that the division doesn't produce NaN and prevents division by zero
-                tFirst.Z = float.PositiveInfinity;
-                tLast.Z = float.PositiveInfinity;
-            }
+            penetrationNormal = b1Center.X < b2Center.X ? Vector3.Left : Vector3.Right;
+        }
+        else if (minOverlap == overlapY)
+        {
+            penetrationNormal = b1Center.Y < b2Center.Y ? Vector3.Down : Vector3.Up;
+        }
+        else // overlap along Z axis
+        {
+            penetrationNormal = b1Center.Z < b2Center.Z ? Vector3.Forward : Vector3.Backward;
         }
 
-        // Find the earliest and latest times of collision
-        var tEnter = Math.Max(Math.Max(tFirst.X, tFirst.Y), tFirst.Z);
-        var tExit = Math.Min(Math.Min(tLast.X, tLast.Y), tLast.Z);
-
-        // If the time of first collision along any axis is greater than the time of last collision along any axis, no collision occurs
-        if (tEnter > tExit || tFirst.X < 0 && tFirst.Y < 0 && tFirst.Z < 0 || tEnter > 1 || tEnter < 0)
-            return -1;
-
-        return tEnter;
+        return minOverlap;
     }
 
-    // private void ResolveCollision(PhysicsObject baseObject, PhysicsObject otherObject)
-    // {
-    //     var penetration = GetPenetrationDepth(baseObject.WorldBoundingBox, otherObject.WorldBoundingBox);
-    //     
-    //     var separation = Vector3.Zero;
-    //     if (Math.Abs(penetration.X) < Math.Abs(penetration.Y))
-    //         separation.X = penetration.X;
-    //     else
-    //         separation.Y = penetration.Y;
-    //
-    //     if (Math.Abs(penetration.Z) < Math.Abs(penetration.Y))
-    //         separation.Z = penetration.Z;
-    //     else
-    //         separation.Y = penetration.Y;
-    //
-    //     baseObject.Transform.Position -= separation;
-    //
-    //     baseObject.Velocity *= -0.5f;
-    //
-    // }
-
-    public static Vector3 GetPenetrationDepth(BoundingBox bb1, BoundingBox bb2)
+    private bool RayIntersects(Vector3 rayOrigin, Vector3 rayDirection, BoundingBox boundingBox, float maxDistance,
+        ref Vector3 intersectionPoint, ref Vector3 hitNormal)
     {
-        // Calculate the distances between the AABBs along each axis
-        var xOverlap = Math.Max(0, Math.Min(bb1.Max.X, bb2.Max.X) - Math.Max(bb1.Min.X, bb2.Min.X));
-        var yOverlap = Math.Max(0, Math.Min(bb1.Max.Y, bb2.Max.Y) - Math.Max(bb1.Min.Y, bb2.Min.Y));
-        var zOverlap = Math.Max(0, Math.Min(bb1.Max.Z, bb2.Max.Z) - Math.Max(bb1.Min.Z, bb2.Min.Z));
+        // Calculate ray direction reciprocal to avoid division inside the loop
+        var directionReciprocal = new Vector3(1.0f / rayDirection.X, 1.0f / rayDirection.Y, 1.0f / rayDirection.Z);
 
-        // Return the penetration depth along each axis
-        return new Vector3(xOverlap, yOverlap, zOverlap);
-    }
+        // Calculate slab intersection distances
+        var t1 = (boundingBox.Min.X - rayOrigin.X) * directionReciprocal.X;
+        var t2 = (boundingBox.Max.X - rayOrigin.X) * directionReciprocal.X;
+        var t3 = (boundingBox.Min.Y - rayOrigin.Y) * directionReciprocal.Y;
+        var t4 = (boundingBox.Max.Y - rayOrigin.Y) * directionReciprocal.Y;
+        var t5 = (boundingBox.Min.Z - rayOrigin.Z) * directionReciprocal.Z;
+        var t6 = (boundingBox.Max.Z - rayOrigin.Z) * directionReciprocal.Z;
 
-    /// <summary>
-    /// Checks if physics object 1 and object 2 intersect with one another
-    /// </summary>
-    /// <param name="obj1"></param>
-    /// <param name="obj2"></param>
-    /// <returns></returns>
-    public bool IsIntersecting(PhysicsObject obj1, PhysicsObject obj2)
-    {
-        return obj1.CollisionBox.Intersects(obj2.CollisionBox);
+        // Find entry and exit distances for the ray
+        var tmin = Math.Max(Math.Max(Math.Min(t1, t2), Math.Min(t3, t4)), Math.Min(t5, t6));
+        var tmax = Math.Min(Math.Min(Math.Max(t1, t2), Math.Max(t3, t4)), Math.Max(t5, t6));
+
+        // Check if the ray intersects the AABB
+        if (tmax < 0 || tmin > tmax || tmin > maxDistance)
+        {
+            // No intersection or intersection behind the ray origin or beyond max distance
+            return false;
+        }
+
+        // Calculate intersection point
+        intersectionPoint = rayOrigin + rayDirection * tmin;
+
+        // Determine hit normal based on the axis with the smallest overlap
+        if (tmin == t1)
+        {
+            hitNormal = -Vector3.UnitX; // Hit from the left (negative X direction)
+        }
+        else if (tmin == t2)
+        {
+            hitNormal = Vector3.UnitX; // Hit from the right (positive X direction)
+        }
+        else if (tmin == t3)
+        {
+            hitNormal = -Vector3.UnitY; // Hit from below (negative Y direction)
+        }
+        else if (tmin == t4)
+        {
+            hitNormal = Vector3.UnitY; // Hit from above (positive Y direction)
+        }
+        else if (tmin == t5)
+        {
+            hitNormal = -Vector3.UnitZ; // Hit from behind (negative Z direction)
+        }
+        else if (tmin == t6)
+        {
+            hitNormal = Vector3.UnitZ; // Hit from in front (positive Z direction)
+        }
+
+        return true;
     }
 }

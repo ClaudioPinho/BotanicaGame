@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using TestMonoGame.Debug;
@@ -6,25 +7,33 @@ using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace TestMonoGame.Game;
 
-public class Player : CharacterObject
+public class Player : Entity
 {
     public readonly Camera Camera;
 
-    public float PlayerRunningSpeed = 20f;
-    public float PlayerWalkingSpeed = 15f;
+    public float PlayerRunningSpeed = 12f;
+    public float PlayerWalkingSpeed = 7f;
+    public float PlayerSpeedOnAir = 2f;
+
+    public GameObject ObjectBeingLookedAt;
+    public Vector3 ObjectBeingLookedAtNormal;
 
     private float _playerSpeed;
     private const float _playerCamHeight = 1.7f;
 
+    private bool _wasPreviouslyRightClicking = false;
+    private bool _wasPreviouslyLeftClicking = false;
+
     public Player(string name, Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null,
-        Transform parent = null) : base(name, new Vector3(0.5f, 1.8f, 0.5f), position, rotation, scale,
-        parent)
+        Transform parent = null) : base(name, true, new Vector3(0.5f, 1.9f, 0.5f), position, rotation, scale, parent)
     {
         Camera = new Camera("Player Camera", Transform.Position + Vector3.Up * _playerCamHeight,
             Quaternion.CreateFromYawPitchRoll(0f, MathF.PI / 2, 0));
         Camera.CameraFOV = 45f;
-        CollisionOffset = new Vector3(0, CollisionSize.Y/2, 0f);
-        MainGame.GameInstance.AddGameObject(Camera);
+        CollisionOffset = new Vector3(0, CollisionSize.Y / 2, 0f);
+        Mass = 1f;
+        Restitution = 1f;
+        MainGame.GameInstance.AddNewGameObject(Camera);
     }
 
     public override void Update(float deltaTime)
@@ -64,25 +73,80 @@ public class Player : CharacterObject
             movementDirection += rightXZ;
         }
 
+        if (Keyboard.GetState().IsKeyDown(Keys.Q))
+        {
+            movementDirection.Y = -1;
+        }
+
+        if (Keyboard.GetState().IsKeyDown(Keys.E))
+        {
+            movementDirection.Y = 1;
+        }
+
         // Normalize movement direction to maintain consistent speed regardless of diagonal movement
         if (movementDirection != Vector3.Zero)
         {
             movementDirection.Normalize();
         }
 
-        // Transform.Position += movementDirection * _playerSpeed * deltaTime;
-        // LinearVelocity += movementDirection * _playerSpeed * deltaTime;
-
         Velocity.X = movementDirection.X * _playerSpeed;
         Velocity.Z = movementDirection.Z * _playerSpeed;
 
-        if (Keyboard.GetState().IsKeyDown(Keys.Space))
+        if (Keyboard.GetState().IsKeyDown(Keys.Space) && IsOnFloor)
         {
-            Velocity.Y += 1f;
+            // Calculate jump velocity based on jump height and gravity
+            var jumpVelocity = MathF.Sqrt(2f * JumpHeight * Math.Abs(MainGame.Physics.WorldGravity.Y));
+
+            // Set player's vertical velocity to jump velocity
+            Velocity.Y = jumpVelocity;
+            // Velocity.Y += 1f;
         }
-        
+
         // lock camera transform to the player transform
         Camera.Transform.Position = Transform.Position + Vector3.Up * _playerCamHeight;
+
+        if (MainGame.Physics.Raycast(Camera.Transform.Position, Camera.Transform.Forward, out var hit, 10f, Self))
+        {
+            ObjectBeingLookedAtNormal = hit.HitNormal;
+            ObjectBeingLookedAt = hit.GameObjectHit;
+        }
+        else
+        {
+            ObjectBeingLookedAtNormal = Vector3.Zero;
+            ObjectBeingLookedAt = null;
+        }
+
+        if (Mouse.GetState().LeftButton == ButtonState.Pressed && !_wasPreviouslyLeftClicking)
+        {
+            _wasPreviouslyLeftClicking = true;
+            if (ObjectBeingLookedAt != null)
+            {
+                MainGame.GameInstance.DestroyGameObject(ObjectBeingLookedAt);
+                ObjectBeingLookedAt = null;
+            }
+        }
+        else if (Mouse.GetState().LeftButton == ButtonState.Released)
+        {
+            _wasPreviouslyLeftClicking = false;
+        }
+        
+        if (Mouse.GetState().RightButton == ButtonState.Pressed && !_wasPreviouslyRightClicking)
+        {
+            _wasPreviouslyRightClicking = true;
+            if (ObjectBeingLookedAt != null)
+            {
+                var newCubePosition = ObjectBeingLookedAt.Transform.Position + ObjectBeingLookedAtNormal;
+                var newCube = new PhysicsObject("New Cube", true, false, position: newCubePosition);
+                newCube.Model = MainGame.GameInstance.CubeModel;
+                // newCube.Texture = MainGame.GameInstance.GrassTexture;
+                MainGame.GameInstance.AddNewGameObject(newCube);
+            }
+        }
+        else if (Mouse.GetState().RightButton == ButtonState.Released)
+        {
+            _wasPreviouslyRightClicking = false;
+        }
+        
 
         if (MainGame.GameInstance.IsActive)
             UpdateInput();

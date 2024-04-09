@@ -26,17 +26,35 @@ public class MeshObject(
             return;
 
         // creates the default mesh effect if none defined
-        MeshEffect ??= new BasicEffectAdapter(new BasicEffect(graphicsDevice));
+        // MeshEffect ??= new BasicEffectAdapter(new BasicEffect(graphicsDevice));
 
         foreach (var mesh in Model.Meshes)
         {
-            MeshEffect.SetWorldViewProj(Transform.WorldMatrix, Camera.Current.ViewMatrix,
-                Camera.Current.ProjectionMatrix);
-            if (Texture != null)
-                MeshEffect.SetTexture2D(Texture);
-            MeshEffect.SetTiling(TextureTiling.X, TextureTiling.Y);
-            MeshEffect.SetDiffuseColor(DiffuseColor);
-            MeshEffect.Draw(mesh);
+            foreach (var effect in mesh.Effects)
+            {
+                if (effect is BasicEffect basicEffect)
+                {
+                    basicEffect.World = Transform.WorldMatrix;
+                    basicEffect.View = Camera.Current.ViewMatrix;
+                    basicEffect.Projection = Camera.Current.ProjectionMatrix;
+                    basicEffect.Alpha = 1f;
+                }
+                else
+                {
+                    effect.Parameters["WorldViewProjection"].SetValue(Matrix.Multiply(
+                        Matrix.Multiply(Transform.WorldMatrix, Camera.Current.ViewMatrix),
+                        Camera.Current.ProjectionMatrix));
+                }
+            }
+            mesh.Draw();
+
+            // MeshEffect.SetWorldViewProj(Transform.WorldMatrix, Camera.Current.ViewMatrix,
+            //     Camera.Current.ProjectionMatrix);
+            // if (Texture != null)
+            //     MeshEffect.SetTexture2D(Texture);
+            // MeshEffect.SetTiling(TextureTiling.X, TextureTiling.Y);
+            // MeshEffect.SetDiffuseColor(DiffuseColor);
+            // MeshEffect.Draw(mesh);
         }
     }
 }

@@ -43,3 +43,5 @@
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/obj/Debug/net8.0/TestMonoGame.genruntimeconfig.cache
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/obj/Debug/net8.0/ref/TestMonoGame.dll
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/WorldEngine.dll
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/Content/Textures/Blocks/grass.xnb
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/Content/Models/grass_0.xnb

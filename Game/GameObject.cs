@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Xna.Framework;
+using TestMonoGame.Debug;
 
 namespace TestMonoGame.Game;
 
@@ -22,6 +23,7 @@ public class GameObject : IDisposable
 
     public virtual void Update(float deltaTime)
     {
+        
     }
 
     public virtual void Dispose()

@@ -3,7 +3,7 @@
   <SourceFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/UI/reticle.png</SourceFile>
   <SourceTime>2024-03-30T21:40:26.9499502+00:00</SourceTime>
   <DestFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/bin/DesktopGL/Textures/UI/reticle.xnb</DestFile>
-  <DestTime>2024-04-01T18:03:22.6319131+01:00</DestTime>
+  <DestTime>2024-04-09T19:09:07.4364078+01:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2022-07-26T12:44:56+01:00</ImporterTime>
   <Processor>TextureProcessor</Processor>
