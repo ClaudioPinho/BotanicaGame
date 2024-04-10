@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using TestMonoGame.Debug;
@@ -14,6 +15,8 @@ namespace TestMonoGame;
 
 public class MainGame : Microsoft.Xna.Framework.Game
 {
+    public const int MaxRenderDistance = 20;
+
     public static MainGame GameInstance;
     public static GraphicsDeviceManager GraphicsDeviceManager { private set; get; }
 
@@ -21,6 +24,11 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
     // public Texture2D GrassTexture;
     public Model CubeModel;
+
+    public SoundEffect FallSfx;
+    public SoundEffect WalkSfx;
+    public SoundEffect PlaceBlockSfx;
+    public SoundEffect RemoveBlockSfx;
 
     private SpriteBatch _spriteBatch;
     private SpriteFont _fontSprite;
@@ -61,9 +69,23 @@ public class MainGame : Microsoft.Xna.Framework.Game
     {
         _gameObjectsToAdd.Enqueue(gameObject);
     }
+
     public void DestroyGameObject(GameObject gameObject)
     {
         _gameObjectsToRemove.Enqueue(gameObject);
+    }
+
+    public void Play3DAudio(AudioEmitter emitter, SoundEffect audio, float maxDistance, float volume)
+    {
+        // todo: currently only the player is able to listen for the audio but I might need to change this in the future
+        var audioListeners = _gameObjects.Where(x => x is Player)
+            .Select(x => ((Player)x).AudioListener)
+            .ToArray();
+
+        var soundInstance = audio.CreateInstance();
+        soundInstance.Apply3D(audioListeners, emitter);
+        soundInstance.Volume = volume;
+        soundInstance.Play();
     }
 
     protected override void Initialize()
@@ -84,7 +106,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
         _gameObjectsToRemove = new Queue<GameObject>();
 
         _skybox = new Skybox("Textures/Skybox/SkyRed", Content);
-        
+
         CubeModel = Content.Load<Model>("Models/cube");
         // GrassTexture = Content.Load<Texture2D>("Textures/Blocks/grass");
 
@@ -105,8 +127,14 @@ public class MainGame : Microsoft.Xna.Framework.Game
         // _testMonkey.DiffuseColor = Color.Green;
 
 
-        _player = new Player("Main player", new Vector3(0f, 20f, 0f), Quaternion.Identity);
+        _player = new Player("Main player", new Vector3(0f, 1f, 0f), Quaternion.Identity);
         _player.DebugDrawCollision = true;
+
+        var dummyEntity = new Entity("Dummy", true, new Vector3(1, 2, 1),
+            new Vector3(5, 20, 5));
+        dummyEntity.Model = Content.Load<Model>("Models/Player/player");
+        dummyEntity.CollisionOffset = new Vector3(0, dummyEntity.CollisionSize.Y / 2, 0f);
+
 
         // AddGameObject(_plane);
         // AddGameObject(_testMonkey);
@@ -114,10 +142,11 @@ public class MainGame : Microsoft.Xna.Framework.Game
         // AddGameObject(cubeTest2);
         // AddGameObject(cubeTest3);
         AddGameObject(_player);
+        AddGameObject(dummyEntity);
 
-        for (var x = 0; x < 40; x++)
+        for (var x = 0; x < 100; x++)
         {
-            for (var z = 0; z < 40; z++)
+            for (var z = 0; z < 100; z++)
             {
                 var cube = new PhysicsObject($"cube{x}/{z}", true, false, position: new Vector3(x, 0, z));
                 cube.Model = CubeModel;
@@ -139,6 +168,11 @@ public class MainGame : Microsoft.Xna.Framework.Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
+        FallSfx = Content.Load<SoundEffect>("Audio/fall-hurt");
+        WalkSfx = Content.Load<SoundEffect>("Audio/footstep");
+        PlaceBlockSfx = Content.Load<SoundEffect>("Audio/place-block");
+        RemoveBlockSfx = Content.Load<SoundEffect>("Audio/remove-block");
+
         _fontSprite = Content.Load<SpriteFont>("Fonts/myFont");
         // Debug.WriteLine(_fontSprite.Characters.Count);
 
@@ -155,6 +189,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
         // update the physics simulation
         Physics.UpdatePhysics(deltaTime);
+        // Physics.UpdatePhysics(1f/100f);
 
         _mainWorld.Update(gameTime);
 
@@ -163,9 +198,12 @@ public class MainGame : Microsoft.Xna.Framework.Game
         {
             AddGameObject(_gameObjectsToAdd.Dequeue());
         }
-        
+
         foreach (var gameObject in _gameObjects)
         {
+            // todo: does it make sense to stop processing entities outside player view?
+            if (Vector3.Distance(gameObject.Transform.Position, _player.Transform.Position) >
+                MaxRenderDistance) continue;
             gameObject.Update(deltaTime);
         }
 
@@ -190,12 +228,27 @@ public class MainGame : Microsoft.Xna.Framework.Game
         GraphicsDevice.BlendState = BlendState.Opaque;
         GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
+        // // Create a new SamplerState object
+        // SamplerState samplerState = new SamplerState();
+        //
+        // // Set the filter mode to point sampling
+        // samplerState.Filter = TextureFilter.Point;
+        //
+        // // Set the address mode to clamp
+        // samplerState.AddressU = TextureAddressMode.Clamp;
+        // samplerState.AddressV = TextureAddressMode.Clamp;
+        //
+        // // Set the GraphicsDevice's SamplerState
+        // GraphicsDevice.SamplerStates[0] = samplerState;
+
         _skybox.Draw();
 
         // _mainWorld.Draw(GraphicsDevice, gameTime);
 
         foreach (var meshObject in _meshObjects)
         {
+            if (Vector3.Distance(meshObject.Transform.Position, _player.Transform.Position) >
+                MaxRenderDistance) continue;
             meshObject.Draw(GraphicsDevice, gameTime);
         }
 
@@ -203,23 +256,13 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
         _spriteBatch.DrawString(_fontSprite, $"FPS: {_frameCounter.CurrentFramesPerSecond}", Vector2.Zero,
             Color.Yellow);
-        _spriteBatch.DrawString(_fontSprite,
-            $"Player position: {_player.Transform.Position}",
-            new Vector2(0f, 20f),
+        _spriteBatch.DrawString(_fontSprite, $"Player position: {_player.Transform.Position}", new Vector2(0f, 20f),
             Color.Yellow);
+        _spriteBatch.DrawString(_fontSprite, $"Camera position: {_player.Camera.Transform.Position}",
+            new Vector2(0f, 40f), Color.Yellow);
         _spriteBatch.DrawString(_fontSprite,
-            $"Camera position: {_player.Camera.Transform.Position}",
-            new Vector2(0f, 40f),
-            Color.Yellow);
-        _spriteBatch.DrawString(_fontSprite,
-            $"Player velocity: {_player.Velocity}",
-            new Vector2(0f, 60f),
-            Color.Yellow);
-        // _spriteBatch.DrawString(_fontSprite,
-        //     $"Player rotation| {_player.Transform.Rotation.ToEuler().ToString()}", new Vector2(0f, 20f),
-        //     Color.Red);
-        // _spriteBatch.DrawString(_fontSprite, $"Player colliding with '{_player.CollidingObjects.Count}' objects",
-        //     new Vector2(0f, 20f), Color.Red);
+            $"Player velocity: {_player.Velocity}", new Vector2(0f, 60f), Color.Yellow);
+        _spriteBatch.DrawString(_fontSprite, $"Player health: {_player.Health}", new Vector2(0f, 80f), Color.Yellow);
         _spriteBatch.Draw(_reticle, _reticlePosition, Color.White);
 
         _spriteBatch.End();
@@ -230,7 +273,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
         base.Draw(gameTime);
     }
-    
+
     private void AddGameObject(GameObject gameObject)
     {
         if (_gameObjects.Contains(gameObject))

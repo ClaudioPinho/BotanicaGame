@@ -32,6 +32,12 @@ public class PhysicsObject(
     public virtual void PhysicsTick(float deltaTime)
     {
         UpdateCollisionBox();
+
+        if (!IsStatic && IsAffectedByGravity)
+        {
+            
+        }
+        
         // DebugUtils.DrawWireCube(Transform.Position, customCorners: CollisionBox.GetCorners());
         // DebugUtils.DrawDebugAxis(Transform.Position, Transform.Rotation, Transform.Scale);
     }

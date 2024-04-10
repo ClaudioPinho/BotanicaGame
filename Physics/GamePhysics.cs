@@ -7,11 +7,17 @@ using TestMonoGame.Game;
 
 namespace TestMonoGame.Physics;
 
+// https://gamedev.net/tutorials/programming/general-and-gameplay-programming/swept-aabb-collision-detection-and-response-r3084/
+
 public class GamePhysics(Vector3? worldGravity = null)
 {
+    public const int MaxCollisionDistance = 2;
+
     public readonly List<PhysicsObject> PhysicsObjects = [];
 
-    public readonly Vector3 WorldGravity = worldGravity ?? new Vector3(0, -20f, 0);
+    public readonly Vector3 WorldGravity = worldGravity ?? new Vector3(0, -30f, 0);
+
+    private Vector3 _sweptNormal;
 
     public void AddPhysicsObject(PhysicsObject physicsObject)
     {
@@ -41,24 +47,23 @@ public class GamePhysics(Vector3? worldGravity = null)
     /// <param name="rayOrigin"></param>
     /// <param name="rayDirection"></param>
     /// <param name="maxDistance"></param>
-    /// <param name="ignoredPhysicsObjects"></param>
+    /// <param name="ignoredPhysicsObject"></param>
     /// <returns></returns>
     public bool RaycastHitCheck(Vector3 rayOrigin, Vector3 rayDirection, float maxDistance,
-        ICollection<PhysicsObject> ignoredPhysicsObjects = null)
+        PhysicsObject ignoredPhysicsObject = null)
     {
         var intersectionPoint = Vector3.Zero;
         var hitNormal = Vector3.Zero;
 
         return PhysicsObjects
-            .Where(physicsObject => ignoredPhysicsObjects == null || !ignoredPhysicsObjects.Contains(physicsObject))
+            .Where(physicsObject => ignoredPhysicsObject == null || ignoredPhysicsObject != physicsObject)
             .Any(physicsObject => RayIntersects(rayOrigin, rayDirection, physicsObject.CollisionBox, maxDistance,
                 ref intersectionPoint, ref hitNormal));
     }
 
-    public bool Raycast(Vector3 rayOrigin, Vector3 rayDirection, out RaycastHit hit, float maxDistance,
-        ICollection<PhysicsObject> ignoredPhysicsObjects = null)
+    public bool Raycast(Vector3 rayOrigin, Vector3 rayDirection, ref RaycastHit hit, float maxDistance,
+        PhysicsObject ignoredPhysicsObject = null)
     {
-        hit = new RaycastHit();
         var closestDistance = float.MaxValue; // Initialize with a large value
         var intersectionPoint = Vector3.Zero;
         var hitNormal = Vector3.Zero;
@@ -66,7 +71,7 @@ public class GamePhysics(Vector3? worldGravity = null)
         foreach (var physicsObject in PhysicsObjects)
         {
             // ignore if this physics object was marked to be ignored
-            if (ignoredPhysicsObjects != null && ignoredPhysicsObjects.Contains(physicsObject))
+            if (physicsObject == ignoredPhysicsObject)
                 continue;
 
             if (!RayIntersects(rayOrigin, rayDirection, physicsObject.CollisionBox, maxDistance, ref intersectionPoint,
@@ -90,7 +95,7 @@ public class GamePhysics(Vector3? worldGravity = null)
 
     public void UpdatePhysics(float deltaTime)
     {
-        ApplyGravity(deltaTime);
+        // ApplyGravity(deltaTime);
 
         // update the state of every physics object before checking for collisions
         foreach (var physicsObject in PhysicsObjects)
@@ -107,18 +112,158 @@ public class GamePhysics(Vector3? worldGravity = null)
         // check the collision for every dynamic object
         foreach (var dynamicObject in PhysicsObjects.Where(x => !x.IsStatic))
         {
-            foreach (var otherPhysicsObject in PhysicsObjects)
+            // Calculate swept AABB for the dynamic object
+            // var sweptAABB = CalculateSweptAABB(dynamicObject, deltaTime);
+
+            // todo: I need to apply some sort of spatial mapping when checking the collisions
+            // instead of going through them all, I applied a distance filter but this is not the best approach
+            foreach (var otherPhysicsObject in PhysicsObjects.Where(x =>
+                         Vector3.Distance(x.Transform.Position, dynamicObject.Transform.Position) <
+                         MaxCollisionDistance))
             {
                 // ignore if this is our physics objects
                 if (otherPhysicsObject == dynamicObject) continue;
 
                 // check if a collision occurred with this other physics object
-                if (dynamicObject.CollisionBox.Intersects(otherPhysicsObject.CollisionBox))
-                {
-                    HandleCollision(dynamicObject, otherPhysicsObject);
-                }
+                // if (dynamicObject.CollisionBox.Intersects(otherPhysicsObject.CollisionBox))
+                // {
+                //     HandleCollision(dynamicObject, otherPhysicsObject);
+                // }
+
+                var collisionTime = SweptAABB(dynamicObject, otherPhysicsObject, ref _sweptNormal);
+                DebugUtils.PrintMessage($"collision time: {collisionTime} and normal is {_sweptNormal}");
+                dynamicObject.Transform.Position += dynamicObject.Transform.Position * collisionTime;
+                var remainingTime = 1.0f - collisionTime;
+
+                // if (sweptAABB.Intersects(otherPhysicsObject.CollisionBox))
+                // {
+                //     HandleCollision(dynamicObject, otherPhysicsObject);
+                // }
             }
         }
+    }
+
+    private float SweptAABB(PhysicsObject self, PhysicsObject other, ref Vector3 normal)
+    {
+        var invEntry = new Vector3();
+        var invExit = new Vector3();
+
+        var entry = new Vector3();
+        var exit = new Vector3();
+
+        if (self.Velocity.X > 0f)
+        {
+            invEntry.X = other.CollisionBox.Min.X - self.CollisionBox.Max.X;
+            invExit.X = other.CollisionBox.Max.X - self.CollisionBox.Min.X;
+        }
+        else
+        {
+            invEntry.X = other.CollisionBox.Max.X - self.CollisionBox.Min.X;
+            invExit.X = other.CollisionBox.Min.X - self.CollisionBox.Max.X;
+        }
+
+        if (self.Velocity.Y > 0f)
+        {
+            invEntry.Y = other.CollisionBox.Min.Y - self.CollisionBox.Max.Y;
+            invExit.Y = other.CollisionBox.Max.Y - self.CollisionBox.Min.Y;
+        }
+        else
+        {
+            invEntry.Y = other.CollisionBox.Max.Y - self.CollisionBox.Min.Y;
+            invExit.Y = other.CollisionBox.Min.Y - self.CollisionBox.Max.Y;
+        }
+
+        if (self.Velocity.Z > 0f)
+        {
+            invEntry.Z = other.CollisionBox.Min.Z - self.CollisionBox.Max.Z;
+            invExit.Z = other.CollisionBox.Max.Z - self.CollisionBox.Min.Z;
+        }
+        else
+        {
+            invEntry.Z = other.CollisionBox.Max.Z - self.CollisionBox.Min.Z;
+            invExit.Z = other.CollisionBox.Min.Z - self.CollisionBox.Max.Z;
+        }
+
+        if (self.Velocity.X == 0f)
+        {
+            entry.X = float.NegativeInfinity;
+            exit.X = float.PositiveInfinity;
+        }
+        else
+        {
+            entry.X = invEntry.X / self.Velocity.X;
+            exit.X = invExit.X / self.Velocity.X;
+        }
+
+        if (self.Velocity.Y == 0f)
+        {
+            entry.Y = float.NegativeInfinity;
+            exit.Y = float.PositiveInfinity;
+        }
+        else
+        {
+            entry.Y = invEntry.Y / self.Velocity.Y;
+            exit.Y = invExit.Y / self.Velocity.Y;
+        }
+
+        if (self.Velocity.Z == 0f)
+        {
+            entry.Z = float.NegativeInfinity;
+            exit.Z = float.PositiveInfinity;
+        }
+        else
+        {
+            entry.Z = invEntry.Z / self.Velocity.Z;
+            exit.Z = invExit.Z / self.Velocity.Z;
+        }
+
+        var entryTime = MathF.Max(MathF.Max(entry.X, entry.Y), entry.Z);
+        var exitTime = MathF.Min(MathF.Min(exit.X, exit.Y), exit.Z);
+
+        if (entryTime > exitTime || entry is { X: < 0.0f, Y: < 0.0f, Z: < 0.0f } || entry.X > 1.0f || entry.Y > 1.0f ||
+            entry.Z > 1.0f)
+        {
+            normal.X = 0f;
+            normal.Y = 0f;
+            normal.Z = 0f;
+            return 1.0f;
+        }
+        else
+        {
+            if (entryTime == entry.X)
+            {
+                normal.X = invEntry.X < 0f ? 1f : -1f;
+                normal.Y = 0f;
+                normal.Z = 0f;
+            }
+            else if (entryTime == entry.Y)
+            {
+                normal.X = 0f;
+                normal.Y = invEntry.Y < 0f ? 1f : -1f;
+                normal.Z = 0f;
+            }
+            else
+            {
+                normal.X = 0f;
+                normal.Y = 0f;
+                normal.Z = invEntry.Z < 0f ? 1f : -1f;
+            }
+        }
+
+        return entryTime;
+    }
+
+    private BoundingBox CalculateSweptAABB(PhysicsObject obj, float deltaTime)
+    {
+        // Calculate the AABB at current position
+        var currentAABB = obj.CollisionBox;
+
+        // Calculate the AABB at next position (predicted position after movement)
+        var nextPosition = obj.Transform.Position + obj.Velocity * deltaTime;
+        var nextAABB = obj.GetCollisionBoxAtPosition(nextPosition);
+
+        // Combine current and next AABB to form swept AABB
+        return BoundingBox.CreateMerged(currentAABB, nextAABB);
     }
 
     private void ApplyGravity(float deltaTime)
@@ -140,6 +285,7 @@ public class GamePhysics(Vector3? worldGravity = null)
     {
         var penetrationDirection = Vector3.Zero;
         var penetration = CalculatePenetrationDepth(self.CollisionBox, other.CollisionBox, ref penetrationDirection);
+
         self.Transform.Position += penetrationDirection * penetration;
 
         var relativeVelocity = other.Velocity - self.Velocity;

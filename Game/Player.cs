@@ -1,8 +1,10 @@
 using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Input;
 using TestMonoGame.Debug;
+using TestMonoGame.Extensions;
+using TestMonoGame.Physics;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace TestMonoGame.Game;
@@ -24,6 +26,14 @@ public class Player : Entity
     private bool _wasPreviouslyRightClicking = false;
     private bool _wasPreviouslyLeftClicking = false;
 
+    public readonly AudioListener AudioListener;
+
+    private float _footstepTimer = 0.0f;
+    private float _footstepRate = 0.3f; // Adjust as needed
+    private float _walkingThreshold = 0.1f; // Adjust as needed
+
+    private RaycastHit _cameraHit;
+
     public Player(string name, Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null,
         Transform parent = null) : base(name, true, new Vector3(0.5f, 1.9f, 0.5f), position, rotation, scale, parent)
     {
@@ -34,11 +44,22 @@ public class Player : Entity
         Mass = 1f;
         Restitution = 1f;
         MainGame.GameInstance.AddNewGameObject(Camera);
+
+        AudioListener = new AudioListener();
     }
 
     public override void Update(float deltaTime)
     {
         base.Update(deltaTime);
+
+        UpdateAudioListenerState();
+
+        // re-position the player back at origin if they fall
+        if (Transform.Position.Y < -100)
+        {
+            Transform.Position.Set(0, 10, 0);
+            Velocity = Vector3.Zero;
+        }
 
         _playerSpeed = Keyboard.GetState().IsKeyDown(Keys.LeftShift) ? PlayerRunningSpeed : PlayerWalkingSpeed;
 
@@ -90,25 +111,25 @@ public class Player : Entity
         }
 
         Velocity.X = movementDirection.X * _playerSpeed;
+        Velocity.Y = movementDirection.Y * _playerSpeed;
         Velocity.Z = movementDirection.Z * _playerSpeed;
 
-        if (Keyboard.GetState().IsKeyDown(Keys.Space) && IsOnFloor)
-        {
-            // Calculate jump velocity based on jump height and gravity
-            var jumpVelocity = MathF.Sqrt(2f * JumpHeight * Math.Abs(MainGame.Physics.WorldGravity.Y));
+        // Transform.Position += movementDirection * _playerSpeed * deltaTime;
 
-            // Set player's vertical velocity to jump velocity
-            Velocity.Y = jumpVelocity;
-            // Velocity.Y += 1f;
+        if (Keyboard.GetState().IsKeyDown(Keys.Space))
+        {
+            TryJump();
         }
 
         // lock camera transform to the player transform
         Camera.Transform.Position = Transform.Position + Vector3.Up * _playerCamHeight;
 
-        if (MainGame.Physics.Raycast(Camera.Transform.Position, Camera.Transform.Forward, out var hit, 10f, Self))
+        if (MainGame.Physics.Raycast(Camera.Transform.Position, Camera.Transform.Forward, ref _cameraHit, 10f,
+                this))
         {
-            ObjectBeingLookedAtNormal = hit.HitNormal;
-            ObjectBeingLookedAt = hit.GameObjectHit;
+            ObjectBeingLookedAtNormal = _cameraHit.HitNormal;
+            ObjectBeingLookedAt = _cameraHit.GameObjectHit;
+            DebugUtils.DrawWireCube(ObjectBeingLookedAt.Transform.Position, color: Color.Black);
         }
         else
         {
@@ -122,6 +143,7 @@ public class Player : Entity
             if (ObjectBeingLookedAt != null)
             {
                 MainGame.GameInstance.DestroyGameObject(ObjectBeingLookedAt);
+                MainGame.GameInstance.RemoveBlockSfx?.Play();
                 ObjectBeingLookedAt = null;
             }
         }
@@ -129,7 +151,7 @@ public class Player : Entity
         {
             _wasPreviouslyLeftClicking = false;
         }
-        
+
         if (Mouse.GetState().RightButton == ButtonState.Pressed && !_wasPreviouslyRightClicking)
         {
             _wasPreviouslyRightClicking = true;
@@ -140,16 +162,37 @@ public class Player : Entity
                 newCube.Model = MainGame.GameInstance.CubeModel;
                 // newCube.Texture = MainGame.GameInstance.GrassTexture;
                 MainGame.GameInstance.AddNewGameObject(newCube);
+                MainGame.GameInstance.PlaceBlockSfx?.Play();
             }
         }
         else if (Mouse.GetState().RightButton == ButtonState.Released)
         {
             _wasPreviouslyRightClicking = false;
         }
-        
+
+        if (Velocity.Length() > _walkingThreshold)
+        {
+            _footstepTimer += deltaTime;
+            if (_footstepTimer >= _footstepRate)
+            {
+                // MainGame.GameInstance.WalkSfx?.Play();
+                if (MainGame.GameInstance.WalkSfx != null)
+                {
+                    MainGame.GameInstance.Play3DAudio(AudioEmitter, MainGame.GameInstance.WalkSfx, 10f, 1f);
+                }
+
+                _footstepTimer = 0f;
+            }
+        }
 
         if (MainGame.GameInstance.IsActive)
             UpdateInput();
+    }
+
+    public override void OnReceivedDamage(int damageReceived)
+    {
+        base.OnReceivedDamage(damageReceived);
+        MainGame.GameInstance.FallSfx.Play();
     }
 
     private float yaw = 0f;
@@ -179,5 +222,13 @@ public class Player : Entity
 
         Camera.Transform.Rotation = Quaternion.CreateFromYawPitchRoll(yaw, pitch, 0f);
         // Transform.Rotation = Quaternion.CreateFromYawPitchRoll(yaw - MathF.PI / 2, 0f, 0f);
+    }
+
+    private void UpdateAudioListenerState()
+    {
+        AudioListener.Position = Camera.Transform.Position;
+        AudioListener.Forward = Camera.Transform.Forward;
+        AudioListener.Up = Camera.Transform.Up;
+        AudioListener.Velocity = Velocity;
     }
 }

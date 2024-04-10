@@ -4,6 +4,13 @@ namespace TestMonoGame.Extensions;
 
 public static class VectorExtensions
 {
+    public static void Set(this ref Vector3 vector, float x, float y, float z)
+    {
+        vector.X = x;
+        vector.Y = y;
+        vector.Z = z;
+    }
+    
     public static Vector3 ProjectOntoPlane(this Vector3 vector, Vector3 planeNormal)
     {
         // Ensure the plane normal is normalized

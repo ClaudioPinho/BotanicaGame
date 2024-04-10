@@ -4,6 +4,10 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Audio/fall-hurt.wav</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Audio/footstep.wav</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Audio/place-block.wav</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Audio/remove-block.wav</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Effects/Skybox.fx</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Effects/TilingEffect.fx</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Fonts/myFont.spritefont</File>
@@ -24,6 +28,10 @@
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/wooden-box.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

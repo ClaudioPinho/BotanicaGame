@@ -12,8 +12,9 @@ public class Transform(Vector3? position = null, Quaternion? rotation = null, Ve
     public Matrix WorldMatrix => Matrix.CreateScale(Scale) * Matrix.CreateFromQuaternion(Rotation) *
                                  Matrix.CreateTranslation(Position);
 
-    public Vector3 Forward => Vector3.Transform(-Vector3.UnitZ, Rotation);
     public Vector3 Right => Vector3.Transform(Vector3.UnitX, Rotation);
+    public Vector3 Up => Vector3.Transform(Vector3.UnitY, Rotation);
+    public Vector3 Forward => Vector3.Transform(-Vector3.UnitZ, Rotation);
 
     public override string ToString()
     {

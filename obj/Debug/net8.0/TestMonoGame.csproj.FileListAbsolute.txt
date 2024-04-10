@@ -45,3 +45,7 @@
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/WorldEngine.dll
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/Content/Textures/Blocks/grass.xnb
 /home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/Content/Models/grass_0.xnb
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/Content/Audio/fall-hurt.xnb
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/Content/Audio/footstep.xnb
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/Content/Audio/place-block.xnb
+/home/clawd/Projects/MonoGameProjects/TestMonoGame/bin/Debug/net8.0/Content/Audio/remove-block.xnb
