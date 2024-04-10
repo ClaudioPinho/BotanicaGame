@@ -127,7 +127,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
         // _testMonkey.DiffuseColor = Color.Green;
 
 
-        _player = new Player("Main player", new Vector3(0f, 1f, 0f), Quaternion.Identity);
+        _player = new Player("Main player", new Vector3(0f, 4f, 0f), Quaternion.Identity);
         _player.DebugDrawCollision = true;
 
         var dummyEntity = new Entity("Dummy", true, new Vector3(1, 2, 1),
@@ -142,11 +142,11 @@ public class MainGame : Microsoft.Xna.Framework.Game
         // AddGameObject(cubeTest2);
         // AddGameObject(cubeTest3);
         AddGameObject(_player);
-        AddGameObject(dummyEntity);
+        // AddGameObject(dummyEntity);
 
-        for (var x = 0; x < 100; x++)
+        for (var x = 0; x < 1; x++)
         {
-            for (var z = 0; z < 100; z++)
+            for (var z = 0; z < 1; z++)
             {
                 var cube = new PhysicsObject($"cube{x}/{z}", true, false, position: new Vector3(x, 0, z));
                 cube.Model = CubeModel;
