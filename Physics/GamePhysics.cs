@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using TestMonoGame.Debug;
 using TestMonoGame.Game;
+using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace TestMonoGame.Physics;
 
@@ -18,6 +19,7 @@ public class GamePhysics(Vector3? worldGravity = null)
     public readonly Vector3 WorldGravity = worldGravity ?? new Vector3(0, -30f, 0);
 
     private Vector3 _sweptNormal;
+    private bool _anyCollisionDetected;
 
     public void AddPhysicsObject(PhysicsObject physicsObject)
     {
@@ -95,89 +97,253 @@ public class GamePhysics(Vector3? worldGravity = null)
 
     public void UpdatePhysics(float deltaTime)
     {
-        // ApplyGravity(deltaTime);
+        ApplyGravity(deltaTime);
 
-        // update the state of every physics object before checking for collisions
-        // foreach (var physicsObject in PhysicsObjects)
-        // {
-        //     // Apply velocity to position
-        //     // if (!physicsObject.IsStatic)
-        //     // {
-        //     //     physicsObject.Transform.Position += physicsObject.Velocity * deltaTime;
-        //     // }
-        //
-        //     physicsObject.PhysicsTick(deltaTime);
-        // }
-        //
-        // // check the collision for every dynamic object
-        // foreach (var dynamicObject in PhysicsObjects.Where(x => !x.IsStatic))
-        // {
-        //     // Calculate swept AABB for the dynamic object
-        //     // var sweptAABB = CalculateSweptAABB(dynamicObject, deltaTime);
-        //
-        //     // todo: I need to apply some sort of spatial mapping when checking the collisions
-        //     // instead of going through them all, I applied a distance filter but this is not the best approach
-        //     foreach (var otherPhysicsObject in PhysicsObjects.Where(x =>
-        //                  Vector3.Distance(x.Transform.Position, dynamicObject.Transform.Position) <
-        //                  MaxCollisionDistance))
-        //     {
-        //         // ignore if this is our physics objects
-        //         if (otherPhysicsObject == dynamicObject) continue;
-        //
-        //         // check if a collision occurred with this other physics object
-        //         // if (dynamicObject.CollisionBox.Intersects(otherPhysicsObject.CollisionBox))
-        //         // {
-        //         //     HandleCollision(dynamicObject, otherPhysicsObject);
-        //         // }
-        //
-        //         var collisionTime = SweptAABB(dynamicObject, otherPhysicsObject, ref _sweptNormal);
-        //         DebugUtils.PrintMessage($"collision time: {collisionTime} and normal is {_sweptNormal}");
-        //         dynamicObject.Transform.Position += dynamicObject.Transform.Position * collisionTime;
-        //         var remainingTime = 1.0f - collisionTime;
-        //
-        //         // if (sweptAABB.Intersects(otherPhysicsObject.CollisionBox))
-        //         // {
-        //         //     HandleCollision(dynamicObject, otherPhysicsObject);
-        //         // }
-        //     }
-        // }
+        foreach (var physicsObject in PhysicsObjects)
+        {
+            physicsObject.CalculateAABB();
+            physicsObject.PhysicsTick(deltaTime);
+        }
+
+        // check collisions only for dynamic objects
         foreach (var physicsObject in PhysicsObjects.Where(x => !x.IsStatic))
         {
-            // if (!physicsObject.IsStatic)
-            // {
-            //     physicsObject.Transform.Position += physicsObject.Velocity * deltaTime;
-            // }
-
-            physicsObject.PhysicsTick(deltaTime);
+            _anyCollisionDetected = false;
 
             foreach (var otherPhysicsObject in PhysicsObjects)
             {
                 if (otherPhysicsObject == physicsObject) continue;
 
-                var collisionTime = SweptAABB(physicsObject, otherPhysicsObject, ref _sweptNormal, deltaTime);
+                // do a simple broad-phase collision check before trying to perform the collision time
+                if (!CalculateSweptAABB(physicsObject, deltaTime).Intersects(otherPhysicsObject.CollisionBox)) continue;
+
+                DebugUtils.DrawWireCube(otherPhysicsObject.Transform.Position,
+                    customCorners: otherPhysicsObject.CollisionBox.GetCorners(), color:Color.Yellow);
+                
+                var collisionTime = SweptAABB(physicsObject.CollisionBox, otherPhysicsObject.CollisionBox,
+                    physicsObject.Velocity * deltaTime, ref _sweptNormal);
+                
                 var remainingTime = 1.0f - collisionTime;
 
-                physicsObject.Transform.Position += physicsObject.Velocity * collisionTime * deltaTime;
+                if (collisionTime > 1.0f) continue;
+                
+                _anyCollisionDetected = true;
 
-                if (collisionTime < 1f)
+                DebugUtils.DrawWireCube(otherPhysicsObject.Transform.Position,
+                    customCorners: otherPhysicsObject.CollisionBox.GetCorners(), color:Color.LightBlue);
+
+                if (otherPhysicsObject.Name == "New Cube")
                 {
-                    DebugUtils.PrintMessage("colliding");
+                    DebugUtils.PrintMessage(collisionTime.ToString());
+                }
+                
+                // DebugUtils.PrintMessage($"collision detected with normal: {_sweptNormal}");
+
+                Vector3 velocity = physicsObject.Velocity;
+
+                if (MathF.Abs(_sweptNormal.X) > 0.0001f)
+                {
+                    // Bounce the velocity along that axis.
+                    velocity.X *= -.1f;
                 }
 
-                // if (collisionTime >= 1) continue;
+                if (MathF.Abs(_sweptNormal.Y) > 0.0001f)
+                {
+                    // Bounce the velocity along that axis.
+                    velocity.Y *= -.1f;
+                }
 
-                // physicsObject.Velocity = physicsObject.Velocity * collisionTime;
+                if (MathF.Abs(_sweptNormal.Z) > 0.0001f)
+                {
+                    // Bounce the velocity along that axis.
+                    velocity.Z *= -.1f;
+                }
 
-                // if (!physicsObject.IsStatic)
-                // {
-                //     physicsObject.Transform.Position += (physicsObject.Velocity * collisionTime) * deltaTime;
-                // }
+                physicsObject.Transform.Position += physicsObject.Velocity * (collisionTime * deltaTime);
 
-                // // DebugUtils.PrintMessage($"velocity: {physicsObject.Velocity}");
-                DebugUtils.PrintMessage(
-                    $"collision time: {collisionTime} and normal is {_sweptNormal} and remaining time is: {remainingTime}");
+                physicsObject.Velocity = velocity;
+
+                physicsObject.Transform.Position += physicsObject.Velocity * (remainingTime * deltaTime);
+            }
+
+            if (!_anyCollisionDetected)
+            {
+                physicsObject.Transform.Position += physicsObject.Velocity * deltaTime;
             }
         }
+    }
+
+    private float SweptAABB(BoundingBox self, BoundingBox other, Vector3 selfVelocity, ref Vector3 normal)
+    {
+        normal = Vector3.Zero;
+
+        var distanceEntry = Vector3.Zero;
+        var distanceExit = Vector3.Zero;
+
+        if (selfVelocity.X > 0.0f)
+        {
+            distanceEntry.X = other.Min.X - self.Max.X;
+            distanceExit.X = other.Max.X - self.Min.X;
+        }
+        else
+        {
+            distanceEntry.X = other.Max.X - self.Min.X;
+            distanceExit.X = other.Min.X - self.Max.X;
+        }
+
+        if (selfVelocity.Y > 0.0f)
+        {
+            distanceEntry.Y = other.Min.Y - self.Max.Y;
+            distanceExit.Y = other.Max.Y - self.Min.Y;
+        }
+        else
+        {
+            distanceEntry.Y = other.Max.Y - self.Min.Y;
+            distanceExit.Y = other.Min.Y - self.Max.Y;
+        }
+
+        if (selfVelocity.Z > 0.0f)
+        {
+            distanceEntry.Z = other.Min.Z - self.Max.Z;
+            distanceExit.Z = other.Max.Z - self.Min.Z;
+        }
+        else
+        {
+            distanceEntry.Z = other.Max.Z - self.Min.Z;
+            distanceExit.Z = other.Min.Z - self.Max.Z;
+        }
+
+        var entryTimeVector = Vector3.Zero;
+        var exitTimeVector = Vector3.Zero;
+
+        if (selfVelocity.X == 0.0f)
+        {
+            if (MathF.Max(MathF.Abs(distanceEntry.X), MathF.Abs(distanceExit.X)) > (self.Max.X - self.Min.X) +
+                (other.Max.X - other.Min.X))
+            {
+                entryTimeVector.X = 2.0f;
+            }
+            else
+            {
+                entryTimeVector.X = float.NegativeInfinity;
+            }
+
+            exitTimeVector.X = float.PositiveInfinity;
+        }
+        else
+        {
+            entryTimeVector.X = distanceEntry.X / selfVelocity.X;
+            exitTimeVector.X = distanceExit.X / selfVelocity.X;
+        }
+
+        if (selfVelocity.Y == 0.0f)
+        {
+            if (MathF.Max(MathF.Abs(distanceEntry.Y), MathF.Abs(distanceExit.Y)) > (self.Max.Y - self.Min.Y) +
+                (other.Max.Y - other.Min.Y))
+            {
+                entryTimeVector.Y = 2.0f;
+            }
+            else
+            {
+                entryTimeVector.Y = float.NegativeInfinity;
+            }
+
+            exitTimeVector.Y = float.PositiveInfinity;
+        }
+        else
+        {
+            entryTimeVector.Y = distanceEntry.Y / selfVelocity.Y;
+            exitTimeVector.Y = distanceExit.Y / selfVelocity.Y;
+        }
+
+        if (selfVelocity.Z == 0.0f)
+        {
+            if (MathF.Max(MathF.Abs(distanceEntry.Z), MathF.Abs(distanceExit.Z)) > (self.Max.Z - self.Min.Z) +
+                (other.Max.Z - other.Min.Z))
+            {
+                entryTimeVector.Z = 2.0f;
+            }
+            else
+            {
+                entryTimeVector.Z = float.NegativeInfinity;
+            }
+
+            exitTimeVector.Z = float.PositiveInfinity;
+        }
+        else
+        {
+            entryTimeVector.Z = distanceEntry.Z / selfVelocity.Z;
+            exitTimeVector.Z = distanceExit.Z / selfVelocity.Z;
+        }
+
+        var entryTime = MathF.Max(MathF.Max(entryTimeVector.X, entryTimeVector.Y), entryTimeVector.Z);
+        var exitTime = MathF.Min(MathF.Min(exitTimeVector.X, exitTimeVector.Y), exitTimeVector.Z);
+
+        if (entryTime > exitTime || entryTimeVector.X < 0.0f && entryTimeVector.Y < 0.0f && entryTimeVector.Z < 0.0f ||
+            entryTimeVector.X > 1.0f || entryTimeVector.Y > 1.0f || entryTimeVector.Z > 1.0f)
+        {
+            return 2.0f;
+        }
+
+        if (entryTimeVector.X > entryTimeVector.Y && entryTimeVector.X > entryTimeVector.Z)
+        {
+            if (selfVelocity.X > 0.0f)
+            {
+                normal.X = -1.0f;
+            }
+            else
+            {
+                normal.X = 1.0f;
+            }
+            // if (distanceEntry.X > 0.0f)
+            // {
+            //     normal.X = 1.0f;
+            // }
+            // else
+            // {
+            //     normal.X = -1.0f;
+            // }
+        }
+        else if (entryTimeVector.Y > entryTimeVector.X && entryTimeVector.Y > entryTimeVector.Z)
+        {
+            if (selfVelocity.Y > 0.0f)
+            {
+                normal.Y = -1.0f;
+            }
+            else
+            {
+                normal.Y = 1.0f;
+            }
+            // if (distanceEntry.Y < 0.0f)
+            // {
+            //     normal.Y = 1.0f;
+            // }
+            // else
+            // {
+            //     normal.Y = -1.0f;
+            // }
+        }
+        else if (entryTimeVector.Z > entryTimeVector.X && entryTimeVector.Z > entryTimeVector.Y)
+        {
+            if (selfVelocity.Z > 0.0f)
+            {
+                normal.Z = -1.0f;
+            }
+            else
+            {
+                normal.Z = 1.0f;
+            }
+            // if (distanceEntry.Z < 0.0f)
+            // {
+            //     normal.Z = 1.0f;
+            // }
+            // else
+            // {
+            //     normal.Z = -1.0f;
+            // }
+        }
+
+        return entryTime;
     }
 
     // private float SweptAABB(PhysicsObject self, PhysicsObject other, ref Vector3 normal, float deltaTime)
@@ -190,7 +356,7 @@ public class GamePhysics(Vector3? worldGravity = null)
     //
     //     var selfVelocity = self.Velocity * deltaTime;
     //
-    //     if (selfVelocity.X > 0f)
+    //     if (selfVelocity.X > 0)
     //     {
     //         invEntry.X = other.CollisionBox.Min.X - self.CollisionBox.Max.X;
     //         invExit.X = other.CollisionBox.Max.X - self.CollisionBox.Min.X;
@@ -201,7 +367,7 @@ public class GamePhysics(Vector3? worldGravity = null)
     //         invExit.X = other.CollisionBox.Min.X - self.CollisionBox.Max.X;
     //     }
     //
-    //     if (selfVelocity.Y > 0f)
+    //     if (selfVelocity.Y > 0)
     //     {
     //         invEntry.Y = other.CollisionBox.Min.Y - self.CollisionBox.Max.Y;
     //         invExit.Y = other.CollisionBox.Max.Y - self.CollisionBox.Min.Y;
@@ -212,7 +378,7 @@ public class GamePhysics(Vector3? worldGravity = null)
     //         invExit.Y = other.CollisionBox.Min.Y - self.CollisionBox.Max.Y;
     //     }
     //
-    //     if (selfVelocity.Z > 0f)
+    //     if (selfVelocity.Z > 0)
     //     {
     //         invEntry.Z = other.CollisionBox.Min.Z - self.CollisionBox.Max.Z;
     //         invExit.Z = other.CollisionBox.Max.Z - self.CollisionBox.Min.Z;
@@ -223,187 +389,49 @@ public class GamePhysics(Vector3? worldGravity = null)
     //         invExit.Z = other.CollisionBox.Min.Z - self.CollisionBox.Max.Z;
     //     }
     //
-    //     if (selfVelocity.X == 0f)
-    //     {
-    //         entry.X = float.NegativeInfinity;
-    //         exit.X = float.PositiveInfinity;
-    //     }
-    //     else
-    //     {
-    //         entry.X = invEntry.X / selfVelocity.X;
-    //         exit.X = invExit.X / selfVelocity.X;
-    //     }
+    //     entry.X = selfVelocity.X == 0 ? float.NegativeInfinity : invEntry.X / selfVelocity.X;
+    //     exit.X = selfVelocity.X == 0 ? float.PositiveInfinity : invExit.X / selfVelocity.X;
     //
-    //     if (selfVelocity.Y == 0f)
-    //     {
-    //         entry.Y = float.NegativeInfinity;
-    //         exit.Y = float.PositiveInfinity;
-    //     }
-    //     else
-    //     {
-    //         entry.Y = invEntry.Y / selfVelocity.Y;
-    //         exit.Y = invExit.Y / selfVelocity.Y;
-    //     }
+    //     entry.Y = selfVelocity.Y == 0 ? float.NegativeInfinity : invEntry.Y / selfVelocity.Y;
+    //     exit.Y = selfVelocity.Y == 0 ? float.PositiveInfinity : invExit.Y / selfVelocity.Y;
     //
-    //     if (selfVelocity.Z == 0f)
-    //     {
-    //         entry.Z = float.NegativeInfinity;
-    //         exit.Z = float.PositiveInfinity;
-    //     }
-    //     else
-    //     {
-    //         entry.Z = invEntry.Z / selfVelocity.Z;
-    //         exit.Z = invExit.Z / selfVelocity.Z;
-    //     }
-    //
-    //     if (entry.X > 1.0f) entry.X = float.NegativeInfinity;
-    //     if (entry.Y > 1.0f) entry.Y = float.NegativeInfinity;
-    //     if (entry.Z > 1.0f) entry.Z = float.NegativeInfinity;
+    //     entry.Z = selfVelocity.Z == 0 ? float.NegativeInfinity : invEntry.Z / selfVelocity.Z;
+    //     exit.Z = selfVelocity.Z == 0 ? float.PositiveInfinity : invExit.Z / selfVelocity.Z;
     //
     //     var entryTime = MathF.Max(MathF.Max(entry.X, entry.Y), entry.Z);
     //     var exitTime = MathF.Min(MathF.Min(exit.X, exit.Y), exit.Z);
     //
-    //     // if (entryTime > exitTime || xEntry < 0.0f && yEntry < 0.0f || xEntry > 1.0f || yEntry > 1.0f)
-    //     // if (entryTime > exitTime || entry is { X: < 0.0f, Y: < 0.0f, Z: < 0.0f } || entry.X > 1.0f || entry.Y > 1.0f || entry.Z > 1.0f)
-    //     // {
-    //     //     normal.X = 0f;
-    //     //     normal.Y = 0f;
-    //     //     normal.Z = 0f;
-    //     //     return 1.0f;
-    //     // }
-    //
-    //     if (entryTime > exitTime) return 1f;
-    //     if (entry is { X: < 0.0f, Y: < 0.0f, Z: < 0.0f }) return 1f;
-    //
-    //     if (entry.X < 0.0f)
+    //     if (entryTime > exitTime || entryTime > 1.0f)
     //     {
-    //         // Check that the bounding box started overlapped or not.
-    //         if (other.CollisionBox.Max.X < self.CollisionBox.Min.X ||
-    //             other.CollisionBox.Min.X > self.CollisionBox.Max.X) return 1.0f;
+    //         normal = Vector3.Zero;
+    //         return 1.0f;
     //     }
     //
-    //     if (entry.Y < 0.0f)
+    //     if (entryTime < 0.0f)
     //     {
-    //         // Check that the bounding box started overlapped or not.
-    //         if (other.CollisionBox.Max.Y < self.CollisionBox.Min.Y ||
-    //             other.CollisionBox.Min.Y > self.CollisionBox.Max.Y) return 1.0f;
+    //         var maxEntry = MathF.Max(MathF.Max(entry.X, entry.Y), entry.Z);
+    //
+    //         if (maxEntry == entry.X)
+    //             normal = new Vector3(invEntry.X < 0 ? 1.0f : -1.0f, 0, 0);
+    //         else if (maxEntry == entry.Y)
+    //             normal = new Vector3(0, invEntry.Y < 0 ? 1.0f : -1.0f, 0);
+    //         else
+    //             normal = new Vector3(0, 0, invEntry.Z < 0 ? 1.0f : -1.0f);
+    //
+    //         return maxEntry;
     //     }
     //
-    //     if (entry.Z < 0.0f)
-    //     {
-    //         // Check that the bounding box started overlapped or not.
-    //         if (other.CollisionBox.Max.Z < self.CollisionBox.Min.Z ||
-    //             other.CollisionBox.Min.Z > self.CollisionBox.Max.Z) return 1.0f;
-    //     }
+    //     var minExit = MathF.Min(MathF.Min(exit.X, exit.Y), exit.Z);
     //
-    //     if (entryTime == entry.X)
-    //     {
-    //         normal.X = invEntry.X < 0f ? 1f : -1f;
-    //         normal.Y = 0f;
-    //         normal.Z = 0f;
-    //     }
-    //     else if (entryTime == entry.Y)
-    //     {
-    //         normal.X = 0f;
-    //         normal.Y = invEntry.Y < 0f ? 1f : -1f;
-    //         normal.Z = 0f;
-    //     }
+    //     if (minExit == exit.X)
+    //         normal = new Vector3(invExit.X < 0 ? 1.0f : -1.0f, 0, 0);
+    //     else if (minExit == exit.Y)
+    //         normal = new Vector3(0, invExit.Y < 0 ? 1.0f : -1.0f, 0);
     //     else
-    //     {
-    //         normal.X = 0f;
-    //         normal.Y = 0f;
-    //         normal.Z = invEntry.Z < 0f ? 1f : -1f;
-    //     }
+    //         normal = new Vector3(0, 0, invExit.Z < 0 ? 1.0f : -1.0f);
     //
     //     return entryTime;
     // }
-    
-    private float SweptAABB(PhysicsObject self, PhysicsObject other, ref Vector3 normal, float deltaTime)
-{
-    var invEntry = Vector3.Zero;
-    var invExit = Vector3.Zero;
-
-    var entry = Vector3.Zero;
-    var exit = Vector3.Zero;
-
-    var selfVelocity = self.Velocity * deltaTime;
-
-    if (selfVelocity.X > 0)
-    {
-        invEntry.X = other.CollisionBox.Min.X - self.CollisionBox.Max.X;
-        invExit.X = other.CollisionBox.Max.X - self.CollisionBox.Min.X;
-    }
-    else
-    {
-        invEntry.X = other.CollisionBox.Max.X - self.CollisionBox.Min.X;
-        invExit.X = other.CollisionBox.Min.X - self.CollisionBox.Max.X;
-    }
-
-    if (selfVelocity.Y > 0)
-    {
-        invEntry.Y = other.CollisionBox.Min.Y - self.CollisionBox.Max.Y;
-        invExit.Y = other.CollisionBox.Max.Y - self.CollisionBox.Min.Y;
-    }
-    else
-    {
-        invEntry.Y = other.CollisionBox.Max.Y - self.CollisionBox.Min.Y;
-        invExit.Y = other.CollisionBox.Min.Y - self.CollisionBox.Max.Y;
-    }
-
-    if (selfVelocity.Z > 0)
-    {
-        invEntry.Z = other.CollisionBox.Min.Z - self.CollisionBox.Max.Z;
-        invExit.Z = other.CollisionBox.Max.Z - self.CollisionBox.Min.Z;
-    }
-    else
-    {
-        invEntry.Z = other.CollisionBox.Max.Z - self.CollisionBox.Min.Z;
-        invExit.Z = other.CollisionBox.Min.Z - self.CollisionBox.Max.Z;
-    }
-
-    entry.X = selfVelocity.X == 0 ? float.NegativeInfinity : invEntry.X / selfVelocity.X;
-    exit.X = selfVelocity.X == 0 ? float.PositiveInfinity : invExit.X / selfVelocity.X;
-
-    entry.Y = selfVelocity.Y == 0 ? float.NegativeInfinity : invEntry.Y / selfVelocity.Y;
-    exit.Y = selfVelocity.Y == 0 ? float.PositiveInfinity : invExit.Y / selfVelocity.Y;
-
-    entry.Z = selfVelocity.Z == 0 ? float.NegativeInfinity : invEntry.Z / selfVelocity.Z;
-    exit.Z = selfVelocity.Z == 0 ? float.PositiveInfinity : invExit.Z / selfVelocity.Z;
-
-    var entryTime = MathF.Max(MathF.Max(entry.X, entry.Y), entry.Z);
-    var exitTime = MathF.Min(MathF.Min(exit.X, exit.Y), exit.Z);
-
-    if (entryTime > exitTime || entryTime > 1.0f)
-    {
-        normal = Vector3.Zero;
-        return 1.0f;
-    }
-
-    if (entryTime < 0.0f)
-    {
-        var maxEntry = MathF.Max(MathF.Max(entry.X, entry.Y), entry.Z);
-
-        if (maxEntry == entry.X)
-            normal = new Vector3(invEntry.X < 0 ? 1.0f : -1.0f, 0, 0);
-        else if (maxEntry == entry.Y)
-            normal = new Vector3(0, invEntry.Y < 0 ? 1.0f : -1.0f, 0);
-        else
-            normal = new Vector3(0, 0, invEntry.Z < 0 ? 1.0f : -1.0f);
-
-        return maxEntry;
-    }
-
-    var minExit = MathF.Min(MathF.Min(exit.X, exit.Y), exit.Z);
-
-    if (minExit == exit.X)
-        normal = new Vector3(invExit.X < 0 ? 1.0f : -1.0f, 0, 0);
-    else if (minExit == exit.Y)
-        normal = new Vector3(0, invExit.Y < 0 ? 1.0f : -1.0f, 0);
-    else
-        normal = new Vector3(0, 0, invExit.Z < 0 ? 1.0f : -1.0f);
-
-    return entryTime;
-}
 
     private BoundingBox CalculateSweptAABB(PhysicsObject obj, float deltaTime)
     {

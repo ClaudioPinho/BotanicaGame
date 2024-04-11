@@ -127,7 +127,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
         // _testMonkey.DiffuseColor = Color.Green;
 
 
-        _player = new Player("Main player", new Vector3(0f, 4f, 0f), Quaternion.Identity);
+        _player = new Player("Main player", new Vector3(0f, 10f,  0f), Quaternion.Identity);
         _player.DebugDrawCollision = true;
 
         var dummyEntity = new Entity("Dummy", true, new Vector3(1, 2, 1),
@@ -144,11 +144,11 @@ public class MainGame : Microsoft.Xna.Framework.Game
         AddGameObject(_player);
         // AddGameObject(dummyEntity);
 
-        for (var x = 0; x < 1; x++)
+        for (var x = 0; x < 10; x++)
         {
-            for (var z = 0; z < 1; z++)
+            for (var z = 0; z < 10; z++)
             {
-                var cube = new PhysicsObject($"cube{x}/{z}", true, false, position: new Vector3(x, 0, z));
+                var cube = new PhysicsObject($"cube{x}/{z}", true, false, position: new Vector3(x+0.5f, 0.5f, z+0.5f));
                 cube.Model = CubeModel;
                 // cube.Texture = GrassTexture;
                 AddGameObject(cube);
@@ -188,7 +188,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
         // update the physics simulation
-        Physics.UpdatePhysics(deltaTime);
+        
         // Physics.UpdatePhysics(1f/100f);
 
         _mainWorld.Update(gameTime);
@@ -206,12 +206,14 @@ public class MainGame : Microsoft.Xna.Framework.Game
                 MaxRenderDistance) continue;
             gameObject.Update(deltaTime);
         }
-
+        
         // remove the objects marked for clearing
         while (_gameObjectsToRemove.Count != 0)
         {
             RemoveGameObject(_gameObjectsToRemove.Dequeue());
         }
+        
+        Physics.UpdatePhysics(deltaTime);
 
         DebugUtils.Update(gameTime);
 

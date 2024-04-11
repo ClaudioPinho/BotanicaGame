@@ -28,29 +28,24 @@ public class PhysicsObject(
     public Vector3 Velocity = new(0, 0, 0);
 
     public bool DebugDrawCollision = false;
-
+    
     public virtual void PhysicsTick(float deltaTime)
     {
-        UpdateCollisionBox();
-
-        if (!IsStatic && IsAffectedByGravity)
-        {
-            
-        }
-        
         // DebugUtils.DrawWireCube(Transform.Position, customCorners: CollisionBox.GetCorners());
+        // DebugUtils.DrawWirePoint(CollisionBox.Min, color: Color.Red);
+        // DebugUtils.DrawWirePoint(CollisionBox.Max, color: Color.Green);
         // DebugUtils.DrawDebugAxis(Transform.Position, Transform.Rotation, Transform.Scale);
+    }
+
+    public void CalculateAABB()
+    {
+        CollisionBox.Min = Transform.Position + CollisionOffset - CollisionSize / 2;
+        CollisionBox.Max = Transform.Position + CollisionOffset + CollisionSize / 2;
     }
 
     public BoundingBox GetCollisionBoxAtPosition(Vector3 position)
     {
         return new BoundingBox(position + CollisionOffset - CollisionSize / 2,
             position + CollisionOffset + CollisionSize / 2);
-    }
-
-    private void UpdateCollisionBox()
-    {
-        CollisionBox.Min = Transform.Position + CollisionOffset - CollisionSize / 2;
-        CollisionBox.Max = Transform.Position + CollisionOffset + CollisionSize / 2;
     }
 }
