@@ -1,57 +1,51 @@
-using Jitter;
-using Jitter.Collision.Shapes;
-using Jitter.Dynamics;
-using Jitter.LinearMath;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using TestMonoGame.Debug;
-using TestMonoGame.Extensions;
 using TestMonoGame.Physics;
 
 namespace TestMonoGame.Game;
 
-public class PhysicsObject : MeshObject
+public class PhysicsObject(
+    string name,
+    bool isStatic = false,
+    bool isAffectedByGravity = true,
+    Vector3? collisionSize = null,
+    Vector3? position = null,
+    Quaternion? rotation = null,
+    Vector3? scale = null,
+    Transform parent = null) : MeshObject(name, position, rotation, scale, parent)
 {
-    public RigidBody RigidBody { get; private set; }
-    public World PhysicsWorld { get; set; }
+    public readonly bool IsStatic = isStatic;
+    public readonly bool IsAffectedByGravity = isAffectedByGravity;
 
-    public bool UsePhysicsRotation { get; set; } = true;
+    public BoundingBox CollisionBox;
 
-    public override void Initialize(Vector3? objectPosition = null, Quaternion? objectRotation = null,
-        Vector3? objectScale = null)
+    public float Mass = 1f;
+    public float Restitution = 1f;
+
+    public Vector3 CollisionSize = collisionSize ?? new Vector3(1, 1, 1);
+    public Vector3 CollisionOffset = Vector3.Zero;
+
+    public Vector3 Velocity = new(0, 0, 0);
+
+    public bool DebugDrawCollision = false;
+    
+    public virtual void PhysicsTick(float deltaTime)
     {
-        base.Initialize(objectPosition, objectRotation, objectScale);
-        RigidBody = new RigidBody(new BoxShape(1f, 1f, 1f))
-        {
-            Position = Transform.Position.ToJVector(),
-            Material = new Material
-            {
-                KineticFriction = 1f,
-                StaticFriction = 1f,
-                Restitution = 1f
-            },
-            EnableDebugDraw = true
-        };
-        GamePhysics.RegisterPhysicsObject(this);
+        // DebugUtils.DrawWireCube(Transform.Position, customCorners: CollisionBox.GetCorners());
+        // DebugUtils.DrawWirePoint(CollisionBox.Min, color: Color.Red);
+        // DebugUtils.DrawWirePoint(CollisionBox.Max, color: Color.Green);
+        // DebugUtils.DrawDebugAxis(Transform.Position, Transform.Rotation, Transform.Scale);
     }
 
-    public override void Update(GameTime gameTime)
+    public void CalculateAABB()
     {
-        base.Update(gameTime);
-        Transform.Position.FromJVector(RigidBody.Position);
-        if (UsePhysicsRotation)
-            Transform.Rotation.FromJQuaternion(JQuaternion.CreateFromMatrix(RigidBody.Orientation));
+        CollisionBox.Min = Transform.Position + CollisionOffset - CollisionSize / 2;
+        CollisionBox.Max = Transform.Position + CollisionOffset + CollisionSize / 2;
     }
 
-    public override void Draw(GraphicsDevice graphicsDevice, GameTime gameTime)
+    public BoundingBox GetCollisionBoxAtPosition(Vector3 position)
     {
-        base.Draw(graphicsDevice, gameTime);
-        RigidBody.DebugDraw(DebugUtils.CollisionDrawer);
-    }
-
-    public override void Dispose()
-    {
-        GamePhysics.UnRegisterPhysicsObject(this);
-        base.Dispose();
+        return new BoundingBox(position + CollisionOffset - CollisionSize / 2,
+            position + CollisionOffset + CollisionSize / 2);
     }
 }

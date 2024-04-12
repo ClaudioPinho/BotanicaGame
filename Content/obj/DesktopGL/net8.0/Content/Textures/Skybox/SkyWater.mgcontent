@@ -3,7 +3,7 @@
   <SourceFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Skybox/SkyWater.dds</SourceFile>
   <SourceTime>2024-04-01T15:37:15.1237237+01:00</SourceTime>
   <DestFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/bin/DesktopGL/Content/Textures/Skybox/SkyWater.xnb</DestFile>
-  <DestTime>2024-04-03T15:07:12.8444681+01:00</DestTime>
+  <DestTime>2024-04-08T13:11:04.985492+01:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2022-07-26T12:44:56+01:00</ImporterTime>
   <Processor>TextureProcessor</Processor>

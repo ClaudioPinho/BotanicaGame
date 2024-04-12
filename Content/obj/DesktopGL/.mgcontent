@@ -4,6 +4,10 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Audio/fall-hurt.wav</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Audio/footstep.wav</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Audio/place-block.wav</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Audio/remove-block.wav</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Effects/Skybox.fx</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Effects/TilingEffect.fx</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Fonts/myFont.spritefont</File>
@@ -14,6 +18,7 @@
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/Primitives/plane.fbx</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/sphere-inv-normal.fbx</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/sphere.fbx</File>
+    <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Blocks/grass.png</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Ground/Grass_02_Nrm.png</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Ground/Grass_02.png</File>
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/Ground/ground-sand.png</File>
@@ -23,6 +28,11 @@
     <File>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Textures/wooden-box.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

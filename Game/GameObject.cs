@@ -1,34 +1,35 @@
 using System;
 using Microsoft.Xna.Framework;
+using TestMonoGame.Debug;
 
 namespace TestMonoGame.Game;
 
 public class GameObject : IDisposable
 {
-    public string Id { get; set; }
-    public string Name { get; set; }
-    
-    public readonly Transform Transform = new Transform();
+    public string Name;
 
-    public virtual void Initialize(Vector3? objectPosition = null, Quaternion? objectRotation = null,
-        Vector3? objectScale = null)
+    public bool CanOcclude = true;
+    
+    public readonly Transform Transform;
+
+    public GameObject(string name, Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null,
+        Transform parent = null)
     {
-        SetPositionAndRotation(objectPosition ?? Vector3.Zero, objectRotation ?? Quaternion.Identity);
-        Transform.Scale = objectScale ?? Vector3.One;
+        Name = name;
+        Transform = new Transform(position, rotation, scale);
     }
 
-    public virtual void Update(GameTime gameTime)
+    public virtual void Initialize()
     {
+    }
+
+    public virtual void Update(float deltaTime)
+    {
+        
     }
 
     public virtual void Dispose()
     {
         GC.SuppressFinalize(this);
-    }
-
-    public virtual void SetPositionAndRotation(Vector3 position, Quaternion rotation)
-    {
-        Transform.Position = position;
-        Transform.Rotation = rotation;
     }
 }

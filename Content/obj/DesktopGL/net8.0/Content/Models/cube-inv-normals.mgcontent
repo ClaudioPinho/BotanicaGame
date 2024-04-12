@@ -3,7 +3,7 @@
   <SourceFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/cube-inv-normals.fbx</SourceFile>
   <SourceTime>2024-04-01T13:27:54.6830461+01:00</SourceTime>
   <DestFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/bin/DesktopGL/Content/Models/cube-inv-normals.xnb</DestFile>
-  <DestTime>2024-04-03T15:07:11.6924651+01:00</DestTime>
+  <DestTime>2024-04-08T13:11:03.9134874+01:00</DestTime>
   <Importer>FbxImporter</Importer>
   <ImporterTime>2022-07-26T12:44:56+01:00</ImporterTime>
   <Processor>ModelProcessor</Processor>

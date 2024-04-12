@@ -1,5 +1,4 @@
 using System;
-using Jitter.LinearMath;
 using Microsoft.Xna.Framework;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
@@ -8,19 +7,6 @@ namespace TestMonoGame.Extensions;
 public static class QuaternionExtensions
 {
 
-    public static JQuaternion ToJQuaternion(this Quaternion quaternion)
-    {
-        return new JQuaternion(quaternion.X, quaternion.Y, quaternion.Z, quaternion.W);
-    }
-
-    public static void FromJQuaternion(this ref Quaternion quaternion, JQuaternion jQuaternion)
-    {
-        quaternion.X = jQuaternion.X;
-        quaternion.Y = jQuaternion.Y;
-        quaternion.Z = jQuaternion.Z;
-        quaternion.W = jQuaternion.W;
-    }
-    
     public static void RotateAroundAxis(this ref Quaternion quaternion, Vector3 axis, float angle)
     {
         // Normalize the axis
@@ -102,42 +88,6 @@ public static class QuaternionExtensions
 
         return new Vector3((float)roll, (float)pitch, (float)yaw);
     }
-
-    // public static Quaternion FromEuler(this Quaternion quaternion, float x, float y, float z, bool degrees = true)
-    // {
-    //     if (degrees)
-    //     {
-    //         x = MathHelper.ToRadians(x);
-    //         y = MathHelper.ToRadians(y);
-    //         z = MathHelper.ToRadians(z);
-    //     }
-    //
-    //     // Convert Euler angles to radians
-    //     var yaw = y * 0.5f;
-    //     var pitch = x * 0.5f;
-    //     var roll = z * 0.5f;
-    //
-    //     // Calculate sin and cos values
-    //     var sy = (float)Math.Sin(yaw);
-    //     var cy = (float)Math.Cos(yaw);
-    //     var sp = (float)Math.Sin(pitch);
-    //     var cp = (float)Math.Cos(pitch);
-    //     var sr = (float)Math.Sin(roll);
-    //     var cr = (float)Math.Cos(roll);
-    //
-    //     // Calculate quaternion components
-    //     var w = cr * cp * cy + sr * sp * sy;
-    //     var xComponent = sr * cp * cy - cr * sp * sy;
-    //     var yComponent = cr * sp * cy + sr * cp * sy;
-    //     var zComponent = cr * cp * sy - sr * sp * cy;
-    //
-    //     quaternion.X = xComponent;
-    //     quaternion.Y = yComponent;
-    //     quaternion.Z = zComponent;
-    //     quaternion.W = w;
-    //
-    //     return quaternion;
-    // }
 
     public static void SetEulerAngles(this ref Quaternion quaternion, float yaw, float pitch, float roll,
         bool isRadians = false)

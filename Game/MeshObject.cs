@@ -4,19 +4,20 @@ using TestMonoGame.Rendering;
 
 namespace TestMonoGame.Game;
 
-public class MeshObject : GameObject
+public class MeshObject(
+    string name,
+    Vector3? position = null,
+    Quaternion? rotation = null,
+    Vector3? scale = null,
+    Transform parent = null)
+    : GameObject(name, position, rotation, scale, parent)
 {
     public IEffect MeshEffect;
-
-    public Texture2D Texture;
-
-    public Vector2 TextureTiling = new(1f, 1f);
-
-    public Color DiffuseColor = Color.White;
-
-    public bool ReceiveLighting = true;
-
     public Model Model;
+    public Texture2D Texture;
+    public Vector2 TextureTiling = new(1f, 1f);
+    public Color DiffuseColor = Color.White;
+    public bool ReceiveLighting = true;
 
     public virtual void Draw(GraphicsDevice graphicsDevice, GameTime gameTime)
     {
@@ -24,17 +25,27 @@ public class MeshObject : GameObject
         if (Model == null)
             return;
 
-        // creates the default mesh effect if none defined
-        MeshEffect ??= new BasicEffectAdapter(new BasicEffect(graphicsDevice));
-
         foreach (var mesh in Model.Meshes)
         {
-            MeshEffect.SetWorldViewProj(Transform.WorldMatrix, Camera.Current.ViewMatrix,
-                Camera.Current.ProjectionMatrix);
-            MeshEffect.SetTexture2D(Texture);
-            MeshEffect.SetTiling(TextureTiling.X, TextureTiling.Y);
-            MeshEffect.SetDiffuseColor(DiffuseColor);
-            MeshEffect.Draw(mesh);
+            foreach (var effect in mesh.Effects)
+            {
+                if (effect is BasicEffect basicEffect)
+                {
+                    basicEffect.World = Transform.WorldMatrix;
+                    basicEffect.View = Camera.Current.ViewMatrix;
+                    basicEffect.Projection = Camera.Current.ProjectionMatrix;
+                    basicEffect.Alpha = 1f;
+
+                }
+                else
+                {
+                    effect.Parameters["WorldViewProjection"].SetValue(Matrix.Multiply(
+                        Matrix.Multiply(Transform.WorldMatrix, Camera.Current.ViewMatrix),
+                        Camera.Current.ProjectionMatrix));
+                }
+
+            }
+            mesh.Draw();
         }
     }
 }

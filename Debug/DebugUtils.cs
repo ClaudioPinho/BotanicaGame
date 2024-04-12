@@ -8,8 +8,6 @@ namespace TestMonoGame.Debug;
 
 public static class DebugUtils
 {
-    public static DebugDrawCollision CollisionDrawer { get; private set; }
-
     private static Queue<WireObject> _wireObjectsToDraw;
     private static Queue<DebugTriangle> _debugTrianglesToDraw;
 
@@ -19,7 +17,6 @@ public static class DebugUtils
 
     public static void Initialize(GraphicsDevice graphicsDevice)
     {
-        CollisionDrawer = new DebugDrawCollision();
         _wireObjectsToDraw = new Queue<WireObject>();
         _debugTrianglesToDraw = new Queue<DebugTriangle>();
         _wireframeEffect = new BasicEffect(graphicsDevice)
@@ -38,7 +35,10 @@ public static class DebugUtils
         while (_wireObjectsToDraw.Count > 0)
         {
             var wireObjectToDraw = _wireObjectsToDraw.Dequeue();
-            _wireframeEffect.World = wireObjectToDraw.Transform.WorldMatrix;
+            _wireframeEffect.World = wireObjectToDraw.UsesWorldPositions
+                ? Matrix.Identity
+                : wireObjectToDraw.Transform.WorldMatrix;
+
             _wireframeEffect.View = Camera.Current.ViewMatrix;
             _wireframeEffect.Projection = Camera.Current.ProjectionMatrix;
 
@@ -88,25 +88,32 @@ public static class DebugUtils
             color ?? DefaultDebugDrawColor, customCorners));
     }
 
+    public static void DrawDebugAxis(Vector3 position, Quaternion? rotation = null, Vector3? scale = null)
+    {
+        _wireObjectsToDraw.Enqueue(new WireAxis(position, rotation ?? Quaternion.Identity, scale ?? Vector3.One));
+    }
+
     public static void PrintError(string error, object reference = null)
     {
-        Console.WriteLine($"ERROR | {error}");
+        Console.WriteLine($"ERROR ({DateTime.Now:T}) | {error}");
     }
 
     public static void PrintMessage(string message, object reference = null)
     {
-        Console.WriteLine($"INFO | {message}");
+        Console.WriteLine($"INFO ({DateTime.Now:T}) | {message}");
     }
 
     public static void PrintWarning(string warning, object reference = null)
     {
-        Console.WriteLine($"WARNING | {warning}");
+        Console.WriteLine($"WARNING ({DateTime.Now:T}) | {warning}");
     }
 
     private class WireObject
     {
         public Transform Transform;
         public Color WireframeColor;
+
+        public bool UsesWorldPositions = false;
 
         public VertexPositionColor[] VertexPositions;
         public short[] Indices;
@@ -128,6 +135,36 @@ public static class DebugUtils
             Indices = new short[]
             {
                 0, 1, 2, 0
+            };
+        }
+    }
+
+    private class WireAxis : WireObject
+    {
+        public WireAxis(Vector3 position, Quaternion rotation, Vector3 scale)
+        {
+            Transform = new Transform
+            {
+                Position = position,
+                Rotation = rotation,
+                Scale = scale
+            };
+
+            VertexPositions = new[]
+            {
+                // Define vertices for lines from the origin to the local origin in each cardinal direction
+                new VertexPositionColor(Vector3.Zero, Color.Red),
+                new VertexPositionColor(Vector3.Zero, Color.Green),
+                new VertexPositionColor(Vector3.Zero, Color.Blue),
+                new VertexPositionColor(Vector3.UnitX, Color.Red),
+                new VertexPositionColor(Vector3.UnitY, Color.Green),
+                new VertexPositionColor(Vector3.UnitZ, Color.Blue),
+            };
+            Indices = new short[]
+            {
+                0, 3,
+                1, 4,
+                2, 5,
             };
         }
     }
@@ -202,6 +239,7 @@ public static class DebugUtils
             }
             else
             {
+                UsesWorldPositions = true;
                 VertexPositions = new VertexPositionColor[customCorners.Count];
                 for (var i = 0; i < customCorners.Count; i++)
                 {
