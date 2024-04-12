@@ -116,112 +116,30 @@ public class GamePhysics(Vector3? worldGravity = null)
 
             foreach (var otherPhysicsObject in PhysicsObjects)
             {
+                // ignore self
                 if (otherPhysicsObject == physicsObject) continue;
 
-                var broadPhaseBox = GetSweptBroadphaseBox(physicsObject, deltaTime);
+                // do a simple broad-phase collision check first
+                if (!GetSweptBroadphaseBox(physicsObject, deltaTime)
+                        .Intersects(otherPhysicsObject.CollisionBox)) continue;
 
-                var nextPredictedPosition = PredictAABBAtNextFrame(physicsObject, physicsObject.Velocity, deltaTime);
+                _collisionTime = SweptAABB(physicsObject.CollisionBox, otherPhysicsObject.CollisionBox,
+                    physicsObject.Velocity * deltaTime, ref _sweptNormal);
+                _remainingTime = 1.0f - _collisionTime;
 
-                // do a simple broad-phase collision check before trying to perform the collision time
-                if (broadPhaseBox.Intersects(otherPhysicsObject.CollisionBox))
+                _penetrationDepth = CalculatePenetrationDepth(
+                    PredictAABBAtNextFrame(physicsObject, physicsObject.Velocity, deltaTime),
+                    otherPhysicsObject.CollisionBox,
+                    ref _penetrationNormal);
+
+                // ignore any collision that doesn't really penetrate enough into the other collider
+                if (_collisionTime is >= 0.0f and <= 1.0f /*&& _penetrationDepth > 0.0f*/)
                 {
-
-                    _collisionTime = SweptAABB(physicsObject.CollisionBox, otherPhysicsObject.CollisionBox,
-                        physicsObject.Velocity * deltaTime, ref _sweptNormal);
-                    _remainingTime = 1.0f - _collisionTime;
-
-                    _penetrationDepth = CalculatePenetrationDepth(nextPredictedPosition, otherPhysicsObject.CollisionBox,
-                        ref _penetrationNormal);
-
-                    // ignore any collision that doesn't really penetrate enough into the other collider
-                    if (_collisionTime is >= 0.0f and <= 1.0f)
-                    {
-                        _anyCollisionDetected = true;
-                        
-                        DebugUtils.DrawWireCube(otherPhysicsObject.Transform.Position,
-                            customCorners: otherPhysicsObject.CollisionBox.GetCorners(), color: Color.LightBlue);
-
-                        // DebugUtils.PrintMessage(
-                        //     $"collision detected with swept AABB normal: {_sweptNormal} at {_collisionTime * 100f}% of the frame " +
-                        //     $"predicted penetration next frame: {_penetrationDepth} with normal: {_penetrationNormal}");
-
-                        var velocity = physicsObject.Velocity;
-
-                        if (MathF.Abs(_sweptNormal.X) > 0.0001f)
-                        {
-                            // Bounce the velocity along that axis.
-                            // velocity.X *= -.2f;
-                            velocity.X = 0;
-                        }
-
-                        if (MathF.Abs(_sweptNormal.Y) > 0.0001f)
-                        {
-                            // Bounce the velocity along that axis.
-                            // velocity.Y *= -.2f;
-                            velocity.Y = 0;
-                        }
-
-                        if (MathF.Abs(_sweptNormal.Z) > 0.0001f)
-                        {
-                            // Bounce the velocity along that axis.
-                            // velocity.Z *= -.2f;
-                            velocity.Z = 0;
-                        }
-
-                        physicsObject.Transform.Position += physicsObject.Velocity * (_collisionTime * deltaTime);
-
-                        physicsObject.Velocity = velocity;
-
-                        physicsObject.Transform.Position += physicsObject.Velocity * (_remainingTime * deltaTime);
-                    }
-                    else
-                    {
-                        // var nextPredictedPosition =
-                        //     PredictAABBAtNextFrame(physicsObject, physicsObject.Velocity, deltaTime);
-                        //
-                        // // DebugUtils.PrintMessage("collision detected but not handled!");
-                        // // physicsObject.Transform.Position += physicsObject.Velocity * deltaTime;
-                        // var penetrationTest =
-                        //     CalculatePenetrationDepth(nextPredictedPosition, otherPhysicsObject.CollisionBox,
-                        //         ref _penetrationNormal);
-
-                        if (_penetrationDepth > 0)
-                        {
-                            _anyCollisionDetected = true;
-                            
-                            DebugUtils.PrintMessage(
-                                $"collision detect with regular AABB check with predicted penetration depth: " +
-                                $"{_penetrationDepth} and penetration normal: {_penetrationNormal}");
-
-                            // apply the next position
-                            // physicsObject.Transform.Position += physicsObject.Velocity * deltaTime;
-
-                            if (MathF.Abs(_penetrationNormal.X) > 0.0001f)
-                            {
-                                // Bounce the velocity along that axis.
-                                physicsObject.Velocity.X = 0;
-                            }
-
-                            if (MathF.Abs(_penetrationNormal.Y) > 0.0001f)
-                            {
-                                // Bounce the velocity along that axis.
-                                physicsObject.Velocity.Y = 0;
-                            }
-
-                            if (MathF.Abs(_penetrationNormal.Z) > 0.0001f)
-                            {
-                                // Bounce the velocity along that axis.
-                                physicsObject.Velocity.Z = 0;
-                            }
-
-                            physicsObject.Transform.Position += _penetrationNormal * _penetrationDepth;
-
-                            // resolve the penetration
-                            // physicsObject.Transform.Position += physicsObject.Velocity * deltaTime;
-                            // physicsObject.Transform.Position += _penetrationNormal * _penetrationDepth;
-
-                        }
-                    }
+                    HandleSweptCollision(physicsObject, otherPhysicsObject, deltaTime);
+                }
+                else if (_penetrationDepth > 0)
+                {
+                    HandleCollision(physicsObject, otherPhysicsObject, deltaTime);
                 }
             }
 
@@ -462,25 +380,73 @@ public class GamePhysics(Vector3? worldGravity = null)
         }
     }
 
-    private void HandleCollision(PhysicsObject self, PhysicsObject other)
+    private void HandleCollision(PhysicsObject physicsObject, PhysicsObject other, float deltaTime)
     {
-        var penetrationDirection = Vector3.Zero;
-        var penetration = CalculatePenetrationDepth(self.CollisionBox, other.CollisionBox, ref penetrationDirection);
+        _anyCollisionDetected = true;
 
-        self.Transform.Position += penetrationDirection * penetration;
+        // DebugUtils.DrawWireCube(otherPhysicsObject.Transform.Position,
+        //     customCorners: otherPhysicsObject.CollisionBox.GetCorners(), color: Color.Yellow);
 
-        var relativeVelocity = other.Velocity - self.Velocity;
+        if (MathF.Abs(_penetrationNormal.X) > 0.0001f)
+        {
+            // Bounce the velocity along that axis.
+            physicsObject.Velocity.X = 0;
+        }
 
-        // Use the smaller of the two restitutions
-        var restitution = MathF.Min(self.Restitution, other.Restitution);
-        var impulseMagnitude = (1 + restitution) * Vector3.Dot(relativeVelocity, penetrationDirection) /
-                               (1 / self.Mass + 1 / other.Mass);
+        if (MathF.Abs(_penetrationNormal.Y) > 0.0001f)
+        {
+            // Bounce the velocity along that axis.
+            physicsObject.Velocity.Y = 0;
+        }
 
-        var impulse = impulseMagnitude * penetrationDirection;
+        if (MathF.Abs(_penetrationNormal.Z) > 0.0001f)
+        {
+            // Bounce the velocity along that axis.
+            physicsObject.Velocity.Z = 0;
+        }
 
-        self.Velocity += impulse / self.Mass;
-        if (!other.IsStatic)
-            other.Velocity -= impulse / other.Mass;
+        physicsObject.Transform.Position += _penetrationNormal * _penetrationDepth;
+    }
+
+    private void HandleSweptCollision(PhysicsObject physicsObject, PhysicsObject otherObject, float deltaTime)
+    {
+        _anyCollisionDetected = true;
+
+        // DebugUtils.DrawWireCube(otherPhysicsObject.Transform.Position,
+        //     customCorners: otherPhysicsObject.CollisionBox.GetCorners(), color: Color.LightBlue);
+
+        // DebugUtils.PrintMessage(
+        //     $"collision detected with swept AABB normal: {_sweptNormal} at {_collisionTime * 100f}% of the frame " +
+        //     $"predicted penetration next frame: {_penetrationDepth} with normal: {_penetrationNormal}");
+
+        var velocity = physicsObject.Velocity;
+
+        if (MathF.Abs(_sweptNormal.X) > 0.0001f)
+        {
+            // Bounce the velocity along that axis.
+            // velocity.X *= -.2f;
+            velocity.X = 0;
+        }
+
+        if (MathF.Abs(_sweptNormal.Y) > 0.0001f)
+        {
+            // Bounce the velocity along that axis.
+            // velocity.Y *= -.2f;
+            velocity.Y = 0;
+        }
+
+        if (MathF.Abs(_sweptNormal.Z) > 0.0001f)
+        {
+            // Bounce the velocity along that axis.
+            // velocity.Z *= -.2f;
+            velocity.Z = 0;
+        }
+
+        physicsObject.Transform.Position += physicsObject.Velocity * (_collisionTime * deltaTime);
+
+        physicsObject.Velocity = velocity;
+
+        physicsObject.Transform.Position += physicsObject.Velocity * (_remainingTime * deltaTime);
     }
 
     private bool RayIntersects(Vector3 rayOrigin, Vector3 rayDirection, BoundingBox boundingBox, float maxDistance,
