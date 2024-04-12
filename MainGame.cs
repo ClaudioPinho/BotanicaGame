@@ -127,7 +127,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
         // _testMonkey.DiffuseColor = Color.Green;
 
 
-        _player = new Player("Main player", new Vector3(0f, 10f,  0f), Quaternion.Identity);
+        _player = new Player("Main player", new Vector3(0.5f, 1f,  0.5f), Quaternion.Identity);
         _player.DebugDrawCollision = true;
 
         var dummyEntity = new Entity("Dummy", true, new Vector3(1, 2, 1),
@@ -154,6 +154,14 @@ public class MainGame : Microsoft.Xna.Framework.Game
                 AddGameObject(cube);
             }
         }
+        
+        // var cube = new PhysicsObject($"floor", true, false, position: new Vector3(0.5f, 0.5f, 0.5f));
+        // cube.Model = CubeModel;
+        // var cube2 = new PhysicsObject($"wall", true, false, position: new Vector3(1.5f, 1.5f, 0.5f));
+        // cube2.Model = CubeModel;
+        
+        // AddGameObject(cube);
+        // AddGameObject(cube2);
 
         _reticle = Content.Load<Texture2D>("Textures/UI/reticle");
         _reticlePosition = new Vector2(GraphicsDevice.Viewport.Width / 2f - _reticle.Width / 2f,

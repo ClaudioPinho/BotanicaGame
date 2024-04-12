@@ -19,6 +19,10 @@ public class GamePhysics(Vector3? worldGravity = null)
     public readonly Vector3 WorldGravity = worldGravity ?? new Vector3(0, -30f, 0);
 
     private Vector3 _sweptNormal;
+    private Vector3 _penetrationNormal;
+    private float _penetrationDepth;
+    private float _collisionTime;
+    private float _remainingTime;
     private bool _anyCollisionDetected;
 
     public void AddPhysicsObject(PhysicsObject physicsObject)
@@ -114,56 +118,111 @@ public class GamePhysics(Vector3? worldGravity = null)
             {
                 if (otherPhysicsObject == physicsObject) continue;
 
+                var broadPhaseBox = GetSweptBroadphaseBox(physicsObject, deltaTime);
+
+                var nextPredictedPosition = PredictAABBAtNextFrame(physicsObject, physicsObject.Velocity, deltaTime);
+
                 // do a simple broad-phase collision check before trying to perform the collision time
-                if (!CalculateSweptAABB(physicsObject, deltaTime).Intersects(otherPhysicsObject.CollisionBox)) continue;
-
-                DebugUtils.DrawWireCube(otherPhysicsObject.Transform.Position,
-                    customCorners: otherPhysicsObject.CollisionBox.GetCorners(), color:Color.Yellow);
-                
-                var collisionTime = SweptAABB(physicsObject.CollisionBox, otherPhysicsObject.CollisionBox,
-                    physicsObject.Velocity * deltaTime, ref _sweptNormal);
-                
-                var remainingTime = 1.0f - collisionTime;
-
-                if (collisionTime > 1.0f) continue;
-                
-                _anyCollisionDetected = true;
-
-                DebugUtils.DrawWireCube(otherPhysicsObject.Transform.Position,
-                    customCorners: otherPhysicsObject.CollisionBox.GetCorners(), color:Color.LightBlue);
-
-                if (otherPhysicsObject.Name == "New Cube")
+                if (broadPhaseBox.Intersects(otherPhysicsObject.CollisionBox))
                 {
-                    DebugUtils.PrintMessage(collisionTime.ToString());
+
+                    _collisionTime = SweptAABB(physicsObject.CollisionBox, otherPhysicsObject.CollisionBox,
+                        physicsObject.Velocity * deltaTime, ref _sweptNormal);
+                    _remainingTime = 1.0f - _collisionTime;
+
+                    _penetrationDepth = CalculatePenetrationDepth(nextPredictedPosition, otherPhysicsObject.CollisionBox,
+                        ref _penetrationNormal);
+
+                    // ignore any collision that doesn't really penetrate enough into the other collider
+                    if (_collisionTime is >= 0.0f and <= 1.0f)
+                    {
+                        _anyCollisionDetected = true;
+                        
+                        DebugUtils.DrawWireCube(otherPhysicsObject.Transform.Position,
+                            customCorners: otherPhysicsObject.CollisionBox.GetCorners(), color: Color.LightBlue);
+
+                        // DebugUtils.PrintMessage(
+                        //     $"collision detected with swept AABB normal: {_sweptNormal} at {_collisionTime * 100f}% of the frame " +
+                        //     $"predicted penetration next frame: {_penetrationDepth} with normal: {_penetrationNormal}");
+
+                        var velocity = physicsObject.Velocity;
+
+                        if (MathF.Abs(_sweptNormal.X) > 0.0001f)
+                        {
+                            // Bounce the velocity along that axis.
+                            // velocity.X *= -.2f;
+                            velocity.X = 0;
+                        }
+
+                        if (MathF.Abs(_sweptNormal.Y) > 0.0001f)
+                        {
+                            // Bounce the velocity along that axis.
+                            // velocity.Y *= -.2f;
+                            velocity.Y = 0;
+                        }
+
+                        if (MathF.Abs(_sweptNormal.Z) > 0.0001f)
+                        {
+                            // Bounce the velocity along that axis.
+                            // velocity.Z *= -.2f;
+                            velocity.Z = 0;
+                        }
+
+                        physicsObject.Transform.Position += physicsObject.Velocity * (_collisionTime * deltaTime);
+
+                        physicsObject.Velocity = velocity;
+
+                        physicsObject.Transform.Position += physicsObject.Velocity * (_remainingTime * deltaTime);
+                    }
+                    else
+                    {
+                        // var nextPredictedPosition =
+                        //     PredictAABBAtNextFrame(physicsObject, physicsObject.Velocity, deltaTime);
+                        //
+                        // // DebugUtils.PrintMessage("collision detected but not handled!");
+                        // // physicsObject.Transform.Position += physicsObject.Velocity * deltaTime;
+                        // var penetrationTest =
+                        //     CalculatePenetrationDepth(nextPredictedPosition, otherPhysicsObject.CollisionBox,
+                        //         ref _penetrationNormal);
+
+                        if (_penetrationDepth > 0)
+                        {
+                            _anyCollisionDetected = true;
+                            
+                            DebugUtils.PrintMessage(
+                                $"collision detect with regular AABB check with predicted penetration depth: " +
+                                $"{_penetrationDepth} and penetration normal: {_penetrationNormal}");
+
+                            // apply the next position
+                            // physicsObject.Transform.Position += physicsObject.Velocity * deltaTime;
+
+                            if (MathF.Abs(_penetrationNormal.X) > 0.0001f)
+                            {
+                                // Bounce the velocity along that axis.
+                                physicsObject.Velocity.X = 0;
+                            }
+
+                            if (MathF.Abs(_penetrationNormal.Y) > 0.0001f)
+                            {
+                                // Bounce the velocity along that axis.
+                                physicsObject.Velocity.Y = 0;
+                            }
+
+                            if (MathF.Abs(_penetrationNormal.Z) > 0.0001f)
+                            {
+                                // Bounce the velocity along that axis.
+                                physicsObject.Velocity.Z = 0;
+                            }
+
+                            physicsObject.Transform.Position += _penetrationNormal * _penetrationDepth;
+
+                            // resolve the penetration
+                            // physicsObject.Transform.Position += physicsObject.Velocity * deltaTime;
+                            // physicsObject.Transform.Position += _penetrationNormal * _penetrationDepth;
+
+                        }
+                    }
                 }
-                
-                // DebugUtils.PrintMessage($"collision detected with normal: {_sweptNormal}");
-
-                Vector3 velocity = physicsObject.Velocity;
-
-                if (MathF.Abs(_sweptNormal.X) > 0.0001f)
-                {
-                    // Bounce the velocity along that axis.
-                    velocity.X *= -.1f;
-                }
-
-                if (MathF.Abs(_sweptNormal.Y) > 0.0001f)
-                {
-                    // Bounce the velocity along that axis.
-                    velocity.Y *= -.1f;
-                }
-
-                if (MathF.Abs(_sweptNormal.Z) > 0.0001f)
-                {
-                    // Bounce the velocity along that axis.
-                    velocity.Z *= -.1f;
-                }
-
-                physicsObject.Transform.Position += physicsObject.Velocity * (collisionTime * deltaTime);
-
-                physicsObject.Velocity = velocity;
-
-                physicsObject.Transform.Position += physicsObject.Velocity * (remainingTime * deltaTime);
             }
 
             if (!_anyCollisionDetected)
@@ -279,7 +338,7 @@ public class GamePhysics(Vector3? worldGravity = null)
         var entryTime = MathF.Max(MathF.Max(entryTimeVector.X, entryTimeVector.Y), entryTimeVector.Z);
         var exitTime = MathF.Min(MathF.Min(exitTimeVector.X, exitTimeVector.Y), exitTimeVector.Z);
 
-        if (entryTime > exitTime || entryTimeVector.X < 0.0f && entryTimeVector.Y < 0.0f && entryTimeVector.Z < 0.0f ||
+        if (entryTime > exitTime || entryTimeVector is { X: < 0.0f, Y: < 0.0f, Z: < 0.0f } ||
             entryTimeVector.X > 1.0f || entryTimeVector.Y > 1.0f || entryTimeVector.Z > 1.0f)
         {
             return 2.0f;
@@ -346,104 +405,46 @@ public class GamePhysics(Vector3? worldGravity = null)
         return entryTime;
     }
 
-    // private float SweptAABB(PhysicsObject self, PhysicsObject other, ref Vector3 normal, float deltaTime)
-    // {
-    //     var invEntry = Vector3.Zero;
-    //     var invExit = Vector3.Zero;
-    //
-    //     var entry = Vector3.Zero;
-    //     var exit = Vector3.Zero;
-    //
-    //     var selfVelocity = self.Velocity * deltaTime;
-    //
-    //     if (selfVelocity.X > 0)
-    //     {
-    //         invEntry.X = other.CollisionBox.Min.X - self.CollisionBox.Max.X;
-    //         invExit.X = other.CollisionBox.Max.X - self.CollisionBox.Min.X;
-    //     }
-    //     else
-    //     {
-    //         invEntry.X = other.CollisionBox.Max.X - self.CollisionBox.Min.X;
-    //         invExit.X = other.CollisionBox.Min.X - self.CollisionBox.Max.X;
-    //     }
-    //
-    //     if (selfVelocity.Y > 0)
-    //     {
-    //         invEntry.Y = other.CollisionBox.Min.Y - self.CollisionBox.Max.Y;
-    //         invExit.Y = other.CollisionBox.Max.Y - self.CollisionBox.Min.Y;
-    //     }
-    //     else
-    //     {
-    //         invEntry.Y = other.CollisionBox.Max.Y - self.CollisionBox.Min.Y;
-    //         invExit.Y = other.CollisionBox.Min.Y - self.CollisionBox.Max.Y;
-    //     }
-    //
-    //     if (selfVelocity.Z > 0)
-    //     {
-    //         invEntry.Z = other.CollisionBox.Min.Z - self.CollisionBox.Max.Z;
-    //         invExit.Z = other.CollisionBox.Max.Z - self.CollisionBox.Min.Z;
-    //     }
-    //     else
-    //     {
-    //         invEntry.Z = other.CollisionBox.Max.Z - self.CollisionBox.Min.Z;
-    //         invExit.Z = other.CollisionBox.Min.Z - self.CollisionBox.Max.Z;
-    //     }
-    //
-    //     entry.X = selfVelocity.X == 0 ? float.NegativeInfinity : invEntry.X / selfVelocity.X;
-    //     exit.X = selfVelocity.X == 0 ? float.PositiveInfinity : invExit.X / selfVelocity.X;
-    //
-    //     entry.Y = selfVelocity.Y == 0 ? float.NegativeInfinity : invEntry.Y / selfVelocity.Y;
-    //     exit.Y = selfVelocity.Y == 0 ? float.PositiveInfinity : invExit.Y / selfVelocity.Y;
-    //
-    //     entry.Z = selfVelocity.Z == 0 ? float.NegativeInfinity : invEntry.Z / selfVelocity.Z;
-    //     exit.Z = selfVelocity.Z == 0 ? float.PositiveInfinity : invExit.Z / selfVelocity.Z;
-    //
-    //     var entryTime = MathF.Max(MathF.Max(entry.X, entry.Y), entry.Z);
-    //     var exitTime = MathF.Min(MathF.Min(exit.X, exit.Y), exit.Z);
-    //
-    //     if (entryTime > exitTime || entryTime > 1.0f)
-    //     {
-    //         normal = Vector3.Zero;
-    //         return 1.0f;
-    //     }
-    //
-    //     if (entryTime < 0.0f)
-    //     {
-    //         var maxEntry = MathF.Max(MathF.Max(entry.X, entry.Y), entry.Z);
-    //
-    //         if (maxEntry == entry.X)
-    //             normal = new Vector3(invEntry.X < 0 ? 1.0f : -1.0f, 0, 0);
-    //         else if (maxEntry == entry.Y)
-    //             normal = new Vector3(0, invEntry.Y < 0 ? 1.0f : -1.0f, 0);
-    //         else
-    //             normal = new Vector3(0, 0, invEntry.Z < 0 ? 1.0f : -1.0f);
-    //
-    //         return maxEntry;
-    //     }
-    //
-    //     var minExit = MathF.Min(MathF.Min(exit.X, exit.Y), exit.Z);
-    //
-    //     if (minExit == exit.X)
-    //         normal = new Vector3(invExit.X < 0 ? 1.0f : -1.0f, 0, 0);
-    //     else if (minExit == exit.Y)
-    //         normal = new Vector3(0, invExit.Y < 0 ? 1.0f : -1.0f, 0);
-    //     else
-    //         normal = new Vector3(0, 0, invExit.Z < 0 ? 1.0f : -1.0f);
-    //
-    //     return entryTime;
-    // }
-
-    private BoundingBox CalculateSweptAABB(PhysicsObject obj, float deltaTime)
+    private BoundingBox PredictAABBAtNextFrame(PhysicsObject self, Vector3 velocity, float deltaTime)
     {
-        // Calculate the AABB at current position
-        var currentAABB = obj.CollisionBox;
+        return self.GetCollisionBoxAtPosition(self.Transform.Position + velocity * deltaTime);
+    }
 
-        // Calculate the AABB at next position (predicted position after movement)
-        var nextPosition = obj.Transform.Position + obj.Velocity * deltaTime;
-        var nextAABB = obj.GetCollisionBoxAtPosition(nextPosition);
-
+    private BoundingBox GetSweptBroadphaseBox(PhysicsObject obj, float deltaTime)
+    {
         // Combine current and next AABB to form swept AABB
-        return BoundingBox.CreateMerged(currentAABB, nextAABB);
+        return BoundingBox.CreateMerged(obj.CollisionBox,
+            obj.GetCollisionBoxAtPosition(obj.Transform.Position + obj.Velocity * deltaTime));
+    }
+
+    private float CalculatePenetrationDepth(BoundingBox b1, BoundingBox b2, ref Vector3 penetrationNormal)
+    {
+        // Calculate overlap along each axis
+        var overlapX = Math.Max(0, Math.Min(b1.Max.X, b2.Max.X) - Math.Max(b1.Min.X, b2.Min.X));
+        var overlapY = Math.Max(0, Math.Min(b1.Max.Y, b2.Max.Y) - Math.Max(b1.Min.Y, b2.Min.Y));
+        var overlapZ = Math.Max(0, Math.Min(b1.Max.Z, b2.Max.Z) - Math.Max(b1.Min.Z, b2.Min.Z));
+
+        // Find the minimum overlap and corresponding axis
+        var minOverlap = Math.Min(Math.Min(overlapX, overlapY), overlapZ);
+
+        var b1Center = b1.Min + (b1.Max - b1.Min) * 0.5f;
+        var b2Center = b2.Min + (b2.Max - b2.Min) * 0.5f;
+
+        // Determine the penetration direction based on the axis of minimum overlap
+        if (minOverlap == overlapX)
+        {
+            penetrationNormal = b1Center.X < b2Center.X ? Vector3.Left : Vector3.Right;
+        }
+        else if (minOverlap == overlapY)
+        {
+            penetrationNormal = b1Center.Y < b2Center.Y ? Vector3.Down : Vector3.Up;
+        }
+        else // overlap along Z axis
+        {
+            penetrationNormal = b1Center.Z < b2Center.Z ? Vector3.Forward : Vector3.Backward;
+        }
+
+        return minOverlap;
     }
 
     private void ApplyGravity(float deltaTime)
@@ -480,36 +481,6 @@ public class GamePhysics(Vector3? worldGravity = null)
         self.Velocity += impulse / self.Mass;
         if (!other.IsStatic)
             other.Velocity -= impulse / other.Mass;
-    }
-
-    private float CalculatePenetrationDepth(BoundingBox b1, BoundingBox b2, ref Vector3 penetrationNormal)
-    {
-        // Calculate overlap along each axis
-        var overlapX = Math.Max(0, Math.Min(b1.Max.X, b2.Max.X) - Math.Max(b1.Min.X, b2.Min.X));
-        var overlapY = Math.Max(0, Math.Min(b1.Max.Y, b2.Max.Y) - Math.Max(b1.Min.Y, b2.Min.Y));
-        var overlapZ = Math.Max(0, Math.Min(b1.Max.Z, b2.Max.Z) - Math.Max(b1.Min.Z, b2.Min.Z));
-
-        // Find the minimum overlap and corresponding axis
-        var minOverlap = Math.Min(Math.Min(overlapX, overlapY), overlapZ);
-
-        var b1Center = b1.Min + (b1.Max - b1.Min) / 2;
-        var b2Center = b2.Min + (b2.Max - b2.Min) / 2;
-
-        // Determine the penetration direction based on the axis of minimum overlap
-        if (minOverlap == overlapX)
-        {
-            penetrationNormal = b1Center.X < b2Center.X ? Vector3.Left : Vector3.Right;
-        }
-        else if (minOverlap == overlapY)
-        {
-            penetrationNormal = b1Center.Y < b2Center.Y ? Vector3.Down : Vector3.Up;
-        }
-        else // overlap along Z axis
-        {
-            penetrationNormal = b1Center.Z < b2Center.Z ? Vector3.Forward : Vector3.Backward;
-        }
-
-        return minOverlap;
     }
 
     private bool RayIntersects(Vector3 rayOrigin, Vector3 rayDirection, BoundingBox boundingBox, float maxDistance,
