@@ -8,6 +8,8 @@ public class GameObject : IDisposable
 {
     public string Name;
 
+    public bool CanOcclude = true;
+    
     public readonly Transform Transform;
 
     public GameObject(string name, Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null,

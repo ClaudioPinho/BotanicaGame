@@ -25,6 +25,12 @@ public class GamePhysics(Vector3? worldGravity = null)
     private float _remainingTime;
     private bool _anyCollisionDetected;
 
+    private Vector3 _intersectionPoint;
+    private Vector3 _hitNormal;
+    
+    private BoundingBox _boxCastSource;
+    private Vector3 _boxDestinyPosition;
+
     public void AddPhysicsObject(PhysicsObject physicsObject)
     {
         if (PhysicsObjects.Contains(physicsObject))
@@ -58,13 +64,34 @@ public class GamePhysics(Vector3? worldGravity = null)
     public bool RaycastHitCheck(Vector3 rayOrigin, Vector3 rayDirection, float maxDistance,
         PhysicsObject ignoredPhysicsObject = null)
     {
-        var intersectionPoint = Vector3.Zero;
-        var hitNormal = Vector3.Zero;
+        _intersectionPoint = Vector3.Zero;
+        _hitNormal = Vector3.Zero;
 
         return PhysicsObjects
             .Where(physicsObject => ignoredPhysicsObject == null || ignoredPhysicsObject != physicsObject)
             .Any(physicsObject => RayIntersects(rayOrigin, rayDirection, physicsObject.CollisionBox, maxDistance,
-                ref intersectionPoint, ref hitNormal));
+                ref _intersectionPoint, ref _hitNormal));
+    }
+
+    public bool BoxcastHitCheck(Vector3 boxOrigin, Vector3 boxDirection, Vector3 boxSize, float maxDistance,
+        PhysicsObject ignoredPhysicsObject)
+    {
+        // Update _boxCastSource with the new origin
+        _boxCastSource.Min = boxOrigin - boxSize * 0.5f;
+        _boxCastSource.Max = boxOrigin + boxSize * 0.5f;
+
+        // Calculate the destiny position
+        _boxDestinyPosition = boxOrigin + boxDirection * maxDistance;
+
+        _boxCastSource.Min = Vector3.Min(_boxCastSource.Min, _boxDestinyPosition - boxSize * 0.5f);
+        _boxCastSource.Max = Vector3.Max(_boxCastSource.Max, _boxDestinyPosition + boxSize * 0.5f);
+        
+        DebugUtils.DrawWireCube(boxOrigin, customCorners:_boxCastSource.GetCorners(), color:Color.Red);
+
+        // Check for intersection with static objects
+        return PhysicsObjects
+            .Where(staticObject => staticObject.IsStatic && staticObject != ignoredPhysicsObject)
+            .Any(staticObject => _boxCastSource.Intersects(staticObject.CollisionBox));
     }
 
     public bool Raycast(Vector3 rayOrigin, Vector3 rayDirection, ref RaycastHit hit, float maxDistance,

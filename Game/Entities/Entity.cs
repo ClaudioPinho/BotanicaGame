@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
-using TestMonoGame.Physics;
 
 namespace TestMonoGame.Game;
 
@@ -16,7 +14,7 @@ public class Entity : PhysicsObject
 
     // AUDIO
     public readonly AudioEmitter AudioEmitter;
-    
+
     public SoundEffect JumpSfx;
     public SoundEffect FallSfx;
 
@@ -43,10 +41,9 @@ public class Entity : PhysicsObject
 
         UpdateAudioEmitterState();
 
-        // todo: this might be computationally expensive, need to check other ways of doing it
-        IsOnFloor = MainGame.Physics.RaycastHitCheck(Transform.Position + Vector3.Up * 0.1f, 
-            Vector3.Down, 0.2f, this);
-        
+        IsOnFloor = MainGame.Physics.BoxcastHitCheck(Transform.Position, Vector3.Down,
+            CollisionSize * 0.5f - (CollisionSize * 0.5f * Vector3.Up - Vector3.Up * 0.1f), 0.1f, this);
+
         // attempt to give fall damage
         if (IsOnFloor && WasPreviouslyFalling)
         {

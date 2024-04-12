@@ -30,6 +30,8 @@ public class MainGame : Microsoft.Xna.Framework.Game
     public SoundEffect PlaceBlockSfx;
     public SoundEffect RemoveBlockSfx;
 
+    public Texture2D SandTexture;
+
     private SpriteBatch _spriteBatch;
     private SpriteFont _fontSprite;
 
@@ -38,7 +40,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
     private PhysicsObject _testMonkey;
 
     // private MeshObject _skybox;
-    private PhysicsObject _plane;
+    private MeshObject _plane;
 
     private Skybox _skybox;
 
@@ -110,13 +112,14 @@ public class MainGame : Microsoft.Xna.Framework.Game
         CubeModel = Content.Load<Model>("Models/cube");
         // GrassTexture = Content.Load<Texture2D>("Textures/Blocks/grass");
 
-        // _plane = new PhysicsObject("WorldPlane", true, false, new Vector3(200, 1f, 200f), new Vector3(0, 0, 0),
-        //     Quaternion.CreateFromYawPitchRoll(0, -MathF.PI / 2, 0), new Vector3(100f, 100f, 1f));
-        // _plane.MeshEffect = new GenericEffectAdapter(Content.Load<Effect>("Effects/TilingEffect"));
-        // _plane.Model = Content.Load<Model>("Models/Primitives/plane");
-        // _plane.Texture = sandTexture;
-        // _plane.TextureTiling = Vector2.One * 20f;
-        // _plane.CollisionOffset = new Vector3(0, -.5f, 0);
+        SandTexture = Content.Load<Texture2D>("Textures/Ground/ground-sand");
+
+        _plane = new MeshObject("WorldPlane", Vector3.Up*0.8f, Quaternion.Identity, new Vector3(1000f, 1f, 1000f));
+        _plane.MeshEffect = new GenericEffectAdapter(Content.Load<Effect>("Effects/TilingEffect"));
+        _plane.Model = Content.Load<Model>("Models/Primitives/plane");
+        _plane.Texture = SandTexture;
+        _plane.TextureTiling = Vector2.One * 20f;
+        _plane.CanOcclude = false;
 
         // _testMonkey = new PhysicsObject("The monkey", false, false, null, new Vector3(5f, 5f, 0f),
         //     Quaternion.CreateFromYawPitchRoll(0f, MathF.PI / 4, 0f));
@@ -127,39 +130,40 @@ public class MainGame : Microsoft.Xna.Framework.Game
         // _testMonkey.DiffuseColor = Color.Green;
 
 
-        _player = new Player("Main player", new Vector3(0.5f, 1f,  0.5f), Quaternion.Identity);
+        _player = new Player("Main player", new Vector3(50f, 1f, 50f), Quaternion.Identity);
         _player.DebugDrawCollision = true;
 
         var dummyEntity = new Entity("Dummy", true, new Vector3(1, 2, 1),
-            new Vector3(5, 20, 5));
+            new Vector3(55, 20, 55));
         dummyEntity.Model = Content.Load<Model>("Models/Player/player");
         dummyEntity.CollisionOffset = new Vector3(0, dummyEntity.CollisionSize.Y / 2, 0f);
 
 
-        // AddGameObject(_plane);
+        AddGameObject(_plane);
         // AddGameObject(_testMonkey);
         // AddGameObject(cubeTest);
         // AddGameObject(cubeTest2);
         // AddGameObject(cubeTest3);
         AddGameObject(_player);
-        // AddGameObject(dummyEntity);
+        AddGameObject(dummyEntity);
 
-        for (var x = 0; x < 10; x++)
+        for (var x = 0; x < 100; x++)
         {
-            for (var z = 0; z < 10; z++)
+            for (var z = 0; z < 100; z++)
             {
-                var cube = new PhysicsObject($"cube{x}/{z}", true, false, position: new Vector3(x+0.5f, 0.5f, z+0.5f));
+                var cube = new PhysicsObject($"cube{x}/{z}", true, false,
+                    position: new Vector3(x + 0.5f, 0.5f, z + 0.5f));
                 cube.Model = CubeModel;
                 // cube.Texture = GrassTexture;
                 AddGameObject(cube);
             }
         }
-        
+
         // var cube = new PhysicsObject($"floor", true, false, position: new Vector3(0.5f, 0.5f, 0.5f));
         // cube.Model = CubeModel;
         // var cube2 = new PhysicsObject($"wall", true, false, position: new Vector3(1.5f, 1.5f, 0.5f));
         // cube2.Model = CubeModel;
-        
+
         // AddGameObject(cube);
         // AddGameObject(cube2);
 
@@ -181,6 +185,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
         PlaceBlockSfx = Content.Load<SoundEffect>("Audio/place-block");
         RemoveBlockSfx = Content.Load<SoundEffect>("Audio/remove-block");
 
+
         _fontSprite = Content.Load<SpriteFont>("Fonts/myFont");
         // Debug.WriteLine(_fontSprite.Characters.Count);
 
@@ -196,7 +201,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
         // update the physics simulation
-        
+
         // Physics.UpdatePhysics(1f/100f);
 
         _mainWorld.Update(gameTime);
@@ -211,16 +216,16 @@ public class MainGame : Microsoft.Xna.Framework.Game
         {
             // todo: does it make sense to stop processing entities outside player view?
             if (Vector3.Distance(gameObject.Transform.Position, _player.Transform.Position) >
-                MaxRenderDistance) continue;
+                MaxRenderDistance && gameObject.CanOcclude) continue;
             gameObject.Update(deltaTime);
         }
-        
+
         // remove the objects marked for clearing
         while (_gameObjectsToRemove.Count != 0)
         {
             RemoveGameObject(_gameObjectsToRemove.Dequeue());
         }
-        
+
         Physics.UpdatePhysics(deltaTime);
 
         DebugUtils.Update(gameTime);
@@ -258,7 +263,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
         foreach (var meshObject in _meshObjects)
         {
             if (Vector3.Distance(meshObject.Transform.Position, _player.Transform.Position) >
-                MaxRenderDistance) continue;
+                MaxRenderDistance && meshObject.CanOcclude) continue;
             meshObject.Draw(GraphicsDevice, gameTime);
         }
 

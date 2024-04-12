@@ -114,8 +114,6 @@ public class Player : Entity
         // Velocity.Y = movementDirection.Y * _playerSpeed;
         Velocity.Z = movementDirection.Z * _playerSpeed;
 
-        // Transform.Position += movementDirection * _playerSpeed * deltaTime;
-
         if (Keyboard.GetState().IsKeyDown(Keys.Space))
         {
             TryJump();
@@ -129,7 +127,7 @@ public class Player : Entity
         {
             ObjectBeingLookedAtNormal = _cameraHit.HitNormal;
             ObjectBeingLookedAt = _cameraHit.GameObjectHit;
-            // DebugUtils.DrawWireCube(ObjectBeingLookedAt.Transform.Position, color: Color.Black);
+            DebugUtils.DrawWireCube(ObjectBeingLookedAt.Transform.Position, color: Color.Black);
         }
         else
         {
@@ -140,12 +138,12 @@ public class Player : Entity
         if (Mouse.GetState().LeftButton == ButtonState.Pressed && !_wasPreviouslyLeftClicking)
         {
             _wasPreviouslyLeftClicking = true;
-            // if (ObjectBeingLookedAt != null)
-            // {
-            //     MainGame.GameInstance.DestroyGameObject(ObjectBeingLookedAt);
-            //     MainGame.GameInstance.RemoveBlockSfx?.Play();
-            //     ObjectBeingLookedAt = null;
-            // }
+            if (ObjectBeingLookedAt != null)
+            {
+                MainGame.GameInstance.DestroyGameObject(ObjectBeingLookedAt);
+                MainGame.GameInstance.RemoveBlockSfx?.Play();
+                ObjectBeingLookedAt = null;
+            }
         }
         else if (Mouse.GetState().LeftButton == ButtonState.Released)
         {

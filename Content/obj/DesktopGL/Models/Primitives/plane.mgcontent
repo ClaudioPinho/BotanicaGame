@@ -3,7 +3,7 @@
   <SourceFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/Models/Primitives/plane.fbx</SourceFile>
   <SourceTime>2024-03-30T17:49:11.851266+00:00</SourceTime>
   <DestFile>/home/clawd/Projects/MonoGameProjects/TestMonoGame/Content/bin/DesktopGL/Models/Primitives/plane.xnb</DestFile>
-  <DestTime>2024-04-09T19:09:06.2524037+01:00</DestTime>
+  <DestTime>2024-04-12T17:20:59.1047222+01:00</DestTime>
   <Importer>FbxImporter</Importer>
   <ImporterTime>2022-07-26T12:44:56+01:00</ImporterTime>
   <Processor>ModelProcessor</Processor>
@@ -42,7 +42,7 @@
   </Parameters>
   <Parameters>
     <Key>RotationX</Key>
-    <Value>0</Value>
+    <Value>-90</Value>
   </Parameters>
   <Parameters>
     <Key>RotationY</Key>
