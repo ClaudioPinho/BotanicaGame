@@ -9,7 +9,6 @@ using Vector3 = Microsoft.Xna.Framework.Vector3;
 namespace TestMonoGame.Physics;
 
 // https://gamedev.net/tutorials/programming/general-and-gameplay-programming/swept-aabb-collision-detection-and-response-r3084/
-
 public class GamePhysics(Vector3? worldGravity = null)
 {
     public const int MaxCollisionDistance = 2;
@@ -27,7 +26,7 @@ public class GamePhysics(Vector3? worldGravity = null)
 
     private Vector3 _intersectionPoint;
     private Vector3 _hitNormal;
-    
+
     private BoundingBox _boxCastSource;
     private Vector3 _boxDestinyPosition;
 
@@ -85,8 +84,8 @@ public class GamePhysics(Vector3? worldGravity = null)
 
         _boxCastSource.Min = Vector3.Min(_boxCastSource.Min, _boxDestinyPosition - boxSize * 0.5f);
         _boxCastSource.Max = Vector3.Max(_boxCastSource.Max, _boxDestinyPosition + boxSize * 0.5f);
-        
-        DebugUtils.DrawWireCube(boxOrigin, customCorners:_boxCastSource.GetCorners(), color:Color.Red);
+
+        DebugUtils.DrawWireCube(boxOrigin, customCorners: _boxCastSource.GetCorners(), color: Color.Red);
 
         // Check for intersection with static objects
         return PhysicsObjects
@@ -107,8 +106,9 @@ public class GamePhysics(Vector3? worldGravity = null)
             if (physicsObject == ignoredPhysicsObject)
                 continue;
 
-            if (!RayIntersects(rayOrigin, rayDirection, physicsObject.CollisionBox, maxDistance, ref intersectionPoint,
-                    ref hitNormal)) continue;
+            if (!RayIntersects(rayOrigin, rayDirection, physicsObject.CollisionBox, maxDistance,
+                ref intersectionPoint,
+                ref hitNormal)) continue;
 
             // Calculate the distance from the ray origin to the intersection point
             var distance = Vector3.Distance(rayOrigin, intersectionPoint);
@@ -148,7 +148,7 @@ public class GamePhysics(Vector3? worldGravity = null)
 
                 // do a simple broad-phase collision check first
                 if (!GetSweptBroadphaseBox(physicsObject, deltaTime)
-                        .Intersects(otherPhysicsObject.CollisionBox)) continue;
+                    .Intersects(otherPhysicsObject.CollisionBox)) continue;
 
                 _collisionTime = SweptAABB(physicsObject.CollisionBox, otherPhysicsObject.CollisionBox,
                     physicsObject.Velocity * deltaTime, ref _sweptNormal);
@@ -160,11 +160,11 @@ public class GamePhysics(Vector3? worldGravity = null)
                     ref _penetrationNormal);
 
                 // ignore any collision that doesn't really penetrate enough into the other collider
-                if (_collisionTime is >= 0.0f and <= 1.0f /*&& _penetrationDepth > 0.0f*/)
-                {
-                    HandleSweptCollision(physicsObject, otherPhysicsObject, deltaTime);
-                }
-                else if (_penetrationDepth > 0)
+                // if (_collisionTime is >= 0.0f and <= 1.0f /*&& _penetrationDepth > 0.0f*/)
+                // {
+                //     HandleSweptCollision(physicsObject, otherPhysicsObject, deltaTime);
+                // }
+                // else if (_penetrationDepth > 0)
                 {
                     HandleCollision(physicsObject, otherPhysicsObject, deltaTime);
                 }
@@ -409,20 +409,50 @@ public class GamePhysics(Vector3? worldGravity = null)
 
     private void HandleCollision(PhysicsObject physicsObject, PhysicsObject other, float deltaTime)
     {
-        _anyCollisionDetected = true;
+        // _anyCollisionDetected = true;
 
-        // DebugUtils.DrawWireCube(otherPhysicsObject.Transform.Position,
-        //     customCorners: otherPhysicsObject.CollisionBox.GetCorners(), color: Color.Yellow);
+        // DebugUtils.DrawWireCube(other.Transform.Position,
+        //     customCorners: other.CollisionBox.GetCorners());
+
+        var velocityToResolve = Vector3.Zero;
+
+        // if (physicsObject.Velocity.X > 0f)
+        // {
+        //     DebugUtils.PrintMessage("t");
+        // }
+
+        if (MathF.Abs(_penetrationNormal.X) > 0.0001f)
+        {
+            velocityToResolve.X = physicsObject.Velocity.X;
+        }
+
+        if (MathF.Abs(_penetrationNormal.Y) > 0.0001f)
+        {
+            velocityToResolve.Y = physicsObject.Velocity.Y;
+        }
+
+        if (MathF.Abs(_penetrationNormal.Z) > 0.0001f)
+        {
+            velocityToResolve.Z = physicsObject.Velocity.Z;
+        }
+
+        // move the player along the axis that we want to resolve
+        physicsObject.Transform.Position += velocityToResolve * deltaTime;
+
+        // cancel out the velocity on the resolved axis
 
         if (MathF.Abs(_penetrationNormal.X) > 0.0001f)
         {
             // Bounce the velocity along that axis.
             physicsObject.Velocity.X = 0;
+            // physicsObject.Velocity.X *= -0.9f;
         }
 
         if (MathF.Abs(_penetrationNormal.Y) > 0.0001f)
         {
             // Bounce the velocity along that axis.
+            // if (physicsObject.Velocity.Y < 0.01f)
+            // physicsObject.Velocity.Y *= -0.9f;
             physicsObject.Velocity.Y = 0;
         }
 
@@ -430,9 +460,14 @@ public class GamePhysics(Vector3? worldGravity = null)
         {
             // Bounce the velocity along that axis.
             physicsObject.Velocity.Z = 0;
+            // physicsObject.Velocity.Z *= -0.9f;
         }
 
+        // resolve the collision by moving along the normal and the penetration depth
         physicsObject.Transform.Position += _penetrationNormal * _penetrationDepth;
+
+        // recalculate the object's AABB for the next check
+        physicsObject.CalculateAABB();
     }
 
     private void HandleSweptCollision(PhysicsObject physicsObject, PhysicsObject otherObject, float deltaTime)
@@ -474,6 +509,8 @@ public class GamePhysics(Vector3? worldGravity = null)
         physicsObject.Velocity = velocity;
 
         physicsObject.Transform.Position += physicsObject.Velocity * (_remainingTime * deltaTime);
+
+        physicsObject.CalculateAABB();
     }
 
     private bool RayIntersects(Vector3 rayOrigin, Vector3 rayDirection, BoundingBox boundingBox, float maxDistance,
