@@ -189,6 +189,9 @@
 /processorParam:TextureFormat=Compressed
 /build:Models/sphere.fbx
 
+#begin Scenes/MainScene.json
+/copy:Scenes/MainScene.json
+
 #begin Textures/Blocks/grass.png
 /importer:TextureImporter
 /processor:TextureProcessor

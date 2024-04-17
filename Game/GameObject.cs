@@ -1,23 +1,18 @@
 using System;
 using Microsoft.Xna.Framework;
-using TestMonoGame.Debug;
+using TestMonoGame.Game.SceneManagement;
 
 namespace TestMonoGame.Game;
 
-public class GameObject : IDisposable
+public class GameObject(string name) : IDisposable
 {
-    public string Name;
+    public string Name = name;
 
     public bool CanOcclude = true;
     
-    public readonly Transform Transform;
-
-    public GameObject(string name, Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null,
-        Transform parent = null)
-    {
-        Name = name;
-        Transform = new Transform(position, rotation, scale);
-    }
+    public readonly Transform Transform = new(Vector3.Zero, Quaternion.Identity, Vector3.One);
+    
+    public Scene SceneContext { get; set; }
 
     public virtual void Initialize()
     {
@@ -25,7 +20,6 @@ public class GameObject : IDisposable
 
     public virtual void Update(float deltaTime)
     {
-        
     }
 
     public virtual void Dispose()

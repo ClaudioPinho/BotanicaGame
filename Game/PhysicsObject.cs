@@ -4,31 +4,23 @@ using TestMonoGame.Physics;
 
 namespace TestMonoGame.Game;
 
-public class PhysicsObject(
-    string name,
-    bool isStatic = false,
-    bool isAffectedByGravity = true,
-    Vector3? collisionSize = null,
-    Vector3? position = null,
-    Quaternion? rotation = null,
-    Vector3? scale = null,
-    Transform parent = null) : MeshObject(name, position, rotation, scale, parent)
+public class PhysicsObject(string name) : MeshObject(name)
 {
-    public readonly bool IsStatic = isStatic;
-    public readonly bool IsAffectedByGravity = isAffectedByGravity;
+    public bool IsStatic;
+    public bool IsAffectedByGravity = true;
 
     public BoundingBox CollisionBox;
 
     public float Mass = 1f;
     public float Restitution = 1f;
 
-    public Vector3 CollisionSize = collisionSize ?? new Vector3(1, 1, 1);
+    public Vector3 CollisionSize = new(1, 1, 1);
     public Vector3 CollisionOffset = Vector3.Zero;
 
     public Vector3 Velocity = new(0, 0, 0);
 
     public bool DebugDrawCollision = false;
-    
+
     public virtual void PhysicsTick(float deltaTime)
     {
         // DebugUtils.DrawWireCube(Transform.Position, customCorners: CollisionBox.GetCorners());

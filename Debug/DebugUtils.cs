@@ -26,11 +26,11 @@ public static class DebugUtils
         };
     }
 
-    public static void Update(GameTime gameTime)
+    public static void Update(float deltaTime)
     {
     }
 
-    public static void Draw(GraphicsDevice graphicsDevice, GameTime gameTime)
+    public static void Draw(GraphicsDevice graphicsDevice, float deltaTime)
     {
         while (_wireObjectsToDraw.Count > 0)
         {
@@ -39,8 +39,14 @@ public static class DebugUtils
                 ? Matrix.Identity
                 : wireObjectToDraw.Transform.WorldMatrix;
 
-            _wireframeEffect.View = Camera.Current.ViewMatrix;
-            _wireframeEffect.Projection = Camera.Current.ProjectionMatrix;
+            _wireframeEffect.View = Camera.Current != null
+                ? Camera.Current.ViewMatrix
+                : Matrix.CreateLookAt(Vector3.Zero, Vector3.Forward, Vector3.Up);
+
+            _wireframeEffect.Projection = Camera.Current != null
+                ? Camera.Current.ProjectionMatrix
+                : Matrix.CreatePerspectiveFieldOfView(MathF.PI / 2,
+                    MainGame.GraphicsDeviceManager.GraphicsDevice.DisplayMode.AspectRatio, 0.01f, 1000f);
 
             _wireframeEffect.CurrentTechnique.Passes[0].Apply();
             graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineList, wireObjectToDraw.VertexPositions, 0,
@@ -96,6 +102,11 @@ public static class DebugUtils
     public static void PrintError(string error, object reference = null)
     {
         Console.WriteLine($"ERROR ({DateTime.Now:T}) | {error}");
+    }
+
+    public static void PrintException(Exception exception, object reference = null)
+    {
+        Console.WriteLine($"Exception ({DateTime.Now:T}) | {exception.Message}/n{exception.StackTrace}");
     }
 
     public static void PrintMessage(string message, object reference = null)

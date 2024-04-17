@@ -2,7 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 
-namespace TestMonoGame.Game;
+namespace TestMonoGame.Game.Entities;
 
 public class Entity : PhysicsObject
 {
@@ -13,7 +13,7 @@ public class Entity : PhysicsObject
     public float JumpHeight = 1.5f;
 
     // AUDIO
-    public readonly AudioEmitter AudioEmitter;
+    public readonly AudioEmitter AudioEmitter = new();
 
     public SoundEffect JumpSfx;
     public SoundEffect FallSfx;
@@ -23,15 +23,14 @@ public class Entity : PhysicsObject
     public bool WasPreviouslyFalling { get; private set; }
     // public float MaxVelocity { get; set; }
 
-    public Entity(string name,
-        bool isAffectedByGravity = true,
-        Vector3? collisionSize = null,
-        Vector3? position = null,
-        Quaternion? rotation = null,
-        Vector3? scale = null,
-        Transform parent = null) : base(name, false, isAffectedByGravity, collisionSize, position, rotation, scale,
-        parent)
+    public Entity(string name) : base(name)
     {
+        IsStatic = false;
+        IsAffectedByGravity = true;
+        
+        Mass = 1f;
+        Restitution = 1f;
+        
         AudioEmitter = new AudioEmitter();
     }
 

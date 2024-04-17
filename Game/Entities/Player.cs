@@ -7,7 +7,7 @@ using TestMonoGame.Extensions;
 using TestMonoGame.Physics;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
-namespace TestMonoGame.Game;
+namespace TestMonoGame.Game.Entities;
 
 public class Player : Entity
 {
@@ -34,18 +34,24 @@ public class Player : Entity
 
     private RaycastHit _cameraHit;
 
-    public Player(string name, Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null,
-        Transform parent = null) : base(name, true, new Vector3(0.5f, 1.9f, 0.5f), position, rotation, scale, parent)
+    public Player(string name) : base(name)
     {
-        Camera = new Camera("Player Camera", Transform.Position + Vector3.Up * _playerCamHeight,
-            Quaternion.CreateFromYawPitchRoll(0f, MathF.PI / 2, 0));
-        Camera.CameraFOV = 45f;
-        CollisionOffset = new Vector3(0, CollisionSize.Y / 2, 0f);
-        Mass = 1f;
-        Restitution = 1f;
-        MainGame.GameInstance.AddNewGameObject(Camera);
-
         AudioListener = new AudioListener();
+        
+        Camera = new Camera("Player Camera");
+        Camera.Transform.Position = Transform.Position + Vector3.Up * _playerCamHeight;
+        Camera.Transform.Rotation = Quaternion.CreateFromYawPitchRoll(0f, MathF.PI / 2, 0);
+        Camera.CameraFOV = 45f;
+        
+        CollisionSize = new Vector3(0.5f, 1.9f, 0.5f);
+        CollisionOffset = new Vector3(0, CollisionSize.Y / 2, 0f);
+    }
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        
+        SceneContext.AddNewGameObject(Camera);
     }
 
     public override void Update(float deltaTime)
@@ -140,8 +146,8 @@ public class Player : Entity
             _wasPreviouslyLeftClicking = true;
             if (ObjectBeingLookedAt != null)
             {
-                MainGame.GameInstance.DestroyGameObject(ObjectBeingLookedAt);
-                MainGame.GameInstance.RemoveBlockSfx?.Play();
+                // MainGame.GameInstance.DestroyGameObject(ObjectBeingLookedAt);
+                // MainGame.GameInstance.RemoveBlockSfx?.Play();
                 ObjectBeingLookedAt = null;
             }
         }
@@ -155,12 +161,12 @@ public class Player : Entity
             _wasPreviouslyRightClicking = true;
             if (ObjectBeingLookedAt != null)
             {
-                var newCubePosition = ObjectBeingLookedAt.Transform.Position + ObjectBeingLookedAtNormal;
-                var newCube = new PhysicsObject("New Cube", true, false, position: newCubePosition);
-                newCube.Model = MainGame.GameInstance.CubeModel;
+                // var newCubePosition = ObjectBeingLookedAt.Transform.Position + ObjectBeingLookedAtNormal;
+                // var newCube = new PhysicsObject("New Cube", true, false, position: newCubePosition);
+                // newCube.Model = MainGame.GameInstance.CubeModel;
                 // newCube.Texture = MainGame.GameInstance.GrassTexture;
-                MainGame.GameInstance.AddNewGameObject(newCube);
-                MainGame.GameInstance.PlaceBlockSfx?.Play();
+                // MainGame.GameInstance.AddNewGameObject(newCube);
+                // MainGame.GameInstance.PlaceBlockSfx?.Play();
             }
         }
         else if (Mouse.GetState().RightButton == ButtonState.Released)
@@ -174,10 +180,10 @@ public class Player : Entity
             if (_footstepTimer >= _footstepRate)
             {
                 // MainGame.GameInstance.WalkSfx?.Play();
-                if (MainGame.GameInstance.WalkSfx != null)
-                {
-                    MainGame.GameInstance.Play3DAudio(AudioEmitter, MainGame.GameInstance.WalkSfx, 10f, 1f);
-                }
+                // if (MainGame.GameInstance.WalkSfx != null)
+                // {
+                //     MainGame.GameInstance.Play3DAudio(AudioEmitter, MainGame.GameInstance.WalkSfx, 10f, 1f);
+                // }
 
                 _footstepTimer = 0f;
             }
@@ -190,7 +196,7 @@ public class Player : Entity
     public override void OnReceivedDamage(int damageReceived)
     {
         base.OnReceivedDamage(damageReceived);
-        MainGame.GameInstance.FallSfx.Play();
+        // MainGame.GameInstance.FallSfx.Play();
     }
 
     private float yaw = 0f;

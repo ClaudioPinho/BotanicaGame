@@ -22,5 +22,10 @@ public static class VectorExtensions
 
         return projectedVector;
     }
+
+    // public static Vector2 ToVector2(this Vector3 vector)
+    // {
+    //     return 
+    // }
     
 }

@@ -19,8 +19,7 @@ public class Camera : GameObject
 
     public Matrix ViewMatrix;
 
-    public Camera(string name, Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null,
-        Transform parent = null) : base(name, position, rotation, scale, parent)
+    public Camera(string name) : base(name)
     {
         Current = this;
         AspectRatio = MainGame.GraphicsDeviceManager.GraphicsDevice.DisplayMode.AspectRatio;
@@ -45,4 +44,5 @@ public class Camera : GameObject
         base.Update(deltaTime);
         UpdateViewMatrix();
     }
+
 }

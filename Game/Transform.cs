@@ -9,8 +9,9 @@ public class Transform(Vector3? position = null, Quaternion? rotation = null, Ve
     public Quaternion Rotation = rotation ?? Quaternion.Identity;
     public Vector3 Scale = scale ?? Vector3.One;
 
-    public Matrix WorldMatrix => Matrix.CreateScale(Scale) * Matrix.CreateFromQuaternion(Rotation) *
-                                 Matrix.CreateTranslation(Position);
+    public Matrix WorldMatrix =>
+        Matrix.CreateScale(Scale) * Matrix.CreateFromQuaternion(Rotation) *
+        Matrix.CreateTranslation(Position);
 
     public Vector3 Right => Vector3.Transform(Vector3.UnitX, Rotation);
     public Vector3 Up => Vector3.Transform(Vector3.UnitY, Rotation);
