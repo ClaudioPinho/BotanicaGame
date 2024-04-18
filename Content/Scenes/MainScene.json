@@ -12,13 +12,13 @@
         "SharedEffect": "Effects/TilingEffect",
         "SharedTexture": "Textures/Ground/ground-sand",
         "TextureTiling": {
-          "X": 10,
-          "Y": 10
+          "X": 50,
+          "Y": 50
         },
         "CanOcclude": false,
         "CollisionOffset": {
           "X": 0,
-          "Y": -1,
+          "Y": -0.5,
           "Z": 0
         },
         "CollisionSize": {
@@ -42,6 +42,32 @@
             "X": 100,
             "Y": 1,
             "Z": 100
+          }
+        }
+      }
+    },
+    {
+      "objectType": "PhysicsObject",
+      "name": "Barrel",
+      "params": {
+        "IsStatic": false,
+        "IsAffectedByGravity": true,
+        "Model": "Models/Miscs/barrel",
+        "CollisionOffset": {
+          "X": 0,
+          "Y": 0.5,
+          "Z": 0
+        },
+        "CollisionSize": {
+          "X": 1,
+          "Y": 1,
+          "Z": 1
+        },
+        "Transform": {
+          "Position": {
+            "X": 5,
+            "Y": 1,
+            "Z": 5
           }
         }
       }

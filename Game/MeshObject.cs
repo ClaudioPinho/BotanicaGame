@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -8,45 +7,24 @@ namespace TestMonoGame.Game;
 public class MeshObject(string name) : GameObject(name), IDrawable
 {
     public int DrawOrder { get; }
-    public bool Visible { get; }
+    public bool Visible { get; } = true;
     public event EventHandler<EventArgs> DrawOrderChanged;
     public event EventHandler<EventArgs> VisibleChanged;
     
-    // public Vector2 TextureTiling = new(1f, 1f);
-    // public Color DiffuseColor = Color.White;
-    // public bool ReceiveLighting = true;
     public Model Model
     {
         get => _model;
         set => SwapModel(value);
     }
 
-    public Texture2D SharedTexture
-    {
-        get => _sharedTexture;
-        set => SetSharedTexture(value);
-    }
-
-    public Effect SharedEffect
-    {
-        get => _sharedEffect;
-        set => SetSharedEffect(value);
-    }
-
-    public Vector2 TextureTiling
-    {
-        get => _textureTiling;
-        set => SetTextureTiling(value);
-    }
+    public Effect SharedEffect;
+    public Texture2D SharedTexture;
+    public Vector2 TextureTiling = Vector2.One;
+    public Color DiffuseColor = Color.White;
     
     private Model _model;
     private ModelMeshCollection _meshes;
     private ModelBoneCollection _bones;
-
-    private Texture2D _sharedTexture;
-    private Effect _sharedEffect;
-
-    private Vector2 _textureTiling;
 
     private static Matrix ViewMatrix => Camera.Current != null
         ? Camera.Current.ViewMatrix
@@ -59,32 +37,45 @@ public class MeshObject(string name) : GameObject(name), IDrawable
 
     public virtual void Draw(GameTime gameTime)
     {
-        if (_meshes == null || _meshes.Count == 0)
+        if (!Visible)
             return;
         
-        foreach (var mesh in _meshes)
+        if (_meshes == null || _meshes.Count == 0)
+            return;
+
+        foreach (var mesh in _model.Meshes)
         {
+            foreach (var meshPart in mesh.MeshParts)
+            {
+                if (SharedEffect != null)
+                    meshPart.Effect = SharedEffect;
+            }
+            
             foreach (var effect in mesh.Effects)
             {
-                UpdateMatrix(effect);
+                if (effect is BasicEffect basicEffect)
+                {
+                    basicEffect.World = Transform.WorldMatrix;
+                    basicEffect.View = ViewMatrix;
+                    basicEffect.Projection = ProjectionMatrix;
+                    basicEffect.Alpha = 1f;
+                    basicEffect.DiffuseColor = DiffuseColor.ToVector3();
+                    if (SharedTexture != null)
+                    {
+                        basicEffect.Texture = SharedTexture;
+                        basicEffect.TextureEnabled = SharedTexture != null;
+                    }
+                }
+                else
+                {
+                    effect.Parameters["WorldViewProjection"].SetValue(
+                        Matrix.Multiply(Matrix.Multiply(Transform.WorldMatrix, ViewMatrix), ProjectionMatrix));
+                    effect.Parameters["Texture"].SetValue(SharedTexture);
+                    effect.Parameters["DiffuseColor"].SetValue(DiffuseColor.ToVector4());
+                    effect.Parameters["Tiling"].SetValue(TextureTiling);
+                }
             }
             mesh.Draw();
-        }
-    }
-
-    private void UpdateMatrix(Effect effect)
-    {
-        if (effect is BasicEffect basicEffect)
-        {
-            basicEffect.World = Transform.WorldMatrix;
-            basicEffect.View = ViewMatrix;
-            basicEffect.Projection = ProjectionMatrix;
-            basicEffect.Alpha = 1f;
-        }
-        else
-        {
-            effect.Parameters["WorldViewProjection"].SetValue(
-                Matrix.Multiply(Matrix.Multiply(Transform.WorldMatrix, ViewMatrix), ProjectionMatrix));
         }
     }
     
@@ -94,38 +85,5 @@ public class MeshObject(string name) : GameObject(name), IDrawable
         _bones = newModel.Bones;
         _model = newModel;
     }
-    
-    private void SetSharedTexture(Texture2D texture)
-    {
-        foreach (var meshEffect in _meshes.SelectMany(mesh => mesh.Effects))
-        {
-            if (meshEffect is BasicEffect basicEffect)
-            {
-                basicEffect.Texture = texture;
-                basicEffect.TextureEnabled = texture != null;
-            }
-            else
-            {
-                meshEffect.Parameters["Texture"].SetValue(texture);
-            }
-        }
 
-        _sharedTexture = texture;
-    }
-
-    private void SetSharedEffect(Effect effect)
-    {
-        foreach (var meshPart in _meshes.SelectMany(mesh => mesh.MeshParts))
-        {
-            meshPart.Effect = effect;
-        }
-
-        _sharedEffect = effect;
-    }
-
-    private void SetTextureTiling(Vector2 tiling)
-    {
-        _sharedEffect.Parameters["Tiling"].SetValue(tiling);
-        _textureTiling = tiling;
-    }
 }

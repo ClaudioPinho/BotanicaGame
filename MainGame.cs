@@ -7,6 +7,7 @@ using TestMonoGame.Data;
 using TestMonoGame.Debug;
 using TestMonoGame.Game;
 using TestMonoGame.Game.SceneManagement;
+using TestMonoGame.Game.UI;
 using TestMonoGame.Physics;
 
 namespace TestMonoGame;
@@ -72,20 +73,28 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
         var loadedScene = SceneManager.Load("MainScene", Physics);
 
-        var cubeModel = Content.Load<Model>("Models/cube");
+        var canvas = new Canvas("Player Canvas");
+
+        var image = new UIImage(Content.Load<Texture2D>("Textures/UI/reticle"));
+        image.Destination.Location = new Point(100, 100);
         
-        for (var x = 0; x < 100; x++)
-        {
-            for (var z = 0; z < 100; z++)
-            {
-                var cube = new PhysicsObject($"cube{x}/{z}");
-                cube.Transform.Position = new Vector3(x + 0.5f, 0.5f, z + 0.5f);
-                cube.IsStatic = true;
-                cube.IsAffectedByGravity = false;
-                cube.Model = cubeModel;
-                loadedScene.AddNewGameObject(cube);
-            }
-        }
+        canvas.AddUIGraphic(image);
+        
+        loadedScene.AddNewGameObject(canvas);
+        
+        // var cubeModel = Content.Load<Model>("Models/cube");
+        // for (var x = 0; x < 100; x++)
+        // {
+        //     for (var z = 0; z < 100; z++)
+        //     {
+        //         var cube = new PhysicsObject($"cube{x}/{z}");
+        //         cube.Transform.Position = new Vector3(x + 0.5f, 0.5f, z + 0.5f);
+        //         cube.IsStatic = true;
+        //         cube.IsAffectedByGravity = false;
+        //         cube.Model = cubeModel;
+        //         loadedScene.AddNewGameObject(cube);
+        //     }
+        // }
 
         // _reticle = Content.Load<Texture2D>("Textures/UI/reticle");
         // _reticlePosition = new Vector2(GraphicsDevice.Viewport.Width / 2f - _reticle.Width / 2f,

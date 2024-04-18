@@ -13,6 +13,7 @@ public class PhysicsObject(string name) : MeshObject(name)
 
     public float Mass = 1f;
     public float Restitution = 1f;
+    public float Friction = 1f;
 
     public Vector3 CollisionSize = new(1, 1, 1);
     public Vector3 CollisionOffset = Vector3.Zero;
@@ -23,7 +24,7 @@ public class PhysicsObject(string name) : MeshObject(name)
 
     public virtual void PhysicsTick(float deltaTime)
     {
-        // DebugUtils.DrawWireCube(Transform.Position, customCorners: CollisionBox.GetCorners());
+        DebugUtils.DrawWireCube(Transform.Position, customCorners: CollisionBox.GetCorners());
         // DebugUtils.DrawWirePoint(CollisionBox.Min, color: Color.Red);
         // DebugUtils.DrawWirePoint(CollisionBox.Max, color: Color.Green);
         // DebugUtils.DrawDebugAxis(Transform.Position, Transform.Rotation, Transform.Scale);

@@ -85,7 +85,7 @@ public class GamePhysics(Vector3? worldGravity = null)
         _boxCastSource.Min = Vector3.Min(_boxCastSource.Min, _boxDestinyPosition - boxSize * 0.5f);
         _boxCastSource.Max = Vector3.Max(_boxCastSource.Max, _boxDestinyPosition + boxSize * 0.5f);
 
-        DebugUtils.DrawWireCube(boxOrigin, customCorners: _boxCastSource.GetCorners(), color: Color.Red);
+        // DebugUtils.DrawWireCube(boxOrigin, customCorners: _boxCastSource.GetCorners(), color: Color.Red);
 
         // Check for intersection with static objects
         return PhysicsObjects
@@ -160,11 +160,11 @@ public class GamePhysics(Vector3? worldGravity = null)
                     ref _penetrationNormal);
 
                 // ignore any collision that doesn't really penetrate enough into the other collider
-                // if (_collisionTime is >= 0.0f and <= 1.0f /*&& _penetrationDepth > 0.0f*/)
-                // {
-                //     HandleSweptCollision(physicsObject, otherPhysicsObject, deltaTime);
-                // }
-                // else if (_penetrationDepth > 0)
+                if (_collisionTime is >= 0.0f and <= 1.0f /*&& _penetrationDepth > 0.0f*/)
+                {
+                    HandleSweptCollision(physicsObject, otherPhysicsObject, deltaTime);
+                }
+                else if (_penetrationDepth > 0)
                 {
                     HandleCollision(physicsObject, otherPhysicsObject, deltaTime);
                 }
@@ -409,6 +409,13 @@ public class GamePhysics(Vector3? worldGravity = null)
 
     private void HandleCollision(PhysicsObject physicsObject, PhysicsObject other, float deltaTime)
     {
+        if (!other.IsStatic)
+        {
+            // other.Velocity = physicsObject.Velocity / 2;
+            other.Transform.Position += physicsObject.Velocity / 2 * deltaTime;
+            other.CalculateAABB();
+        }
+        
         // _anyCollisionDetected = true;
 
         // DebugUtils.DrawWireCube(other.Transform.Position,
@@ -473,13 +480,6 @@ public class GamePhysics(Vector3? worldGravity = null)
     private void HandleSweptCollision(PhysicsObject physicsObject, PhysicsObject otherObject, float deltaTime)
     {
         _anyCollisionDetected = true;
-
-        // DebugUtils.DrawWireCube(otherPhysicsObject.Transform.Position,
-        //     customCorners: otherPhysicsObject.CollisionBox.GetCorners(), color: Color.LightBlue);
-
-        // DebugUtils.PrintMessage(
-        //     $"collision detected with swept AABB normal: {_sweptNormal} at {_collisionTime * 100f}% of the frame " +
-        //     $"predicted penetration next frame: {_penetrationDepth} with normal: {_penetrationNormal}");
 
         var velocity = physicsObject.Velocity;
 

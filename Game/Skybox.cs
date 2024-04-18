@@ -14,7 +14,7 @@ public class Skybox
 
     private Effect _skyboxEffect;
 
-    private float _skyboxSize = 100f;
+    private float _skyboxSize = 500f;
 
     private static Matrix ViewMatrix => Camera.Current != null
         ? Camera.Current.ViewMatrix

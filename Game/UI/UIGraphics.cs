@@ -1,15 +1,12 @@
-using System;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace TestMonoGame.Game.UI;
 
-public class UIGraphics(string name) : GameObject(name), IDrawable
+public class UIGraphics
 {
-    public int DrawOrder { get; }
-    public bool Visible { get; }
-    public event EventHandler<EventArgs> DrawOrderChanged;
-    public event EventHandler<EventArgs> VisibleChanged;
-    
+    public Point Position => Destination.Location;
+
     public Rectangle Destination = new(0,0,100,100);
     public Rectangle? Source = null;
     
@@ -20,8 +17,9 @@ public class UIGraphics(string name) : GameObject(name), IDrawable
 
     public float Rotation = 0f;
 
-    public virtual void Draw(GameTime gameTime)
+    public virtual void Draw(SpriteBatch spriteBatch, GameTime gameTime)
     {
+        
         
     }
 
