@@ -409,9 +409,8 @@ public class GamePhysics(Vector3? worldGravity = null)
 
     private void HandleCollision(PhysicsObject physicsObject, PhysicsObject other, float deltaTime)
     {
-        if (!other.IsStatic)
+        if (!other.IsStatic && other.CanBePushed)
         {
-            // other.Velocity = physicsObject.Velocity / 2;
             other.Transform.Position += physicsObject.Velocity / 2 * deltaTime;
             other.CalculateAABB();
         }

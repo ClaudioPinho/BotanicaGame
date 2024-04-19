@@ -52,6 +52,7 @@
       "params": {
         "IsStatic": false,
         "IsAffectedByGravity": true,
+        "CanBePushed": true,
         "Model": "Models/Miscs/barrel",
         "CollisionOffset": {
           "X": 0,

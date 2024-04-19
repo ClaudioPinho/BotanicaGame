@@ -1,0 +1,22 @@
+{
+  "name": "Main Menu",
+  "sceneObjectsData": [
+    {
+      "objectType": "Canvas",
+      "name": "MainCanvas",
+      "params": {
+        "UIElements": [
+          {
+            "Type": "Image"
+          }
+        ],
+        "BackgroundColor": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "A": 255
+        }
+      }
+    }
+  ]
+}

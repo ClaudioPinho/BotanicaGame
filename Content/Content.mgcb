@@ -208,6 +208,9 @@
 /processorParam:TextureFormat=Compressed
 /build:Models/sphere.fbx
 
+#begin Scenes/MainMenu.json
+/copy:Scenes/MainMenu.json
+
 #begin Scenes/MainScene.json
 /copy:Scenes/MainScene.json
 

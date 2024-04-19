@@ -15,7 +15,7 @@ public class SceneManager(ContentManager contentManager)
 
     private readonly List<Scene> _loadedScenes = [];
 
-    public Scene Load(string sceneName, GamePhysics physicsContext)
+    public Scene Load(string sceneName, GamePhysics physicsContext = null)
     {
         var fullPath = SceneRoot + $"/{sceneName}.json";
         if (File.Exists(fullPath))

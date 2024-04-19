@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
 using TestMonoGame.Data;
 using TestMonoGame.Debug;
-using TestMonoGame.Game;
 using TestMonoGame.Game.SceneManagement;
 using TestMonoGame.Game.UI;
 using TestMonoGame.Physics;
@@ -17,7 +16,10 @@ public class MainGame : Microsoft.Xna.Framework.Game
 {
     public const int MaxRenderDistance = 20;
 
+    public static Texture2D SinglePixelTexture;
+
     public static MainGame GameInstance;
+    
     public static GraphicsDeviceManager GraphicsDeviceManager { private set; get; }
     
     public static JsonSerializerSettings JsonSerializerSettings { get; private set; }
@@ -59,11 +61,15 @@ public class MainGame : Microsoft.Xna.Framework.Game
                 new Vector3Converter(),
                 new Vector2Converter(),
                 new Vector3NullConverter(),
-                new Vector2NullConverter()
+                new Vector2NullConverter(),
+                new ColorConverter()
             }
         };
 
         DebugUtils.Initialize(GraphicsDevice);
+
+        SinglePixelTexture = new Texture2D(GraphicsDevice, 1, 1);
+        SinglePixelTexture.SetData([Color.White]);
 
         // initialize the physics engine for the game
         Physics = new GamePhysics();
@@ -71,16 +77,20 @@ public class MainGame : Microsoft.Xna.Framework.Game
         // initialize the scene manager for the game
         SceneManager = new SceneManager(Content);
 
-        var loadedScene = SceneManager.Load("MainScene", Physics);
+        var mainMenu = SceneManager.Load("MainMenu");
 
-        var canvas = new Canvas("Player Canvas");
-
-        var image = new UIImage(Content.Load<Texture2D>("Textures/UI/reticle"));
-        image.Destination.Location = new Point(100, 100);
+        var canvas = mainMenu.GetGameObjectOfType<Canvas>();
         
-        canvas.AddUIGraphic(image);
-        
-        loadedScene.AddNewGameObject(canvas);
+        // var loadedScene = SceneManager.Load("MainScene", Physics);
+        //
+        // var canvas = new Canvas("Player Canvas");
+        //
+        // var image = new UIImage(Content.Load<Texture2D>("Textures/UI/reticle"));
+        // image.Destination.Location = new Point(100, 100);
+        //
+        // canvas.AddUIGraphic(image);
+        //
+        // loadedScene.AddNewGameObject(canvas);
         
         // var cubeModel = Content.Load<Model>("Models/cube");
         // for (var x = 0; x < 100; x++)
@@ -96,10 +106,6 @@ public class MainGame : Microsoft.Xna.Framework.Game
         //     }
         // }
 
-        // _reticle = Content.Load<Texture2D>("Textures/UI/reticle");
-        // _reticlePosition = new Vector2(GraphicsDevice.Viewport.Width / 2f - _reticle.Width / 2f,
-        //     GraphicsDevice.Viewport.Height / 2f - _reticle.Height / 2f);
-
         // _mainWorld = new World(123456789, 20, 20);
 
         base.Initialize();
@@ -107,17 +113,6 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
     protected override void LoadContent()
     {
-        // _spriteBatch = new SpriteBatch(GraphicsDevice);
-        //
-        // FallSfx = Content.Load<SoundEffect>("Audio/fall-hurt");
-        // WalkSfx = Content.Load<SoundEffect>("Audio/footstep");
-        // PlaceBlockSfx = Content.Load<SoundEffect>("Audio/place-block");
-        // RemoveBlockSfx = Content.Load<SoundEffect>("Audio/remove-block");
-        //
-        //
-        // _fontSprite = Content.Load<SpriteFont>("Fonts/myFont");
-        // Debug.WriteLine(_fontSprite.Characters.Count);
-
         // TODO: use this.Content to load your game content here
     }
 

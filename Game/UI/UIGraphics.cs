@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -5,7 +6,7 @@ namespace TestMonoGame.Game.UI;
 
 public class UIGraphics
 {
-    public Point Position => Destination.Location;
+    public Vector2 Position;
 
     public Rectangle Destination = new(0,0,100,100);
     public Rectangle? Source = null;
@@ -21,6 +22,16 @@ public class UIGraphics
     {
         
         
+    }
+
+    public static Type GetUIGraphicType(string name)
+    {
+        return name switch
+        {
+            "Text" => typeof(UIText),
+            "Image" => typeof(UIImage),
+            _ => typeof(UIGraphics)
+        };
     }
 
 }

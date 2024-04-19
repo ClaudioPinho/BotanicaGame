@@ -8,6 +8,7 @@ public class PhysicsObject(string name) : MeshObject(name)
 {
     public bool IsStatic;
     public bool IsAffectedByGravity = true;
+    public bool CanBePushed;
 
     public BoundingBox CollisionBox;
 
@@ -24,7 +25,7 @@ public class PhysicsObject(string name) : MeshObject(name)
 
     public virtual void PhysicsTick(float deltaTime)
     {
-        DebugUtils.DrawWireCube(Transform.Position, customCorners: CollisionBox.GetCorners());
+        // DebugUtils.DrawWireCube(Transform.Position, customCorners: CollisionBox.GetCorners());
         // DebugUtils.DrawWirePoint(CollisionBox.Min, color: Color.Red);
         // DebugUtils.DrawWirePoint(CollisionBox.Max, color: Color.Green);
         // DebugUtils.DrawDebugAxis(Transform.Position, Transform.Rotation, Transform.Scale);
