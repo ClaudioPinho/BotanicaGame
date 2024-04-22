@@ -12,7 +12,12 @@ public class Canvas(string name) : GameObject(name), IDrawable
     public event EventHandler<EventArgs> DrawOrderChanged;
     public event EventHandler<EventArgs> VisibleChanged;
 
+    public List<UIGraphics> GraphicsList => _graphicsToDraw;
+    
     public Color BackgroundColor = new(0, 0, 0, 0);
+
+    public int Width => _fullViewportRectangle.Width;
+    public int Height => _fullViewportRectangle.Height;
     
     private SpriteBatch _spriteBatch = new(MainGame.GraphicsDeviceManager.GraphicsDevice);
     private List<UIGraphics> _graphicsToDraw = [];
@@ -38,7 +43,7 @@ public class Canvas(string name) : GameObject(name), IDrawable
     public void Draw(GameTime gameTime)
     {
         // _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, transformMatrix: );
-        _spriteBatch.Begin();
+        _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp);
         
         _spriteBatch.Draw(MainGame.SinglePixelTexture, _fullViewportRectangle,  BackgroundColor);
         

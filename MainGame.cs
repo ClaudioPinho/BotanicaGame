@@ -19,10 +19,11 @@ public class MainGame : Microsoft.Xna.Framework.Game
     public static Texture2D SinglePixelTexture;
 
     public static MainGame GameInstance;
-    
+
     public static GraphicsDeviceManager GraphicsDeviceManager { private set; get; }
-    
+
     public static JsonSerializerSettings JsonSerializerSettings { get; private set; }
+    public static JsonSerializer JsonSerializer { get; private set; }
 
     public static GamePhysics Physics { private set; get; }
 
@@ -33,6 +34,12 @@ public class MainGame : Microsoft.Xna.Framework.Game
     private float _deltaTime;
 
     private SceneData _testSceneData;
+
+    private SpriteFont _defaultSpriteFont;
+
+    private Texture2D _cursorTexture;
+
+    private UIGraphics _testGraphics;
 
     public MainGame()
     {
@@ -62,9 +69,11 @@ public class MainGame : Microsoft.Xna.Framework.Game
                 new Vector2Converter(),
                 new Vector3NullConverter(),
                 new Vector2NullConverter(),
-                new ColorConverter()
+                new ColorConverter(),
+                new PointConverter()
             }
         };
+        JsonSerializer = JsonSerializer.CreateDefault(JsonSerializerSettings);
 
         DebugUtils.Initialize(GraphicsDevice);
 
@@ -80,7 +89,8 @@ public class MainGame : Microsoft.Xna.Framework.Game
         var mainMenu = SceneManager.Load("MainMenu");
 
         var canvas = mainMenu.GetGameObjectOfType<Canvas>();
-        
+
+        _testGraphics = canvas.GraphicsList[1];
         // var loadedScene = SceneManager.Load("MainScene", Physics);
         //
         // var canvas = new Canvas("Player Canvas");
@@ -91,7 +101,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
         // canvas.AddUIGraphic(image);
         //
         // loadedScene.AddNewGameObject(canvas);
-        
+
         // var cubeModel = Content.Load<Model>("Models/cube");
         // for (var x = 0; x < 100; x++)
         // {
@@ -113,7 +123,8 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
     protected override void LoadContent()
     {
-        // TODO: use this.Content to load your game content here
+        _defaultSpriteFont = Content.Load<SpriteFont>("Fonts/myFont");
+        _cursorTexture = Content.Load<Texture2D>("Textures/UI/cursor");
     }
 
     protected override void Update(GameTime gameTime)
@@ -124,6 +135,8 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
         _deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
+        _testGraphics.Rotation += 2f * _deltaTime;
+
         SceneManager.UpdateScenes(_deltaTime);
 
         Physics.UpdatePhysics(_deltaTime);
@@ -132,6 +145,8 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
         base.Update(gameTime);
     }
+
+    private SpriteBatch _testSpriteBatch;
 
     protected override void Draw(GameTime gameTime)
     {
@@ -144,6 +159,29 @@ public class MainGame : Microsoft.Xna.Framework.Game
         GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
         SceneManager.DrawScenes(gameTime);
+
+
+        // draws some test lines for the Ui and a test cursor
+        _testSpriteBatch ??= new SpriteBatch(GraphicsDevice);
+        _testSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp);
+
+        // _testSpriteBatch.Draw(SinglePixelTexture,
+        //     new Rectangle(GraphicsDevice.Viewport.Width / 2, 0, 1, GraphicsDevice.Viewport.Height),
+        //     Color.Gray);
+        // _testSpriteBatch.Draw(SinglePixelTexture,
+        //     new Rectangle(0, GraphicsDevice.Viewport.Height / 2, GraphicsDevice.Viewport.Width, 1),
+        //     Color.Gray);
+        var mouseState = Mouse.GetState();
+        _testSpriteBatch.Draw(_cursorTexture, new Rectangle(mouseState.X, mouseState.Y, 32, 32), Color.White);
+        var cursorPositionString = $"X:{mouseState.X} Y:{mouseState.Y}";
+        var cursorStringPosition = new Vector2(mouseState.X + 32, mouseState.Y);
+        var measuredString = _defaultSpriteFont.MeasureString(cursorPositionString);
+        _testSpriteBatch.Draw(SinglePixelTexture,
+            new Rectangle((int)cursorStringPosition.X, (int)cursorStringPosition.Y, (int)measuredString.X + 2, (int)measuredString.Y),
+            new Color(255, 255, 255, 0));
+        _testSpriteBatch.DrawString(_defaultSpriteFont, cursorPositionString, cursorStringPosition, Color.Green);
+
+        _testSpriteBatch.End();
 
         DebugUtils.DrawDebugAxis(Vector3.Zero);
         DebugUtils.Draw(GraphicsDevice, _deltaTime);

@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using TestMonoGame.Game;
 
-namespace TestMonoGame.Game.SceneManagement;
+namespace TestMonoGame.Data;
 
 public struct SceneData
 {

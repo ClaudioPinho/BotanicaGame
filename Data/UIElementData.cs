@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using TestMonoGame.Game.Entities;
 using TestMonoGame.Game.UI;
 
-namespace TestMonoGame.Game;
+namespace TestMonoGame.Data;
 
-public struct GameObjectData
+public class UIElementData
 {
     [JsonProperty("objectType")] public string ObjectType;
-
+    
     [JsonProperty("name")] public string Name;
 
     [JsonProperty("params")] public Dictionary<string, object> Parameters;
@@ -18,13 +17,9 @@ public struct GameObjectData
     {
         return typeName switch
         {
-            "GameObject" => typeof(GameObject),
-            "MeshObject" => typeof(MeshObject),
-            "PhysicsObject" => typeof(PhysicsObject),
-            "Canvas" => typeof(Canvas),
-            "Camera" => typeof(Camera),
-            "Entity" => typeof(Entity),
-            "Player" => typeof(Player),
+            "Image" => typeof(UIImage),
+            "Text" => typeof(UIText),
+            // "Button" => typeof(UIGraphics),
             _ => null
         };
     }

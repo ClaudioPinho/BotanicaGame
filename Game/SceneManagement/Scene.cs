@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Xna.Framework;
@@ -7,6 +8,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using TestMonoGame.Data;
 using TestMonoGame.Debug;
 using TestMonoGame.Game.UI;
 using TestMonoGame.Physics;
@@ -53,12 +55,29 @@ public class Scene
 
                 if (newGameObject is Canvas canvasObject)
                 {
-                    var uiElementsData = gameObjectData.Parameters["UIElements"] as JArray;
-                    
+                    if (!gameObjectData.Parameters.TryGetValue("UIElements", out var uiElementsRaw))
+                    {
+                        DebugUtils.PrintWarning("Canvas object detected but no UIElements present, ignoring...");
+                        return;
+                    }
+
+                    var uiElements = ((JArray)uiElementsRaw).ToObject<List<UIElementData>>(MainGame.JsonSerializer);
+
+                    foreach (var uiElement in uiElements)
+                    {
+                        var uiElementType = UIElementData.GetObjectTypeFromName(uiElement.ObjectType);
+                        var newUIElement = Activator.CreateInstance(uiElementType, args: canvasObject) as UIGraphics;
+
+                        // load this UI graphic parameters
+                        LoadObjectParameters(uiElementType, newUIElement, uiElement.Parameters, contentManager);
+
+                        // add this UI graphic to the canvas
+                        canvasObject.AddUIGraphic(newUIElement);
+                    }
                 }
 
-                // load this game object data from the received object data
-                LoadGameObjectData(objectType, newGameObject, gameObjectData, contentManager);
+                // Load this object parameters
+                LoadObjectParameters(objectType, newGameObject, gameObjectData.Parameters, contentManager);
 
                 AddGameObject(newGameObject);
             }
@@ -194,69 +213,117 @@ public class Scene
         gameObject.Dispose();
     }
 
-    private void LoadGameObjectData(Type gameObjectType, GameObject createdGameObject, GameObjectData gameObjectData,
+    private void LoadObjectParameters(Type objectType, object createdObject,
+        Dictionary<string, object> objectParameters,
         ContentManager contentManager)
     {
-        foreach (var parameter in gameObjectData.Parameters)
+        foreach (var parameter in objectParameters)
         {
             // ignore the UIElements section from the main canvas
-            if (createdGameObject is Canvas && parameter.Key == "UIElements") continue;
+            if (createdObject is Canvas && parameter.Key == "UIElements") continue;
 
             // todo: check if there's a better way to handle this
-            var member = gameObjectType.GetMember(parameter.Key);
+            var member = objectType.GetMember(parameter.Key);
             if (member.Length <= 0) continue;
             switch (member[0])
             {
                 // check if the content manager can handle this type of data, if so we need to load from the content manager instead
                 case FieldInfo fieldInfo when fieldInfo.FieldType == typeof(Texture2D):
-                    fieldInfo.SetValue(createdGameObject,
+                    fieldInfo.SetValue(createdObject,
                         contentManager.Load<Texture2D>((string)parameter.Value));
                     break;
                 case FieldInfo fieldInfo when fieldInfo.FieldType == typeof(Model):
-                    fieldInfo.SetValue(createdGameObject,
+                    fieldInfo.SetValue(createdObject,
                         contentManager.Load<Model>((string)parameter.Value));
                     break;
                 case FieldInfo fieldInfo when fieldInfo.FieldType == typeof(Effect):
-                    fieldInfo.SetValue(createdGameObject,
+                    fieldInfo.SetValue(createdObject,
                         contentManager.Load<Effect>((string)parameter.Value));
                     break;
                 case FieldInfo fieldInfo:
                 {
-                    fieldInfo.SetValue(createdGameObject,
-                        parameter.Value is JObject jObject
-                            ? jObject.ToObject(fieldInfo.FieldType,
-                                JsonSerializer.CreateDefault(MainGame.JsonSerializerSettings))
-                            : parameter.Value);
+                    // if type matches no further processing required
+                    if (parameter.Value.GetType() == fieldInfo.FieldType)
+                    {
+                        fieldInfo.SetValue(createdObject, parameter.Value);
+                    }
+                    else if (TypeDescriptor.GetConverter(parameter.Value).CanConvertTo(fieldInfo.FieldType))
+                    {
+                        fieldInfo.SetValue(createdObject,
+                            TypeDescriptor.GetConverter(parameter.Value)
+                                .ConvertTo(parameter.Value, fieldInfo.FieldType));
+                    }
+                    else
+                        switch (parameter.Value)
+                        {
+                            // if the type came as a 'JObject' we will try to retrieve it as the correct type
+                            case JObject jObject:
+                                fieldInfo.SetValue(createdObject,
+                                    jObject.ToObject(fieldInfo.FieldType, MainGame.JsonSerializer));
+                                break;
+                            // if it's a string then it's highly likely that is some sort of json string representing the object itself
+                            case string stringData:
+                                fieldInfo.SetValue(createdObject,
+                                    JsonConvert.DeserializeObject($"\"{stringData}\"", fieldInfo.FieldType,
+                                        MainGame.JsonSerializerSettings));
+                                break;
+                            default:
+                                DebugUtils.PrintWarning($"Unknown data being set object of type " +
+                                                        $"'{fieldInfo.FieldType}' with value: '{parameter.Value}', ignoring...");
+                                break;
+                        }
+
                     break;
                 }
                 // check if the content manager can handle this type of data, if so we need to load from the content manager instead
                 case PropertyInfo propertyInfo when propertyInfo.PropertyType == typeof(Texture2D):
-                    propertyInfo.SetValue(createdGameObject,
+                    propertyInfo.SetValue(createdObject,
                         contentManager.Load<Texture2D>((string)parameter.Value));
                     break;
                 case PropertyInfo propertyInfo when propertyInfo.PropertyType == typeof(Model):
-                    propertyInfo.SetValue(createdGameObject,
+                    propertyInfo.SetValue(createdObject,
                         contentManager.Load<Model>((string)parameter.Value));
                     break;
                 case PropertyInfo propertyInfo when propertyInfo.PropertyType == typeof(Effect):
-                    propertyInfo.SetValue(createdGameObject,
+                    propertyInfo.SetValue(createdObject,
                         contentManager.Load<Effect>((string)parameter.Value));
                     break;
                 case PropertyInfo propertyInfo:
                 {
-                    propertyInfo.SetValue(createdGameObject,
-                        parameter.Value is JObject jObject
-                            ? jObject.ToObject(propertyInfo.PropertyType,
-                                JsonSerializer.CreateDefault(MainGame.JsonSerializerSettings))
-                            : parameter.Value);
+                    // if type matches no further processing required
+                    if (parameter.Value.GetType() == propertyInfo.PropertyType)
+                    {
+                        propertyInfo.SetValue(createdObject, parameter.Value);
+                    }
+                    else if (TypeDescriptor.GetConverter(parameter.Value).CanConvertTo(propertyInfo.PropertyType))
+                    {
+                        propertyInfo.SetValue(createdObject,
+                            TypeDescriptor.GetConverter(parameter.Value)
+                                .ConvertTo(parameter.Value, propertyInfo.PropertyType));
+                    }
+                    else
+                        switch (parameter.Value)
+                        {
+                            // if the type came as a 'JObject' we will try to retrieve it as the correct type
+                            case JObject jObject:
+                                propertyInfo.SetValue(createdObject,
+                                    jObject.ToObject(propertyInfo.PropertyType, MainGame.JsonSerializer));
+                                break;
+                            // if it's a string then it's highly likely that is some sort of json string representing the object itself
+                            case string stringData:
+                                propertyInfo.SetValue(createdObject,
+                                    JsonConvert.DeserializeObject($"\"{stringData}\"", propertyInfo.PropertyType,
+                                        MainGame.JsonSerializerSettings));
+                                break;
+                            default:
+                                DebugUtils.PrintWarning($"Unknown data being set object of type " +
+                                                        $"'{propertyInfo.PropertyType}' with value: '{parameter.Value}', ignoring...");
+                                break;
+                        }
+
                     break;
                 }
             }
-            // else
-            // {
-            //     DebugUtils.PrintWarning($"Member '{parameter.Key}' not found for " +
-            //                             $"object type '{gameObjectType.Name}', ignoring member...");
-            // }
         }
     }
 }
