@@ -24,10 +24,15 @@
           },
           {
             "objectType": "Image",
-            "name": "Square",
+            "name": "SpinningBoy",
             "params": {
+              "ShouldDraw": false,
               "Image": "Textures/Primitives/square-fill",
               "Anchor": {
+                "X": 0.5,
+                "Y": 0.5
+              },
+              "Pivot": {
                 "X": 0.5,
                 "Y": 0.5
               },
@@ -41,6 +46,82 @@
               },
               "Rotation": 0,
               "Color": "#22ff006b"
+            }
+          },
+          {
+            "objectType": "Image",
+            "name": "MainMenuOptionsBackground",
+            "params": {
+              "Image": "Textures/Primitives/square-fill",
+              "Anchor": {
+                "X": 0,
+                "Y": 0
+              },
+              "Pivot": {
+                "X": 0,
+                "Y": 0
+              },
+              "Size": {
+                "X": 370,
+                "Y": 434
+              },
+              "AnchoredPosition": {
+                "X": 58,
+                "Y": 58
+              },
+              "Rotation": 0,
+              "Color": "#24272840"
+            }
+          },
+          {
+            "objectType": "Image",
+            "name": "MainMenuOptionsOutline",
+            "params": {
+              "Image": "Textures/MainMenu/Outline-Options",
+              "Anchor": {
+                "X": 0,
+                "Y": 0
+              },
+              "Pivot": {
+                "X": 0,
+                "Y": 0
+              },
+              "Size": {
+                "X": 384,
+                "Y": 448
+              },
+              "AnchoredPosition": {
+                "X": 50,
+                "Y": 50
+              },
+              "Rotation": 0,
+              "Color": "#FFFFFF"
+            }
+          },
+          {
+            "objectType": "Text",
+            "name": "MainTitle",
+            "params": {
+              "Text": "Botanica",
+              "FontSize": 64,
+              "Anchor": {
+                "X": 0,
+                "Y": 0
+              },
+              "Pivot": {
+                "X": 0.5,
+                "Y": 0
+              },
+              "Size": {
+                "X": 305,
+                "Y": 90
+              },
+              "AnchoredPosition": {
+                "X": 242,
+                "Y": 80
+              },
+              "Rotation": 0,
+              "Color": "#FFFFFF"
             }
           }
         ],

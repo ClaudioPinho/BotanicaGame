@@ -8,6 +8,7 @@ using TestMonoGame.Debug;
 using TestMonoGame.Game.SceneManagement;
 using TestMonoGame.Game.UI;
 using TestMonoGame.Physics;
+using Velentr.Font;
 
 namespace TestMonoGame;
 
@@ -17,6 +18,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
     public const int MaxRenderDistance = 20;
 
     public static Texture2D SinglePixelTexture;
+    public static Texture2D SquareOutlineTexture;
 
     public static MainGame GameInstance;
 
@@ -24,6 +26,8 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
     public static JsonSerializerSettings JsonSerializerSettings { get; private set; }
     public static JsonSerializer JsonSerializer { get; private set; }
+
+    public static SpriteFont DefaultFont => GameInstance._defaultSpriteFont;
 
     public static GamePhysics Physics { private set; get; }
 
@@ -76,7 +80,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
         JsonSerializer = JsonSerializer.CreateDefault(JsonSerializerSettings);
 
         DebugUtils.Initialize(GraphicsDevice);
-
+        
         SinglePixelTexture = new Texture2D(GraphicsDevice, 1, 1);
         SinglePixelTexture.SetData([Color.White]);
 
@@ -85,12 +89,15 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
         // initialize the scene manager for the game
         SceneManager = new SceneManager(Content);
+        
+        _defaultSpriteFont = Content.Load<SpriteFont>("Fonts/myFont");
 
         var mainMenu = SceneManager.Load("MainMenu");
 
         var canvas = mainMenu.GetGameObjectOfType<Canvas>();
 
-        _testGraphics = canvas.GraphicsList[1];
+        _testGraphics = canvas.GetGraphicByName<UIImage>("SpinningBoy");
+        
         // var loadedScene = SceneManager.Load("MainScene", Physics);
         //
         // var canvas = new Canvas("Player Canvas");
@@ -117,14 +124,15 @@ public class MainGame : Microsoft.Xna.Framework.Game
         // }
 
         // _mainWorld = new World(123456789, 20, 20);
-
+        DebugUtils.PrintMessage("Game Initialized...");
         base.Initialize();
     }
 
     protected override void LoadContent()
     {
-        _defaultSpriteFont = Content.Load<SpriteFont>("Fonts/myFont");
+        SquareOutlineTexture = Content.Load<Texture2D>("Textures/Primitives/square-outline");
         _cursorTexture = Content.Load<Texture2D>("Textures/UI/cursor");
+        DebugUtils.PrintMessage("Content loaded...");
     }
 
     protected override void Update(GameTime gameTime)
@@ -165,12 +173,12 @@ public class MainGame : Microsoft.Xna.Framework.Game
         _testSpriteBatch ??= new SpriteBatch(GraphicsDevice);
         _testSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp);
 
-        // _testSpriteBatch.Draw(SinglePixelTexture,
-        //     new Rectangle(GraphicsDevice.Viewport.Width / 2, 0, 1, GraphicsDevice.Viewport.Height),
-        //     Color.Gray);
-        // _testSpriteBatch.Draw(SinglePixelTexture,
-        //     new Rectangle(0, GraphicsDevice.Viewport.Height / 2, GraphicsDevice.Viewport.Width, 1),
-        //     Color.Gray);
+        _testSpriteBatch.Draw(SinglePixelTexture,
+            new Rectangle(GraphicsDevice.Viewport.Width / 2, 0, 1, GraphicsDevice.Viewport.Height),
+            Color.Gray);
+        _testSpriteBatch.Draw(SinglePixelTexture,
+            new Rectangle(0, GraphicsDevice.Viewport.Height / 2, GraphicsDevice.Viewport.Width, 1),
+            Color.Gray);
         var mouseState = Mouse.GetState();
         _testSpriteBatch.Draw(_cursorTexture, new Rectangle(mouseState.X, mouseState.Y, 32, 32), Color.White);
         var cursorPositionString = $"X:{mouseState.X} Y:{mouseState.Y}";

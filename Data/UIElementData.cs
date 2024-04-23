@@ -19,7 +19,7 @@ public class UIElementData
         {
             "Image" => typeof(UIImage),
             "Text" => typeof(UIText),
-            // "Button" => typeof(UIGraphics),
+            "Button" => typeof(UIButton),
             _ => null
         };
     }

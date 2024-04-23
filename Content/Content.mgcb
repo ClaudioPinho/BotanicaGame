@@ -49,6 +49,9 @@
 /processorParam:DebugMode=Auto
 /build:Effects/TilingEffect.fx
 
+#begin Fonts/BeonMedium.ttf
+/copy:Fonts/BeonMedium.ttf
+
 #begin Fonts/myFont.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
@@ -262,7 +265,7 @@
 /processorParam:TextureFormat=Color
 /build:Textures/Ground/ground-sand.png
 
-#begin Textures/MainMenu/MainMenu.png
+#begin Textures/MainMenu/background.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -273,6 +276,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Textures/MainMenu/background.png
+
+#begin Textures/MainMenu/Outline-Options.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Textures/MainMenu/Outline-Options.png
 
 #begin Textures/Primitives/circle.png
 /importer:TextureImporter

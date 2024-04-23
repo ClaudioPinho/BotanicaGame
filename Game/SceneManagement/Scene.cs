@@ -68,6 +68,8 @@ public class Scene
                         var uiElementType = UIElementData.GetObjectTypeFromName(uiElement.ObjectType);
                         var newUIElement = Activator.CreateInstance(uiElementType, args: canvasObject) as UIGraphics;
 
+                        newUIElement.Name = uiElement.Name;
+
                         // load this UI graphic parameters
                         LoadObjectParameters(uiElementType, newUIElement, uiElement.Parameters, contentManager);
 
@@ -214,8 +216,7 @@ public class Scene
     }
 
     private void LoadObjectParameters(Type objectType, object createdObject,
-        Dictionary<string, object> objectParameters,
-        ContentManager contentManager)
+        Dictionary<string, object> objectParameters, ContentManager contentManager)
     {
         foreach (var parameter in objectParameters)
         {
@@ -231,6 +232,10 @@ public class Scene
                 case FieldInfo fieldInfo when fieldInfo.FieldType == typeof(Texture2D):
                     fieldInfo.SetValue(createdObject,
                         contentManager.Load<Texture2D>((string)parameter.Value));
+                    break;
+                case FieldInfo fieldInfo when fieldInfo.FieldType == typeof(SpriteFont):
+                    fieldInfo.SetValue(createdObject,
+                        contentManager.Load<SpriteFont>((string)parameter.Value));
                     break;
                 case FieldInfo fieldInfo when fieldInfo.FieldType == typeof(Model):
                     fieldInfo.SetValue(createdObject,
@@ -279,6 +284,10 @@ public class Scene
                 case PropertyInfo propertyInfo when propertyInfo.PropertyType == typeof(Texture2D):
                     propertyInfo.SetValue(createdObject,
                         contentManager.Load<Texture2D>((string)parameter.Value));
+                    break;
+                case PropertyInfo propertyInfo when propertyInfo.PropertyType == typeof(SpriteFont):
+                    propertyInfo.SetValue(createdObject,
+                        contentManager.Load<SpriteFont>((string)parameter.Value));
                     break;
                 case PropertyInfo propertyInfo when propertyInfo.PropertyType == typeof(Model):
                     propertyInfo.SetValue(createdObject,
