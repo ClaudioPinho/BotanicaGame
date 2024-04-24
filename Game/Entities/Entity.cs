@@ -2,7 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 
-namespace TestMonoGame.Game.Entities;
+namespace BotanicaGame.Game.Entities;
 
 public class Entity : PhysicsObject
 {
@@ -36,7 +36,6 @@ public class Entity : PhysicsObject
 
     public override void Update(float deltaTime)
     {
-        base.Update(deltaTime);
 
         UpdateAudioEmitterState();
 
@@ -51,6 +50,8 @@ public class Entity : PhysicsObject
         }
 
         WasPreviouslyFalling = !IsOnFloor;
+        
+        base.Update(deltaTime);
     }
 
     protected virtual bool TryJump()

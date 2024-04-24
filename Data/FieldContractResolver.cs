@@ -1,9 +1,9 @@
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using TestMonoGame.Debug;
+using BotanicaGame.Debug;
 
-namespace TestMonoGame.Data;
+namespace BotanicaGame.Data;
 
 public class FieldContractResolver : DefaultContractResolver
 {

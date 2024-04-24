@@ -1,12 +1,12 @@
 using System;
+using BotanicaGame.Debug;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using TestMonoGame.Debug;
 using Velentr.Font;
 
-namespace TestMonoGame.Game.UI;
+namespace BotanicaGame.Game.UI;
 
-public class UIText : UIGraphics
+public class UIText : UIInteractable
 {
     public string Text
     {

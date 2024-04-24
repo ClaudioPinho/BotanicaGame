@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace TestMonoGame.Game;
+namespace BotanicaGame.Game;
 
 public class Camera : GameObject
 {
@@ -41,8 +41,8 @@ public class Camera : GameObject
 
     public override void Update(float deltaTime)
     {
-        base.Update(deltaTime);
         UpdateViewMatrix();
+        base.Update(deltaTime);
     }
 
 }

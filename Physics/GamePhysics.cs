@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BotanicaGame.Debug;
+using BotanicaGame.Game;
 using Microsoft.Xna.Framework;
-using TestMonoGame.Debug;
-using TestMonoGame.Game;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
-namespace TestMonoGame.Physics;
+namespace BotanicaGame.Physics;
 
 // https://gamedev.net/tutorials/programming/general-and-gameplay-programming/swept-aabb-collision-detection-and-response-r3084/
 public class GamePhysics(Vector3? worldGravity = null)

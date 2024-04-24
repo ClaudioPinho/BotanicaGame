@@ -1,9 +1,9 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace TestMonoGame.Game.UI;
+namespace BotanicaGame.Game.UI;
 
-public class UIImage(Canvas canvas) : UIGraphics(canvas)
+public class UIImage(Canvas canvas) : UIInteractable(canvas)
 {
     public Texture2D Image
     {
@@ -17,10 +17,12 @@ public class UIImage(Canvas canvas) : UIGraphics(canvas)
 
     private Texture2D _image;
 
+    protected virtual Texture2D GetTextureToDraw() => Image;
+    
     public override void Draw(SpriteBatch spriteBatch, GameTime gameTime)
     {
         base.Draw(spriteBatch, gameTime);
-        spriteBatch.Draw(Image, DrawRectangle, Source, Color, Rotation, Origin, SpriteEffects.None, 0);
+        spriteBatch.Draw(GetTextureToDraw(), DrawRectangle, Source, Color, Rotation, Origin, SpriteEffects.None, 0);
     }
 
     protected override Vector2 GetPivotOrigin()

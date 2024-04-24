@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using BotanicaGame.Data;
+using BotanicaGame.Debug;
+using BotanicaGame.Physics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Newtonsoft.Json;
-using TestMonoGame.Data;
-using TestMonoGame.Debug;
-using TestMonoGame.Physics;
 
-namespace TestMonoGame.Game.SceneManagement;
+namespace BotanicaGame.Game.SceneManagement;
 
 public class SceneManager(ContentManager contentManager)
 {
@@ -16,28 +17,40 @@ public class SceneManager(ContentManager contentManager)
 
     private readonly List<Scene> _loadedScenes = [];
 
+#if DEVELOPMENT
+    private const bool EnableHotReload = true;
+    private readonly Dictionary<string, (FileSystemWatcher, Scene)> _loadedScenesWatchers = new();
+#endif
+
+    ~SceneManager()
+    {
+#if DEVELOPMENT
+        foreach (var loadedScenesWatcher in _loadedScenesWatchers)
+        {
+            loadedScenesWatcher.Value.Item1.Dispose();
+        }
+#endif
+    }
+
     public Scene Load(string sceneName, GamePhysics physicsContext = null)
     {
-        var fullPath = SceneRoot + $"/{sceneName}.json";
-        if (File.Exists(fullPath))
+        var fullPath = GetFullScenePath(sceneName);
+        try
         {
-            try
-            {
-                var sceneDataString = File.ReadAllText(fullPath);
-                var sceneData = JsonConvert.DeserializeObject<SceneData>(sceneDataString, MainGame.JsonSerializerSettings);
-                var scene = new Scene(sceneData, contentManager, physicsContext);
-                Load(scene);
-                return scene;
-            }
-            catch (Exception e)
-            {
-                DebugUtils.PrintError($"An error occurred when trying to read the scene '{sceneName}'");
-                DebugUtils.PrintException(e);
-            }
+            var sceneData = RetrieveSceneDataFromPath(fullPath);
+            if (sceneData == null)
+                return null;
+            var scene = new Scene((SceneData)sceneData, contentManager, physicsContext);
+            Load(scene);
+#if DEVELOPMENT
+            SubscribeToSceneFileChanges(sceneName, fullPath, scene);
+#endif
+            return scene;
         }
-        else
+        catch (Exception e)
         {
-            DebugUtils.PrintError($"Scene '{sceneName}' does not exist at: '{fullPath}'");
+            DebugUtils.PrintError($"An error occurred when trying to read the scene '{sceneName}'");
+            DebugUtils.PrintException(e);
         }
 
         return null;
@@ -52,6 +65,14 @@ public class SceneManager(ContentManager contentManager)
     public void Unload(Scene scene)
     {
         _loadedScenes.Remove(scene);
+#if DEVELOPMENT
+        if (_loadedScenesWatchers.Any(x => x.Value.Item2 == scene))
+        {
+            var watcherToUnload = _loadedScenesWatchers.First(x => x.Value.Item2 == scene);
+            watcherToUnload.Value.Item1.Dispose();
+            _loadedScenesWatchers.Remove(watcherToUnload.Key);
+        }
+#endif
     }
 
     private void InitializeScene(Scene scene)
@@ -74,4 +95,72 @@ public class SceneManager(ContentManager contentManager)
             scene.Draw(gameTime);
         }
     }
+
+    private string GetFullScenePath(string sceneName)
+    {
+        return SceneRoot + $"/{sceneName}.json";
+    }
+
+    private static SceneData? RetrieveSceneDataFromPath(string path)
+    {
+        if (Path.Exists(path))
+        {
+            try
+            {
+                var sceneDataString = File.ReadAllText(path);
+                if (string.IsNullOrEmpty(sceneDataString))
+                    return null;
+                return JsonConvert.DeserializeObject<SceneData>(sceneDataString, MainGame.JsonSerializerSettings);
+            }
+            catch (Exception e)
+            {
+                DebugUtils.PrintError($"An error occurred when retrieving scene data from path: '{path}'");
+                DebugUtils.PrintException(e);
+            }
+        }
+        else
+        {
+            DebugUtils.PrintError($"Invalid path provided for scene data retrieval: '{path}'");
+        }
+
+        return null;
+    }
+
+#if DEVELOPMENT
+    private void SubscribeToSceneFileChanges(string sceneName, string path, Scene sceneLoaded)
+    {
+        if (string.IsNullOrEmpty(path) || sceneLoaded == null)
+            return;
+        var fileWatcher = new FileSystemWatcher();
+        fileWatcher.Path = Path.GetDirectoryName(path);
+        fileWatcher.Filter = Path.GetFileName(path);
+        fileWatcher.Changed += (_, args) =>
+        {
+            if (args.ChangeType == WatcherChangeTypes.Changed)
+            {
+                OnSceneDataChanged(sceneName, sceneLoaded);
+            }
+        };
+        fileWatcher.EnableRaisingEvents = true;
+        _loadedScenesWatchers.Add(sceneName, (fileWatcher, sceneLoaded));
+    }
+
+    private void OnSceneDataChanged(string sceneName, Scene sceneLoaded)
+    {
+        if (!_loadedScenes.Contains(sceneLoaded)) return;
+        // before trying to reload the scene we will check if the new scene data is valid
+        if (RetrieveSceneDataFromPath(GetFullScenePath(sceneName)) != null)
+        {
+            // proceed by unloading the previous scene
+            Unload(sceneLoaded);
+            // and loading it again which will refresh it with the newest scene data
+            Load(sceneName);
+            DebugUtils.PrintMessage($"Scene '{sceneName}' was reloaded!");
+        }
+        else
+        {
+            DebugUtils.PrintError($"Issue with reloading scene '{sceneName}'");
+        }
+    }
+#endif
 }

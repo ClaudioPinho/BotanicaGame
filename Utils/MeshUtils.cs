@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework.Graphics;
 
-namespace TestMonoGame.Utils;
+namespace BotanicaGame.Utils;
 
 public static class MeshUtils
 {

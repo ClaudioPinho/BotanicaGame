@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Xna.Framework;
 
-namespace TestMonoGame.Game;
+namespace BotanicaGame.Game;
 
 public class Transform(Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null)
 {

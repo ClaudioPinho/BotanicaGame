@@ -1,8 +1,6 @@
 using Microsoft.Xna.Framework;
-using TestMonoGame.Debug;
-using TestMonoGame.Physics;
 
-namespace TestMonoGame.Game;
+namespace BotanicaGame.Game;
 
 public class PhysicsObject(string name) : MeshObject(name)
 {

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using BotanicaGame.Game.UI;
 using Newtonsoft.Json;
-using TestMonoGame.Game.UI;
 
-namespace TestMonoGame.Data;
+namespace BotanicaGame.Data;
 
 public class UIElementData
 {

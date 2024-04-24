@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
+using BotanicaGame.Data;
+using BotanicaGame.Debug;
+using BotanicaGame.Game;
+using BotanicaGame.Game.SceneManagement;
+using BotanicaGame.Physics;
+using BotanicaGame.Scripts.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
-using TestMonoGame.Data;
-using TestMonoGame.Debug;
-using TestMonoGame.Game.SceneManagement;
-using TestMonoGame.Game.UI;
-using TestMonoGame.Physics;
-using Velentr.Font;
 
-namespace TestMonoGame;
+namespace BotanicaGame;
 
 // http://rbwhitaker.wikidot.com/c-sharp-tutorials
 public class MainGame : Microsoft.Xna.Framework.Game
@@ -37,13 +37,11 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
     private float _deltaTime;
 
-    private SceneData _testSceneData;
-
     private SpriteFont _defaultSpriteFont;
 
     private Texture2D _cursorTexture;
 
-    private UIGraphics _testGraphics;
+    private List<IExternalScript> _externalScripts = [];
 
     public MainGame()
     {
@@ -54,6 +52,19 @@ public class MainGame : Microsoft.Xna.Framework.Game
         Content.RootDirectory = "Content";
         IsMouseVisible = false;
         IsFixedTimeStep = false;
+    }
+
+    public void AddExternalScript(IExternalScript externalScript)
+    {
+        if (_externalScripts.Contains(externalScript)) return;
+        _externalScripts.Add(externalScript);
+        externalScript.Start(this);
+    }
+
+    public void RemoveExternalScript(IExternalScript externalScript)
+    {
+        if (!_externalScripts.Contains(externalScript)) return;
+        _externalScripts.Remove(externalScript);
     }
 
     protected override void Initialize()
@@ -92,38 +103,9 @@ public class MainGame : Microsoft.Xna.Framework.Game
         
         _defaultSpriteFont = Content.Load<SpriteFont>("Fonts/myFont");
 
-        var mainMenu = SceneManager.Load("MainMenu");
+        // the main menu script will be the entry point of the game, so it should be the first script to be loaded
+        AddExternalScript(new MainMenu());
 
-        var canvas = mainMenu.GetGameObjectOfType<Canvas>();
-
-        _testGraphics = canvas.GetGraphicByName<UIImage>("SpinningBoy");
-        
-        // var loadedScene = SceneManager.Load("MainScene", Physics);
-        //
-        // var canvas = new Canvas("Player Canvas");
-        //
-        // var image = new UIImage(Content.Load<Texture2D>("Textures/UI/reticle"));
-        // image.Destination.Location = new Point(100, 100);
-        //
-        // canvas.AddUIGraphic(image);
-        //
-        // loadedScene.AddNewGameObject(canvas);
-
-        // var cubeModel = Content.Load<Model>("Models/cube");
-        // for (var x = 0; x < 100; x++)
-        // {
-        //     for (var z = 0; z < 100; z++)
-        //     {
-        //         var cube = new PhysicsObject($"cube{x}/{z}");
-        //         cube.Transform.Position = new Vector3(x + 0.5f, 0.5f, z + 0.5f);
-        //         cube.IsStatic = true;
-        //         cube.IsAffectedByGravity = false;
-        //         cube.Model = cubeModel;
-        //         loadedScene.AddNewGameObject(cube);
-        //     }
-        // }
-
-        // _mainWorld = new World(123456789, 20, 20);
         DebugUtils.PrintMessage("Game Initialized...");
         base.Initialize();
     }
@@ -137,18 +119,21 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
     protected override void Update(GameTime gameTime)
     {
-        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
-            Keyboard.GetState().IsKeyDown(Keys.Escape))
-            Exit();
+        // if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
+        //     Keyboard.GetState().IsKeyDown(Keys.Escape))
+        //     Exit();
 
         _deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-        _testGraphics.Rotation += 2f * _deltaTime;
 
         SceneManager.UpdateScenes(_deltaTime);
 
         Physics.UpdatePhysics(_deltaTime);
-
+        
+        foreach (var externalScript in _externalScripts)
+        {
+            externalScript.Update(_deltaTime);
+        }
+        
         DebugUtils.Update(_deltaTime);
 
         base.Update(gameTime);

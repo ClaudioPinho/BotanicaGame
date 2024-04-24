@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace TestMonoGame.Game.UI;
+namespace BotanicaGame.Game.UI;
 
 public class UIGraphics
 {
@@ -72,6 +72,7 @@ public class UIGraphics
     protected readonly Canvas Canvas;
 
     protected Rectangle DrawRectangle { get; private set; }
+    protected Rectangle RealLocation { get; private set; }
 
     protected Vector2 Origin { get; private set; }
 
@@ -86,7 +87,7 @@ public class UIGraphics
     public UIGraphics(Canvas canvas)
     {
         Canvas = canvas;
-        DrawRectangle = new Rectangle(Position, Size);
+        DrawRectangle = RealLocation = new Rectangle(Position, Size);
         Pivot = Vector2.One * 0.5f;
     }
 
@@ -125,6 +126,7 @@ public class UIGraphics
     private void UpdateDrawRectangle()
     {
         DrawRectangle = new Rectangle(Position + new Point((int)(Size.X * Pivot.X), (int)(Size.Y * Pivot.Y)), Size);
+        RealLocation = new Rectangle(Position, Size);
         // DrawRectangle = new Rectangle(Position + _size * _pivot.ToPoint(), Size);
         _drawRectangleIsDirty = false;
     }

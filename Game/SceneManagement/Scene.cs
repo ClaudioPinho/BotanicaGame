@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using BotanicaGame.Data;
+using BotanicaGame.Debug;
+using BotanicaGame.Game.UI;
+using BotanicaGame.Physics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using TestMonoGame.Data;
-using TestMonoGame.Debug;
-using TestMonoGame.Game.UI;
-using TestMonoGame.Physics;
 
-namespace TestMonoGame.Game.SceneManagement;
+namespace BotanicaGame.Game.SceneManagement;
 
 public class Scene
 {
@@ -215,7 +215,7 @@ public class Scene
         gameObject.Dispose();
     }
 
-    private void LoadObjectParameters(Type objectType, object createdObject,
+    private static void LoadObjectParameters(Type objectType, object createdObject,
         Dictionary<string, object> objectParameters, ContentManager contentManager)
     {
         foreach (var parameter in objectParameters)

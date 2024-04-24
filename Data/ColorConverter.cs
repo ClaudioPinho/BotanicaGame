@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace TestMonoGame.Data;
+namespace BotanicaGame.Data;
 
 public class ColorConverter : JsonConverter<Color>
 {

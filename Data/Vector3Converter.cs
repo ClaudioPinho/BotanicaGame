@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace TestMonoGame.Data;
+namespace BotanicaGame.Data;
 
 public class Vector3Converter : JsonConverter<Vector3>
 {

@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace TestMonoGame.Game;
+namespace BotanicaGame.Game;
 
 public class Skybox
 {

@@ -5,6 +5,7 @@
       "objectType": "Canvas",
       "name": "MainCanvas",
       "params": {
+        "DrawDebugBoxes": false,
         "UIElements": [
           {
             "objectType": "Image",
@@ -26,7 +27,7 @@
             "objectType": "Image",
             "name": "SpinningBoy",
             "params": {
-              "ShouldDraw": false,
+              "ShouldDraw": true,
               "Image": "Textures/Primitives/square-fill",
               "Anchor": {
                 "X": 0.5,
@@ -70,7 +71,7 @@
                 "Y": 58
               },
               "Rotation": 0,
-              "Color": "#24272840"
+              "Color": "#242728A0"
             }
           },
           {
@@ -119,6 +120,159 @@
               "AnchoredPosition": {
                 "X": 242,
                 "Y": 80
+              },
+              "Rotation": 0,
+              "Color": "#FFFFFF"
+            }
+          },
+          {
+            "objectType": "Button",
+            "name": "Play Button",
+            "params": {
+              "Image": "Textures/MainMenu/button-normal",
+              "HoverTexture": "Textures/MainMenu/button-hovered",
+              "SelectedTexture": "Textures/MainMenu/button-clicked",
+              "Size": {
+                "X": 320,
+                "Y": 64
+              },
+              "Anchor": {
+                "X": 0,
+                "Y": 0
+              },
+              "Pivot": {
+                "X": 0.5,
+                "Y": 0
+              },
+              "AnchoredPosition": {
+                "X": 242,
+                "Y": 190
+              },
+              "Rotation": 0,
+              "Color": "#FFFFFF"
+            }
+          },
+          {
+            "objectType": "Text",
+            "name": "Play Button Text",
+            "params": {
+              "Text": "Play Game",
+              "FontSize": 32,
+              "Anchor": {
+                "X": 0,
+                "Y": 0
+              },
+              "Pivot": {
+                "X": 0.5,
+                "Y": 0
+              },
+              "Size": {
+                "X": 180,
+                "Y": 40
+              },
+              "AnchoredPosition": {
+                "X": 242,
+                "Y": 200
+              },
+              "Rotation": 0,
+              "Color": "#FFFFFF"
+            }
+          },
+          {
+            "objectType": "Button",
+            "name": "Settings Button",
+            "params": {
+              "Image": "Textures/MainMenu/button-normal",
+              "HoverTexture": "Textures/MainMenu/button-hovered",
+              "SelectedTexture": "Textures/MainMenu/button-clicked",
+              "Size": {
+                "X": 320,
+                "Y": 64
+              },
+              "Anchor": {
+                "X": 0,
+                "Y": 0
+              },
+              "Pivot": {
+                "X": 0.5,
+                "Y": 0
+              },
+              "AnchoredPosition": {
+                "X": 242,
+                "Y": 286
+              },
+              "Rotation": 0,
+              "Color": "#FFFFFF"
+            }
+          },
+          {
+            "objectType": "Text",
+            "name": "Settings Button Text",
+            "params": {
+              "Text": "Settings",
+              "FontSize": 32,
+              "AutoResize": true,
+              "Anchor": {
+                "X": 0,
+                "Y": 0
+              },
+              "Pivot": {
+                "X": 0.5,
+                "Y": 0
+              },
+              "AnchoredPosition": {
+                "X": 242,
+                "Y": 296
+              },
+              "Rotation": 0,
+              "Color": "#FFFFFF"
+            }
+          },
+          {
+            "objectType": "Button",
+            "name": "Exit Button",
+            "params": {
+              "Image": "Textures/MainMenu/button-normal",
+              "HoverTexture": "Textures/MainMenu/button-hovered",
+              "SelectedTexture": "Textures/MainMenu/button-clicked",
+              "Size": {
+                "X": 320,
+                "Y": 64
+              },
+              "Anchor": {
+                "X": 0,
+                "Y": 0
+              },
+              "Pivot": {
+                "X": 0.5,
+                "Y": 0
+              },
+              "AnchoredPosition": {
+                "X": 242,
+                "Y": 382
+              },
+              "Rotation": 0,
+              "Color": "#FFFFFF"
+            }
+          },
+          {
+            "objectType": "Text",
+            "name": "Exit Button Text",
+            "params": {
+              "Text": "Exit",
+              "FontSize": 32,
+              "AutoResize": true,
+              "Anchor": {
+                "X": 0,
+                "Y": 0
+              },
+              "Pivot": {
+                "X": 0.5,
+                "Y": 0
+              },
+              "AnchoredPosition": {
+                "X": 242,
+                "Y": 392
               },
               "Rotation": 0,
               "Color": "#FFFFFF"

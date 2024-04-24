@@ -2,7 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
-namespace TestMonoGame.Extensions;
+namespace BotanicaGame.Extensions;
 
 public static class QuaternionExtensions
 {

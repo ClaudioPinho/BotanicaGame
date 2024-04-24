@@ -1,7 +1,7 @@
+using BotanicaGame.Game;
 using Microsoft.Xna.Framework;
-using TestMonoGame.Game;
 
-namespace TestMonoGame.Physics;
+namespace BotanicaGame.Physics;
 
 public struct RaycastHit
 {

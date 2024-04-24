@@ -1,13 +1,13 @@
 using System;
+using BotanicaGame.Debug;
+using BotanicaGame.Physics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Input;
-using TestMonoGame.Debug;
-using TestMonoGame.Extensions;
-using TestMonoGame.Physics;
+using BotanicaGame.Extensions;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
-namespace TestMonoGame.Game.Entities;
+namespace BotanicaGame.Game.Entities;
 
 public class Player : Entity
 {
@@ -49,14 +49,12 @@ public class Player : Entity
 
     public override void Initialize()
     {
-        base.Initialize();
-        
         SceneContext.AddNewGameObject(Camera);
+        base.Initialize();
     }
 
     public override void Update(float deltaTime)
     {
-        base.Update(deltaTime);
 
         UpdateAudioListenerState();
 
@@ -191,6 +189,8 @@ public class Player : Entity
 
         if (MainGame.GameInstance.IsActive)
             UpdateInput();
+        
+        base.Update(deltaTime);
     }
 
     public override void OnReceivedDamage(int damageReceived)

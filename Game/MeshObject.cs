@@ -2,7 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace TestMonoGame.Game;
+namespace BotanicaGame.Game;
 
 public class MeshObject(string name) : GameObject(name), IDrawable
 {

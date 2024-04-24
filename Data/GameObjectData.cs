@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
+using BotanicaGame.Game;
+using BotanicaGame.Game.Entities;
+using BotanicaGame.Game.UI;
 using Newtonsoft.Json;
-using TestMonoGame.Game;
-using TestMonoGame.Game.Entities;
-using TestMonoGame.Game.UI;
 
-namespace TestMonoGame.Data;
+namespace BotanicaGame.Data;
 
 public struct GameObjectData
 {

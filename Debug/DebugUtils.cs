@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
+using BotanicaGame.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using TestMonoGame.Game;
 
-namespace TestMonoGame.Debug;
+namespace BotanicaGame.Debug;
 
 public static class DebugUtils
 {
