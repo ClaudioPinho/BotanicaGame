@@ -8,6 +8,7 @@ using BotanicaGame.Debug;
 using BotanicaGame.Game.UI;
 using BotanicaGame.Physics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
@@ -15,8 +16,14 @@ using Newtonsoft.Json.Linq;
 
 namespace BotanicaGame.Game.SceneManagement;
 
-public class Scene
+public class Scene : IDrawable
 {
+    public int DrawOrder { get; }
+    public bool Visible { get; set; } = true;
+    public event EventHandler<EventArgs> DrawOrderChanged;
+    
+    public event EventHandler<EventArgs> VisibleChanged;
+    
     private readonly List<GameObject> _sceneObjects = [];
     private readonly List<IDrawable> _drawableObjects = [];
 
@@ -125,24 +132,30 @@ public class Scene
     {
         _sceneSkybox?.Draw();
 
-        foreach (var drawableObject in _drawableObjects)
+        foreach (var drawableObject in _drawableObjects.Where(x => x.Visible))
         {
             drawableObject.Draw(gameTime);
         }
     }
-
+    
     public T GetGameObjectOfType<T>() where T : GameObject
     {
+        if (_sceneObjects == null || _sceneObjects.Count == 0)
+            return null;
         return _sceneObjects.First(x => x is T) as T;
     }
 
     public IEnumerable<T> GetGameObjectsOfType<T>() where T : GameObject
     {
+        if (_sceneObjects == null || _sceneObjects.Count == 0)
+            return null;
         return _sceneObjects.OfType<T>();
     }
 
     public T GetGameObjectOfName<T>(string name) where T : GameObject
     {
+        if (_sceneObjects == null || _sceneObjects.Count == 0)
+            return null;
         return _sceneObjects.First(x => x.Name == name && x is T) as T;
     }
 
@@ -215,6 +228,7 @@ public class Scene
         gameObject.Dispose();
     }
 
+    // todo: remove scene loading logic from the Scene class, it makes no sense to exist here
     private static void LoadObjectParameters(Type objectType, object createdObject,
         Dictionary<string, object> objectParameters, ContentManager contentManager)
     {
@@ -232,6 +246,10 @@ public class Scene
                 case FieldInfo fieldInfo when fieldInfo.FieldType == typeof(Texture2D):
                     fieldInfo.SetValue(createdObject,
                         contentManager.Load<Texture2D>((string)parameter.Value));
+                    break;
+                case FieldInfo fieldInfo when fieldInfo.FieldType == typeof(SoundEffect):
+                    fieldInfo.SetValue(createdObject,
+                        contentManager.Load<SoundEffect>((string)parameter.Value));
                     break;
                 case FieldInfo fieldInfo when fieldInfo.FieldType == typeof(SpriteFont):
                     fieldInfo.SetValue(createdObject,
@@ -284,6 +302,10 @@ public class Scene
                 case PropertyInfo propertyInfo when propertyInfo.PropertyType == typeof(Texture2D):
                     propertyInfo.SetValue(createdObject,
                         contentManager.Load<Texture2D>((string)parameter.Value));
+                    break;
+                case PropertyInfo propertyInfo when propertyInfo.PropertyType == typeof(SoundEffect):
+                    propertyInfo.SetValue(createdObject,
+                        contentManager.Load<SoundEffect>((string)parameter.Value));
                     break;
                 case PropertyInfo propertyInfo when propertyInfo.PropertyType == typeof(SpriteFont):
                     propertyInfo.SetValue(createdObject,

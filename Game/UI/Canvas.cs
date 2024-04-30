@@ -12,7 +12,7 @@ namespace BotanicaGame.Game.UI;
 public class Canvas : GameObject, IDrawable
 {
     public int DrawOrder { get; }
-    public bool Visible { get; }
+    public bool Visible { get; set; } = true;
     public event EventHandler<EventArgs> DrawOrderChanged;
     public event EventHandler<EventArgs> VisibleChanged;
 
@@ -27,6 +27,7 @@ public class Canvas : GameObject, IDrawable
     public int Width => _fullViewportRectangle.Width;
     public int Height => _fullViewportRectangle.Height;
 
+    public Vector2 CanvasScale => _canvasScale;
 
     public FontManager FontManager { get; }
     public Font DefaultFont { get; private set; }
@@ -37,8 +38,9 @@ public class Canvas : GameObject, IDrawable
     private readonly List<UIGraphics> _graphicsToDraw = [];
     private List<UIInteractable> _interactableUIElements = [];
 
-    private int _virtualWidth = 1280;
-    private int _virtualHeight = 720;
+    private int _virtualWidth;
+    private int _virtualHeight;
+
 
     private List<UIInteractable> _beingHovered;
     private List<UIInteractable> _previouslyHovered;
@@ -48,13 +50,19 @@ public class Canvas : GameObject, IDrawable
 
     private readonly Rectangle _fullViewportRectangle = new(0, 0, 1280, 720);
 
+    private Vector2 _canvasScale;
     private Matrix _scaleMatrix;
 
     public Canvas(string name) : base(name)
     {
+        SetVirtualResolution(1280, 720);
+
         FontManager = new FontManager(MainGame.GraphicsDeviceManager.GraphicsDevice);
         DefaultFontResource = "Content/Fonts/BeonMedium.ttf";
         DefaultFont = FontManager.GetFont(DefaultFontResource, 32);
+        MainGame.GameInstance.ScreenController.OnScreenResolutionChanged += OnScreenResolutionChanged;
+        
+        _canvasScale = Vector2.One;
     }
 
     public void AddUIGraphic(UIGraphics uiGraphics)
@@ -85,7 +93,7 @@ public class Canvas : GameObject, IDrawable
         }
 
         _previousMouseState = _mouseState;
-        
+
         base.Update(deltaTime);
     }
 
@@ -110,8 +118,8 @@ public class Canvas : GameObject, IDrawable
 
     public void Draw(GameTime gameTime)
     {
-        // _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, transformMatrix: );
-        _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp);
+        _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp,
+            transformMatrix: _scaleMatrix);
 
         _spriteBatch.Draw(MainGame.SinglePixelTexture, _fullViewportRectangle, BackgroundColor);
 
@@ -123,10 +131,12 @@ public class Canvas : GameObject, IDrawable
         _spriteBatch.End();
     }
 
-    public void SetRenderResolution(int width, int height)
+    public void SetVirtualResolution(int width, int height)
     {
         _virtualWidth = width;
         _virtualHeight = height;
+        OnScreenResolutionChanged(MainGame.GraphicsDeviceManager.PreferredBackBufferWidth,
+            MainGame.GraphicsDeviceManager.PreferredBackBufferHeight);
     }
 
     private void CheckUIHovers()
@@ -183,5 +193,13 @@ public class Canvas : GameObject, IDrawable
         {
             CurrHoveredElement.OnDeselected(_mouseState);
         }
+    }
+
+    private void OnScreenResolutionChanged(int width, int height)
+    {
+        _canvasScale.X = (float)width / _virtualWidth;
+        _canvasScale.Y = (float)height / _virtualHeight;
+        _scaleMatrix = Matrix.CreateScale(_canvasScale.X, _canvasScale.Y, 1.0f);
+        _graphicsToDraw.ForEach(x => x.OnCanvasScaleChanged());
     }
 }

@@ -37,6 +37,12 @@
 /processorParam:Quality=Best
 /build:Audio/remove-block.wav
 
+#begin Audio/ui-click-in.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/ui-click-in.wav
+
 #begin Effects/Skybox.fx
 /importer:EffectImporter
 /processor:EffectProcessor
@@ -216,6 +222,9 @@
 
 #begin Scenes/MainScene.json
 /copy:Scenes/MainScene.json
+
+#begin Scenes/SettingsScene.json
+/copy:Scenes/SettingsScene.json
 
 #begin Textures/Blocks/grass.png
 /importer:TextureImporter

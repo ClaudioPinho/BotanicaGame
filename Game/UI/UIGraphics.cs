@@ -36,6 +36,12 @@ public class UIGraphics
         }
     }
 
+    /// <summary>
+    /// Since the canvas can be scaled this position is the true position of the graphic on the user's screen
+    /// as opposed to the regular position that has no influence from the canvas scaling
+    /// </summary>
+    public Point RealPosition => (_position.ToVector2() * Canvas.CanvasScale).ToPoint();
+
     public Point Size
     {
         get => _size;
@@ -46,6 +52,12 @@ public class UIGraphics
             _drawRectangleIsDirty = true;
         }
     }
+    
+    /// <summary>
+    /// Since the canvas can be scaled this size is the true size of the graphic on the user's screen
+    /// as opposed to the regular size that has no influence from the canvas scaling
+    /// </summary>
+    public Point RealSize => (_size.ToVector2() * Canvas.CanvasScale).ToPoint();
 
     public Vector2 Pivot
     {
@@ -87,7 +99,8 @@ public class UIGraphics
     public UIGraphics(Canvas canvas)
     {
         Canvas = canvas;
-        DrawRectangle = RealLocation = new Rectangle(Position, Size);
+        DrawRectangle = new Rectangle(Position, Size);
+        RealLocation = new Rectangle(RealPosition, RealSize);
         Pivot = Vector2.One * 0.5f;
     }
 
@@ -112,6 +125,12 @@ public class UIGraphics
             spriteBatch.Draw(MainGame.SquareOutlineTexture, destinationRectangle, Color.Yellow);
         }
     }
+    
+    public virtual void OnCanvasScaleChanged()
+    {
+        // since the canvas changed the scale we need to recalculate the real positions and size 
+        _drawRectangleIsDirty = true;
+    }
 
     protected void RecalculatePivotOrigin()
     {
@@ -122,12 +141,12 @@ public class UIGraphics
     {
         return new Vector2(Size.X * _pivot.X, Size.Y * _pivot.Y);
     }
-
+    
     private void UpdateDrawRectangle()
     {
         DrawRectangle = new Rectangle(Position + new Point((int)(Size.X * Pivot.X), (int)(Size.Y * Pivot.Y)), Size);
-        RealLocation = new Rectangle(Position, Size);
-        // DrawRectangle = new Rectangle(Position + _size * _pivot.ToPoint(), Size);
+        RealLocation = new Rectangle(RealPosition, RealSize);
         _drawRectangleIsDirty = false;
     }
+    
 }

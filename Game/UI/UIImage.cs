@@ -7,7 +7,7 @@ public class UIImage(Canvas canvas) : UIInteractable(canvas)
 {
     public Texture2D Image
     {
-        get => _image;
+        get => _image ?? MainGame.SinglePixelTexture;
         set
         {
             _image = value;

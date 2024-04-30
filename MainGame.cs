@@ -4,7 +4,8 @@ using BotanicaGame.Debug;
 using BotanicaGame.Game;
 using BotanicaGame.Game.SceneManagement;
 using BotanicaGame.Physics;
-using BotanicaGame.Scripts.UI;
+using BotanicaGame.Scripts;
+using BotanicaGame.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -22,6 +23,8 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
     public static MainGame GameInstance;
 
+    public ScreenController ScreenController { get; private set; }
+    
     public static GraphicsDeviceManager GraphicsDeviceManager { private set; get; }
 
     public static JsonSerializerSettings JsonSerializerSettings { get; private set; }
@@ -43,6 +46,12 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
     private List<IExternalScript> _externalScripts = [];
 
+    private GameAudio _gameAudio;
+    
+    private MouseState _mouseState;
+    private KeyboardState _keyboardState;
+    private KeyboardState _previousKeyboardState;
+    
     public MainGame()
     {
         GameInstance = this;
@@ -69,6 +78,8 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
     protected override void Initialize()
     {
+        ScreenController = new ScreenController(GraphicsDeviceManager, Window);
+        
         GraphicsDeviceManager.IsFullScreen = false;
         GraphicsDeviceManager.PreferredBackBufferWidth = 1280;
         GraphicsDeviceManager.PreferredBackBufferHeight = 720;
@@ -93,7 +104,17 @@ public class MainGame : Microsoft.Xna.Framework.Game
         DebugUtils.Initialize(GraphicsDevice);
         
         SinglePixelTexture = new Texture2D(GraphicsDevice, 1, 1);
-        SinglePixelTexture.SetData([Color.White]);
+        SinglePixelTexture.SetData([new Color(255, 255, 255, 255)]);
+
+        // initialize the game audio with the group volumes
+        _gameAudio = new GameAudio(new Dictionary<GameAudio.EAudioGroup, float>
+        {
+            { GameAudio.EAudioGroup.None, 1f },
+            { GameAudio.EAudioGroup.UI, 0.5f },
+            { GameAudio.EAudioGroup.Background, 1f },
+            { GameAudio.EAudioGroup.Enemy, 1f },
+            { GameAudio.EAudioGroup.Friendly, 1f },
+        }, 1f);
 
         // initialize the physics engine for the game
         Physics = new GamePhysics();
@@ -103,8 +124,8 @@ public class MainGame : Microsoft.Xna.Framework.Game
         
         _defaultSpriteFont = Content.Load<SpriteFont>("Fonts/myFont");
 
-        // the main menu script will be the entry point of the game, so it should be the first script to be loaded
-        AddExternalScript(new MainMenu());
+        // the main script will be the entry point of the game, so it should be the first script to be loaded
+        AddExternalScript(new Main());
 
         DebugUtils.PrintMessage("Game Initialized...");
         base.Initialize();
@@ -119,9 +140,16 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
     protected override void Update(GameTime gameTime)
     {
+        _keyboardState = Keyboard.GetState();
+        
         // if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
         //     Keyboard.GetState().IsKeyDown(Keys.Escape))
         //     Exit();
+        
+        if (_keyboardState.IsKeyDown(Keys.F11) && !_previousKeyboardState.IsKeyDown(Keys.F11))
+        {
+            ScreenController.ToggleBorderless();
+        }
 
         _deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -134,7 +162,11 @@ public class MainGame : Microsoft.Xna.Framework.Game
             externalScript.Update(_deltaTime);
         }
         
+        _gameAudio.PerformAudioCleanup();
+        
         DebugUtils.Update(_deltaTime);
+
+        _previousKeyboardState = _keyboardState;
 
         base.Update(gameTime);
     }
@@ -158,16 +190,16 @@ public class MainGame : Microsoft.Xna.Framework.Game
         _testSpriteBatch ??= new SpriteBatch(GraphicsDevice);
         _testSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp);
 
-        _testSpriteBatch.Draw(SinglePixelTexture,
-            new Rectangle(GraphicsDevice.Viewport.Width / 2, 0, 1, GraphicsDevice.Viewport.Height),
-            Color.Gray);
-        _testSpriteBatch.Draw(SinglePixelTexture,
-            new Rectangle(0, GraphicsDevice.Viewport.Height / 2, GraphicsDevice.Viewport.Width, 1),
-            Color.Gray);
-        var mouseState = Mouse.GetState();
-        _testSpriteBatch.Draw(_cursorTexture, new Rectangle(mouseState.X, mouseState.Y, 32, 32), Color.White);
-        var cursorPositionString = $"X:{mouseState.X} Y:{mouseState.Y}";
-        var cursorStringPosition = new Vector2(mouseState.X + 32, mouseState.Y);
+        // _testSpriteBatch.Draw(SinglePixelTexture,
+        //     new Rectangle(GraphicsDevice.Viewport.Width / 2, 0, 1, GraphicsDevice.Viewport.Height),
+        //     Color.Gray);
+        // _testSpriteBatch.Draw(SinglePixelTexture,
+        //     new Rectangle(0, GraphicsDevice.Viewport.Height / 2, GraphicsDevice.Viewport.Width, 1),
+        //     Color.Gray);
+        _mouseState = Mouse.GetState();
+        _testSpriteBatch.Draw(_cursorTexture, new Rectangle(_mouseState.X, _mouseState.Y, 32, 32), Color.White);
+        var cursorPositionString = $"X:{_mouseState.X} Y:{_mouseState.Y}";
+        var cursorStringPosition = new Vector2(_mouseState.X + 32, _mouseState.Y);
         var measuredString = _defaultSpriteFont.MeasureString(cursorPositionString);
         _testSpriteBatch.Draw(SinglePixelTexture,
             new Rectangle((int)cursorStringPosition.X, (int)cursorStringPosition.Y, (int)measuredString.X + 2, (int)measuredString.Y),

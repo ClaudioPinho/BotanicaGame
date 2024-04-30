@@ -5,7 +5,7 @@
       "objectType": "Canvas",
       "name": "MainCanvas",
       "params": {
-        "DrawDebugBoxes": false,
+        "DrawDebugBoxes": true,
         "UIElements": [
           {
             "objectType": "Image",
@@ -132,6 +132,7 @@
               "Image": "Textures/MainMenu/button-normal",
               "HoverTexture": "Textures/MainMenu/button-hovered",
               "SelectedTexture": "Textures/MainMenu/button-clicked",
+              "OnClickInSound": "Audio/ui-click-in",
               "Size": {
                 "X": 320,
                 "Y": 64
@@ -185,6 +186,7 @@
               "Image": "Textures/MainMenu/button-normal",
               "HoverTexture": "Textures/MainMenu/button-hovered",
               "SelectedTexture": "Textures/MainMenu/button-clicked",
+              "OnClickInSound": "Audio/ui-click-in",
               "Size": {
                 "X": 320,
                 "Y": 64
@@ -235,6 +237,7 @@
               "Image": "Textures/MainMenu/button-normal",
               "HoverTexture": "Textures/MainMenu/button-hovered",
               "SelectedTexture": "Textures/MainMenu/button-clicked",
+              "OnClickInSound": "Audio/ui-click-in",
               "Size": {
                 "X": 320,
                 "Y": 64

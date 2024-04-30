@@ -90,7 +90,7 @@ public class SceneManager(ContentManager contentManager)
 
     public void DrawScenes(GameTime gameTime)
     {
-        foreach (var scene in _loadedScenes)
+        foreach (var scene in _loadedScenes.Where(x => x.Visible))
         {
             scene.Draw(gameTime);
         }

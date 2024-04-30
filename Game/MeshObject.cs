@@ -7,7 +7,7 @@ namespace BotanicaGame.Game;
 public class MeshObject(string name) : GameObject(name), IDrawable
 {
     public int DrawOrder { get; }
-    public bool Visible { get; } = true;
+    public bool Visible { get; set; } = true;
     public event EventHandler<EventArgs> DrawOrderChanged;
     public event EventHandler<EventArgs> VisibleChanged;
     
