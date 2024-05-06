@@ -33,14 +33,13 @@ public class Canvas : GameObject, IDrawable
     public Font DefaultFont { get; private set; }
     public string DefaultFontResource { get; private set; }
 
-
-    private readonly SpriteBatch _spriteBatch = new(MainGame.GraphicsDeviceManager.GraphicsDevice);
+    public SpriteBatch SpriteBatch { get; } = new(MainGame.GraphicsDeviceManager.GraphicsDevice);
+    
     private readonly List<UIGraphics> _graphicsToDraw = [];
     private List<UIInteractable> _interactableUIElements = [];
 
     private int _virtualWidth;
     private int _virtualHeight;
-
 
     private List<UIInteractable> _beingHovered;
     private List<UIInteractable> _previouslyHovered;
@@ -118,17 +117,17 @@ public class Canvas : GameObject, IDrawable
 
     public void Draw(GameTime gameTime)
     {
-        _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp,
+        SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp,
             transformMatrix: _scaleMatrix);
 
-        _spriteBatch.Draw(MainGame.SinglePixelTexture, _fullViewportRectangle, BackgroundColor);
+        SpriteBatch.Draw(MainGame.SinglePixelTexture, _fullViewportRectangle, BackgroundColor);
 
-        foreach (var graphic in _graphicsToDraw.Where(graphic => graphic.ShouldDraw))
+        foreach (var graphic in _graphicsToDraw.Where(graphic => graphic.Visible))
         {
-            graphic.Draw(_spriteBatch, gameTime);
+            graphic.Draw(gameTime);
         }
 
-        _spriteBatch.End();
+        SpriteBatch.End();
     }
 
     public void SetVirtualResolution(int width, int height)
@@ -144,10 +143,10 @@ public class Canvas : GameObject, IDrawable
         _mousePosition = _mouseState.Position;
 
         _beingHovered = _interactableUIElements
-            .Where(x => x.ShouldDraw && x.CanBeInteracted && x.InteractionArea.Contains(_mousePosition))
+            .Where(x => x.Visible && x.CanBeInteracted && x.InteractionArea.Contains(_mousePosition))
             .ToList();
         _previouslyHovered = _interactableUIElements
-            .Where(x => x.ShouldDraw && x.CanBeInteracted && x.IsBeingHovered)
+            .Where(x => x.Visible && x.CanBeInteracted && x.IsBeingHovered)
             .ToList();
 
         if (_beingHovered.Count > 0)

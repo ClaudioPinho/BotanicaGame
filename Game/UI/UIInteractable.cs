@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace BotanicaGame.Game.UI;
 
-public class UIInteractable(Canvas canvas) : UIGraphics(canvas), IHoverListener
+public class UIInteractable(Canvas canvas, SpriteBatch spriteBatch) : UIGraphics(canvas, spriteBatch), IHoverListener
 {
     /// <summary>
     /// The area that should be interactable with this element
@@ -24,13 +24,13 @@ public class UIInteractable(Canvas canvas) : UIGraphics(canvas), IHoverListener
 
     private Rectangle? _interactionArea;
 
-    public override void Draw(SpriteBatch spriteBatch, GameTime gameTime)
+    public override void Draw(GameTime gameTime)
     {
-        base.Draw(spriteBatch, gameTime);
+        base.Draw(gameTime);
         _interactionArea ??= GetInteractionArea();
         if (Canvas.DrawDebugBoxes && IsBeingHovered)
         {
-            spriteBatch.Draw(MainGame.SquareOutlineTexture, new Rectangle(Position, Size), Color.Red);
+            SpriteBatch.Draw(MainGame.SquareOutlineTexture, new Rectangle(Position, Size), Color.Red);
         }
     }
 

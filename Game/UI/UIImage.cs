@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace BotanicaGame.Game.UI;
 
-public class UIImage(Canvas canvas) : UIInteractable(canvas)
+public class UIImage(Canvas canvas, SpriteBatch spriteBatch) : UIInteractable(canvas, spriteBatch)
 {
     public Texture2D Image
     {
@@ -19,10 +19,10 @@ public class UIImage(Canvas canvas) : UIInteractable(canvas)
 
     protected virtual Texture2D GetTextureToDraw() => Image;
     
-    public override void Draw(SpriteBatch spriteBatch, GameTime gameTime)
+    public override void Draw(GameTime gameTime)
     {
-        base.Draw(spriteBatch, gameTime);
-        spriteBatch.Draw(GetTextureToDraw(), DrawRectangle, Source, Color, Rotation, Origin, SpriteEffects.None, 0);
+        base.Draw(gameTime);
+        SpriteBatch.Draw(GetTextureToDraw(), DrawRectangle, Source, Color, Rotation, Origin, SpriteEffects.None, 0);
     }
 
     protected override Vector2 GetPivotOrigin()

@@ -21,9 +21,9 @@ public class Scene : IDrawable
     public int DrawOrder { get; }
     public bool Visible { get; set; } = true;
     public event EventHandler<EventArgs> DrawOrderChanged;
-    
+
     public event EventHandler<EventArgs> VisibleChanged;
-    
+
     private readonly List<GameObject> _sceneObjects = [];
     private readonly List<IDrawable> _drawableObjects = [];
 
@@ -73,7 +73,8 @@ public class Scene : IDrawable
                     foreach (var uiElement in uiElements)
                     {
                         var uiElementType = UIElementData.GetObjectTypeFromName(uiElement.ObjectType);
-                        var newUIElement = Activator.CreateInstance(uiElementType, args: canvasObject) as UIGraphics;
+                        var newUIElement = Activator.CreateInstance(uiElementType,
+                            args: [canvasObject, canvasObject.SpriteBatch]) as UIGraphics;
 
                         newUIElement.Name = uiElement.Name;
 
@@ -137,7 +138,7 @@ public class Scene : IDrawable
             drawableObject.Draw(gameTime);
         }
     }
-    
+
     public T GetGameObjectOfType<T>() where T : GameObject
     {
         if (_sceneObjects == null || _sceneObjects.Count == 0)

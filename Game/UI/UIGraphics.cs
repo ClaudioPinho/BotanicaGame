@@ -1,14 +1,22 @@
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace BotanicaGame.Game.UI;
 
-public class UIGraphics
+public class UIGraphics : GameObject, IDrawable
 {
-    public string Name;
-
-    public bool ShouldDraw = true;
-
+    public int DrawOrder { get; }
+    
+    public bool Visible
+    {
+        get => _isVisible && IsActive;
+        set => _isVisible = value;
+    }
+    
+    public event EventHandler<EventArgs> DrawOrderChanged;
+    public event EventHandler<EventArgs> VisibleChanged;
+    
     public Point AnchoredPosition
     {
         get => _anchoredPosition;
@@ -96,36 +104,42 @@ public class UIGraphics
     private bool _pivotIsDirty;
     private bool _drawRectangleIsDirty;
 
-    public UIGraphics(Canvas canvas)
+    protected readonly SpriteBatch SpriteBatch;
+    
+    private bool _isVisible = true;
+
+    protected UIGraphics(Canvas canvas, SpriteBatch spriteBatch) : base("UIGraphics")
     {
         Canvas = canvas;
         DrawRectangle = new Rectangle(Position, Size);
         RealLocation = new Rectangle(RealPosition, RealSize);
         Pivot = Vector2.One * 0.5f;
+        SpriteBatch = spriteBatch;
     }
 
-    public virtual void Update(float deltaTime)
+    public override void Update(float deltaTime)
     {
+        base.Update(deltaTime);
         if (_pivotIsDirty)
             RecalculatePivotOrigin();
         if (_drawRectangleIsDirty)
             UpdateDrawRectangle();
     }
-
-    public virtual void Draw(SpriteBatch spriteBatch, GameTime gameTime)
+    
+    public virtual void Draw(GameTime gameTime)
     {
         if (Canvas.DrawDebugBoxes)
         {
             var destinationRectangle = new Rectangle(_position, _size);
             var textSize = MainGame.DefaultFont.MeasureString(Name);
             var labelPosition = new Point(_position.X, (int)(_position.Y - textSize.Y));
-            spriteBatch.Draw(MainGame.SinglePixelTexture, new Rectangle(labelPosition, textSize.ToPoint()),
+            SpriteBatch.Draw(MainGame.SinglePixelTexture, new Rectangle(labelPosition, textSize.ToPoint()),
                 Color.Yellow);
-            spriteBatch.DrawString(MainGame.DefaultFont, Name, labelPosition.ToVector2(), Color.Black);
-            spriteBatch.Draw(MainGame.SquareOutlineTexture, destinationRectangle, Color.Yellow);
+            SpriteBatch.DrawString(MainGame.DefaultFont, Name, labelPosition.ToVector2(), Color.Black);
+            SpriteBatch.Draw(MainGame.SquareOutlineTexture, destinationRectangle, Color.Yellow);
         }
     }
-    
+
     public virtual void OnCanvasScaleChanged()
     {
         // since the canvas changed the scale we need to recalculate the real positions and size 
@@ -148,5 +162,4 @@ public class UIGraphics
         RealLocation = new Rectangle(RealPosition, RealSize);
         _drawRectangleIsDirty = false;
     }
-    
 }

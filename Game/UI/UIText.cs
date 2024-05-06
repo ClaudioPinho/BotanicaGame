@@ -95,7 +95,7 @@ public class UIText : UIInteractable
 
     private readonly Canvas _canvas;
 
-    public UIText(Canvas canvas) : base(canvas)
+    public UIText(Canvas canvas, SpriteBatch spriteBatch) : base(canvas, spriteBatch)
     {
         _canvas = canvas;
         _text = "My Text";
@@ -126,17 +126,17 @@ public class UIText : UIInteractable
         }
     }
 
-    public override void Draw(SpriteBatch spriteBatch, GameTime gameTime)
+    public override void Draw(GameTime gameTime)
     {
-        base.Draw(spriteBatch, gameTime);
+        base.Draw(gameTime);
         if (_useMarkdown)
         {
-            spriteBatch.DrawStringWithMarkdown(_textToRender, Position.ToVector2(), Color, Rotation, Origin, Scale,
+            SpriteBatch.DrawStringWithMarkdown(_textToRender, Position.ToVector2(), Color, Rotation, Origin, Scale,
                 SpriteEffects.None, 0);
         }
         else
         {
-            spriteBatch.DrawString(_textToRender, Position.ToVector2(), Color, Rotation, Origin, Scale,
+            SpriteBatch.DrawString(_textToRender, Position.ToVector2(), Color, Rotation, Origin, Scale,
                 SpriteEffects.None, 0);
         }
     }

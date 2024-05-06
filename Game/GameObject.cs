@@ -8,6 +8,8 @@ namespace BotanicaGame.Game;
 
 public class GameObject(string name) : IDisposable
 {
+    public bool IsActive = true;
+    
     public string Name = name;
 
     public bool CanOcclude = true;

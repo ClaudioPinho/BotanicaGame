@@ -7,7 +7,13 @@ namespace BotanicaGame.Game;
 public class MeshObject(string name) : GameObject(name), IDrawable
 {
     public int DrawOrder { get; }
-    public bool Visible { get; set; } = true;
+
+    public bool Visible
+    {
+        get => _isVisible && IsActive;
+        set => _isVisible = value;
+    }
+    
     public event EventHandler<EventArgs> DrawOrderChanged;
     public event EventHandler<EventArgs> VisibleChanged;
     
@@ -25,6 +31,8 @@ public class MeshObject(string name) : GameObject(name), IDrawable
     private Model _model;
     private ModelMeshCollection _meshes;
     private ModelBoneCollection _bones;
+
+    private bool _isVisible = true;
 
     private static Matrix ViewMatrix => Camera.Current != null
         ? Camera.Current.ViewMatrix

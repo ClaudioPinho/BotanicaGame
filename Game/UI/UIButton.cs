@@ -16,7 +16,7 @@ public class UIButton : UIImage
     public SoundEffect OnClickInSound;
     public SoundEffect OnClickOutSound;
 
-    public UIButton(Canvas canvas) : base(canvas)
+    public UIButton(Canvas canvas, SpriteBatch spriteBatch) : base(canvas, spriteBatch)
     {
         CanBeInteracted = true;
     }
