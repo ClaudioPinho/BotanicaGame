@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using BotanicaGame.Data;
 using BotanicaGame.Debug;
 using BotanicaGame.Game;
@@ -67,7 +68,14 @@ public class MainGame : Microsoft.Xna.Framework.Game
     {
         if (_externalScripts.Contains(externalScript)) return;
         _externalScripts.Add(externalScript);
-        externalScript.Start(this);
+        try
+        {
+            externalScript.Start(this);
+        }
+        catch (Exception e)
+        {
+            DebugUtils.PrintException(e);
+        }
     }
 
     public void RemoveExternalScript(IExternalScript externalScript)
@@ -159,7 +167,14 @@ public class MainGame : Microsoft.Xna.Framework.Game
         
         foreach (var externalScript in _externalScripts)
         {
-            externalScript.Update(_deltaTime);
+            try
+            {
+                externalScript.Update(_deltaTime);
+            }
+            catch (Exception e)
+            {
+                DebugUtils.PrintException(e);
+            }
         }
         
         _gameAudio.PerformAudioCleanup();

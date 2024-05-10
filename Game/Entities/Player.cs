@@ -34,7 +34,7 @@ public class Player : Entity
 
     private RaycastHit _cameraHit;
 
-    public Player(string name) : base(name)
+    public Player(string id) : base(id)
     {
         AudioListener = new AudioListener();
         

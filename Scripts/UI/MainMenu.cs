@@ -8,12 +8,11 @@ namespace BotanicaGame.Scripts.UI;
 public class MainMenu : IExternalScript
 {
     private Scene _mainMenuScene;
-    private Scene _settingsScene;
     private Scene _playScene;
 
     private Canvas _mainCanvas;
 
-    private UIGraphics _spinningCube;
+    private UIGraphic _spinningCube;
 
     private bool _isInitialized;
 
@@ -24,24 +23,15 @@ public class MainMenu : IExternalScript
         // load the scene
         _mainMenuScene = MainGame.GameInstance.SceneManager.Load("MainMenu");
         
-        // load the settings scene but load it invisible
-        _settingsScene = MainGame.GameInstance.SceneManager.Load("SettingsScene");
-        _settingsScene.Visible = false;
-
         // get the main canvas from the scene
         _mainCanvas = _mainMenuScene.GetGameObjectOfType<Canvas>();
-
+        
         // get the spinning cube from the canvas
         _spinningCube = _mainCanvas.GetGraphicByName<UIImage>("SpinningBoy");
-
+        
         // quit the game when we click on the exit button
         _mainCanvas.GetGraphicByName<UIButton>("Exit Button").OnButtonClicked += MainGame.GameInstance.Exit;
-        _mainCanvas.GetGraphicByName<UIButton>("Settings Button").OnButtonClicked += () =>
-        {
-            _settingsScene.Visible = true;
-        };
-        // _mainCanvas.GetGraphicByName<UIButton>("Settings Button").OnButtonClicked +=
-        //     MainGame.GameInstance.ScreenController.ToggleBorderless;
+        // _mainCanvas.GetGraphicByName<UIButton>("Settings Button").OnButtonClicked += MainGame.GameInstance.ScreenController.ToggleBorderless;
 
         _isInitialized = true;
     }

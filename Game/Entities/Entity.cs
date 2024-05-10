@@ -23,7 +23,7 @@ public class Entity : PhysicsObject
     public bool WasPreviouslyFalling { get; private set; }
     // public float MaxVelocity { get; set; }
 
-    public Entity(string name) : base(name)
+    public Entity(string id) : base(id)
     {
         IsStatic = false;
         IsAffectedByGravity = true;

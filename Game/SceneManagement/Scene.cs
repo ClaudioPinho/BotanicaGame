@@ -44,61 +44,7 @@ public class Scene : IDrawable
         // no data for this scene so we are going to simply ignore it
         if (sceneData.SceneObjectsData is not { Count: > 0 }) return;
 
-        foreach (var gameObjectData in sceneData.SceneObjectsData)
-        {
-            var objectType = GameObjectData.GetObjectTypeFromName(gameObjectData.ObjectType);
-
-            if (objectType == null)
-            {
-                DebugUtils.PrintError(
-                    $"Couldn't not resolve string type '{gameObjectData.ObjectType}', ignoring...");
-                continue;
-            }
-
-            try
-            {
-                // create the new game object
-                var newGameObject = Activator.CreateInstance(objectType, args: gameObjectData.Name) as GameObject;
-
-                if (newGameObject is Canvas canvasObject)
-                {
-                    if (!gameObjectData.Parameters.TryGetValue("UIElements", out var uiElementsRaw))
-                    {
-                        DebugUtils.PrintWarning("Canvas object detected but no UIElements present, ignoring...");
-                        return;
-                    }
-
-                    var uiElements = ((JArray)uiElementsRaw).ToObject<List<UIElementData>>(MainGame.JsonSerializer);
-
-                    foreach (var uiElement in uiElements)
-                    {
-                        var uiElementType = UIElementData.GetObjectTypeFromName(uiElement.ObjectType);
-                        var newUIElement = Activator.CreateInstance(uiElementType,
-                            args: [canvasObject, canvasObject.SpriteBatch]) as UIGraphics;
-
-                        newUIElement.Name = uiElement.Name;
-
-                        // load this UI graphic parameters
-                        LoadObjectParameters(uiElementType, newUIElement, uiElement.Parameters, contentManager);
-
-                        // add this UI graphic to the canvas
-                        canvasObject.AddUIGraphic(newUIElement);
-                    }
-                }
-
-                // Load this object parameters
-                LoadObjectParameters(objectType, newGameObject, gameObjectData.Parameters, contentManager);
-
-                AddGameObject(newGameObject);
-            }
-            catch (Exception e)
-            {
-                DebugUtils.PrintError($"An issue occurred when trying to instantiate the game object of" +
-                                      $" type '{gameObjectData.ObjectType}' with parameters: {JsonConvert.SerializeObject(gameObjectData.Parameters)}",
-                    gameObjectData);
-                DebugUtils.PrintException(e);
-            }
-        }
+        LoadSceneData(sceneData, contentManager);
     }
 
     public void Initialize()
@@ -160,6 +106,20 @@ public class Scene : IDrawable
         return _sceneObjects.First(x => x.Name == name && x is T) as T;
     }
 
+    public T GetGameObjectById<T>(string id) where T : GameObject
+    {
+        if (_sceneObjects == null || _sceneObjects.Count == 0)
+            return null;
+        return _sceneObjects.FirstOrDefault(x => x.Id == id) as T;
+    }
+
+    public GameObject GetGameObjectById(string id)
+    {
+        if (_sceneObjects == null || _sceneObjects.Count == 0)
+            return null;
+        return _sceneObjects.FirstOrDefault(x => x.Id == id);
+    }
+
     public void AddNewGameObject(GameObject gameObject)
     {
         _gameObjectsToAdd.Enqueue(gameObject);
@@ -188,7 +148,9 @@ public class Scene : IDrawable
 
         if (gameObject is IDrawable drawableObject)
         {
-            _drawableObjects.Add(drawableObject);
+            // todo: temporary solution but this is bad
+            if (gameObject is not UIGraphic)
+                _drawableObjects.Add(drawableObject);
         }
 
         if (_physicsContext != null && gameObject is PhysicsObject physicsObject)
@@ -230,50 +192,133 @@ public class Scene : IDrawable
     }
 
     // todo: remove scene loading logic from the Scene class, it makes no sense to exist here
-    private static void LoadObjectParameters(Type objectType, object createdObject,
+
+    private void LoadSceneData(SceneData sceneData, ContentManager contentManager)
+    {
+        var loadedObjects = new Dictionary<GameObject, GameObjectData>();
+
+        foreach (var gameObjectData in sceneData.SceneObjectsData)
+        {
+            var objectType = GameObjectData.GetObjectTypeFromName(gameObjectData.ObjectType);
+
+            if (objectType == null)
+            {
+                DebugUtils.PrintError(
+                    $"Couldn't not resolve string type '{gameObjectData.ObjectType}', ignoring...");
+                continue;
+            }
+
+            try
+            {
+                // check if this object was created, if not just ignore it and move to the next
+                if (Activator.CreateInstance(objectType, args: gameObjectData.Id) is not GameObject newGameObject)
+                {
+                    DebugUtils.PrintError($"Couldn't create object with id {gameObjectData.Id}, ignoring...");
+                    continue;
+                }
+
+                newGameObject.Name = gameObjectData.Name;
+
+                // add the created object for later processing
+                loadedObjects.Add(newGameObject, gameObjectData);
+            }
+            catch (Exception e)
+            {
+                DebugUtils.PrintError($"An issue occurred when trying to instantiate the game object of" +
+                                      $" type '{objectType.Name}' with parameters: {JsonConvert.SerializeObject(gameObjectData.Parameters)}",
+                    gameObjectData);
+                DebugUtils.PrintException(e);
+            }
+        }
+
+        // now that the objects have been loaded we need to load its data
+        foreach (var (loadedObject, loadedObjectData) in loadedObjects)
+        {
+            try
+            {
+                // set the proper parent if it exists
+                if (!string.IsNullOrEmpty(loadedObjectData.ParentObject))
+                {
+                    var parentObject = loadedObjects
+                        .FirstOrDefault(x => x.Key.Id == loadedObjectData.ParentObject).Key;
+                    if (parentObject == null)
+                    {
+                        DebugUtils.PrintError($"Couldn't find parent with id: " +
+                                              $"{loadedObjectData.ParentObject}", loadedObject);
+                    }
+                    else
+                    {
+                        loadedObject.SetParent(parentObject);
+                    }
+                }
+
+                LoadObjectParameters(loadedObject.GetType(), loadedObject, loadedObjectData.Parameters,
+                    contentManager);
+
+                AddGameObject(loadedObject);
+            }
+            catch (Exception e)
+            {
+                DebugUtils.PrintError(
+                    $"An issue occurred when trying to load data for the object id '{loadedObjectData.Id}'",
+                    loadedObjectData);
+                DebugUtils.PrintException(e);
+            }
+        }
+    }
+
+    private void LoadObjectParameters(Type objectType, GameObject gameObject,
         Dictionary<string, object> objectParameters, ContentManager contentManager)
     {
         foreach (var parameter in objectParameters)
         {
-            // ignore the UIElements section from the main canvas
-            if (createdObject is Canvas && parameter.Key == "UIElements") continue;
-
             // todo: check if there's a better way to handle this
             var member = objectType.GetMember(parameter.Key);
             if (member.Length <= 0) continue;
             switch (member[0])
             {
                 // check if the content manager can handle this type of data, if so we need to load from the content manager instead
+
+                case FieldInfo fieldInfo when fieldInfo.FieldType.IsAssignableTo(typeof(GameObject)):
+                    fieldInfo.SetValue(gameObject, GetGameObjectById((string)parameter.Value));
+                    break;
+
+                // case FieldInfo fieldInfo when fieldInfo.FieldType.IsAssignableTo(typeof(IEnumerable<GameObject>)):
+                //     
+                //     fieldInfo.SetValue(createdObject, GetGameObjectById((string)parameter.Value));
+                //     break;
+
                 case FieldInfo fieldInfo when fieldInfo.FieldType == typeof(Texture2D):
-                    fieldInfo.SetValue(createdObject,
+                    fieldInfo.SetValue(gameObject,
                         contentManager.Load<Texture2D>((string)parameter.Value));
                     break;
                 case FieldInfo fieldInfo when fieldInfo.FieldType == typeof(SoundEffect):
-                    fieldInfo.SetValue(createdObject,
+                    fieldInfo.SetValue(gameObject,
                         contentManager.Load<SoundEffect>((string)parameter.Value));
                     break;
                 case FieldInfo fieldInfo when fieldInfo.FieldType == typeof(SpriteFont):
-                    fieldInfo.SetValue(createdObject,
+                    fieldInfo.SetValue(gameObject,
                         contentManager.Load<SpriteFont>((string)parameter.Value));
                     break;
                 case FieldInfo fieldInfo when fieldInfo.FieldType == typeof(Model):
-                    fieldInfo.SetValue(createdObject,
+                    fieldInfo.SetValue(gameObject,
                         contentManager.Load<Model>((string)parameter.Value));
                     break;
                 case FieldInfo fieldInfo when fieldInfo.FieldType == typeof(Effect):
-                    fieldInfo.SetValue(createdObject,
+                    fieldInfo.SetValue(gameObject,
                         contentManager.Load<Effect>((string)parameter.Value));
                     break;
+
                 case FieldInfo fieldInfo:
                 {
                     // if type matches no further processing required
                     if (parameter.Value.GetType() == fieldInfo.FieldType)
                     {
-                        fieldInfo.SetValue(createdObject, parameter.Value);
+                        fieldInfo.SetValue(gameObject, parameter.Value);
                     }
                     else if (TypeDescriptor.GetConverter(parameter.Value).CanConvertTo(fieldInfo.FieldType))
                     {
-                        fieldInfo.SetValue(createdObject,
+                        fieldInfo.SetValue(gameObject,
                             TypeDescriptor.GetConverter(parameter.Value)
                                 .ConvertTo(parameter.Value, fieldInfo.FieldType));
                     }
@@ -282,12 +327,12 @@ public class Scene : IDrawable
                         {
                             // if the type came as a 'JObject' we will try to retrieve it as the correct type
                             case JObject jObject:
-                                fieldInfo.SetValue(createdObject,
+                                fieldInfo.SetValue(gameObject,
                                     jObject.ToObject(fieldInfo.FieldType, MainGame.JsonSerializer));
                                 break;
                             // if it's a string then it's highly likely that is some sort of json string representing the object itself
                             case string stringData:
-                                fieldInfo.SetValue(createdObject,
+                                fieldInfo.SetValue(gameObject,
                                     JsonConvert.DeserializeObject($"\"{stringData}\"", fieldInfo.FieldType,
                                         MainGame.JsonSerializerSettings));
                                 break;
@@ -299,37 +344,44 @@ public class Scene : IDrawable
 
                     break;
                 }
+
                 // check if the content manager can handle this type of data, if so we need to load from the content manager instead
+
+                case PropertyInfo propertyInfo when propertyInfo.PropertyType.IsAssignableTo(typeof(GameObject)):
+                    propertyInfo.SetValue(gameObject, GetGameObjectById((string)parameter.Value));
+                    break;
+
                 case PropertyInfo propertyInfo when propertyInfo.PropertyType == typeof(Texture2D):
-                    propertyInfo.SetValue(createdObject,
+                    propertyInfo.SetValue(gameObject,
                         contentManager.Load<Texture2D>((string)parameter.Value));
                     break;
                 case PropertyInfo propertyInfo when propertyInfo.PropertyType == typeof(SoundEffect):
-                    propertyInfo.SetValue(createdObject,
+                    propertyInfo.SetValue(gameObject,
                         contentManager.Load<SoundEffect>((string)parameter.Value));
                     break;
                 case PropertyInfo propertyInfo when propertyInfo.PropertyType == typeof(SpriteFont):
-                    propertyInfo.SetValue(createdObject,
+                    propertyInfo.SetValue(gameObject,
                         contentManager.Load<SpriteFont>((string)parameter.Value));
                     break;
                 case PropertyInfo propertyInfo when propertyInfo.PropertyType == typeof(Model):
-                    propertyInfo.SetValue(createdObject,
+                    propertyInfo.SetValue(gameObject,
                         contentManager.Load<Model>((string)parameter.Value));
                     break;
                 case PropertyInfo propertyInfo when propertyInfo.PropertyType == typeof(Effect):
-                    propertyInfo.SetValue(createdObject,
+                    propertyInfo.SetValue(gameObject,
                         contentManager.Load<Effect>((string)parameter.Value));
                     break;
+
                 case PropertyInfo propertyInfo:
                 {
                     // if type matches no further processing required
                     if (parameter.Value.GetType() == propertyInfo.PropertyType)
                     {
-                        propertyInfo.SetValue(createdObject, parameter.Value);
+                        propertyInfo.SetValue(gameObject, parameter.Value);
                     }
                     else if (TypeDescriptor.GetConverter(parameter.Value).CanConvertTo(propertyInfo.PropertyType))
                     {
-                        propertyInfo.SetValue(createdObject,
+                        propertyInfo.SetValue(gameObject,
                             TypeDescriptor.GetConverter(parameter.Value)
                                 .ConvertTo(parameter.Value, propertyInfo.PropertyType));
                     }
@@ -338,12 +390,12 @@ public class Scene : IDrawable
                         {
                             // if the type came as a 'JObject' we will try to retrieve it as the correct type
                             case JObject jObject:
-                                propertyInfo.SetValue(createdObject,
+                                propertyInfo.SetValue(gameObject,
                                     jObject.ToObject(propertyInfo.PropertyType, MainGame.JsonSerializer));
                                 break;
                             // if it's a string then it's highly likely that is some sort of json string representing the object itself
                             case string stringData:
-                                propertyInfo.SetValue(createdObject,
+                                propertyInfo.SetValue(gameObject,
                                     JsonConvert.DeserializeObject($"\"{stringData}\"", propertyInfo.PropertyType,
                                         MainGame.JsonSerializerSettings));
                                 break;

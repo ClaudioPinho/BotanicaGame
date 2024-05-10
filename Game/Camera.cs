@@ -19,7 +19,7 @@ public class Camera : GameObject
 
     public Matrix ViewMatrix;
 
-    public Camera(string name) : base(name)
+    public Camera(string id) : base(id)
     {
         Current = this;
         AspectRatio = MainGame.GraphicsDeviceManager.GraphicsDevice.DisplayMode.AspectRatio;

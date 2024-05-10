@@ -1,6 +1,6 @@
 namespace BotanicaGame.Game.Entities;
 
-public class TestFollowEntity(string name) : Entity(name)
+public class TestFollowEntity(string id) : Entity(id)
 {
     
 }

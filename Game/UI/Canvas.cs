@@ -35,7 +35,7 @@ public class Canvas : GameObject, IDrawable
 
     public SpriteBatch SpriteBatch { get; } = new(MainGame.GraphicsDeviceManager.GraphicsDevice);
     
-    private readonly List<UIGraphics> _graphicsToDraw = [];
+    private readonly List<UIGraphic> _graphicsToDraw = [];
     private List<UIInteractable> _interactableUIElements = [];
 
     private int _virtualWidth;
@@ -52,7 +52,7 @@ public class Canvas : GameObject, IDrawable
     private Vector2 _canvasScale;
     private Matrix _scaleMatrix;
 
-    public Canvas(string name) : base(name)
+    public Canvas(string id) : base(id)
     {
         SetVirtualResolution(1280, 720);
 
@@ -64,21 +64,21 @@ public class Canvas : GameObject, IDrawable
         _canvasScale = Vector2.One;
     }
 
-    public void AddUIGraphic(UIGraphics uiGraphics)
+    public void AddUIGraphic(UIGraphic uiGraphic)
     {
-        if (!_graphicsToDraw.Contains(uiGraphics))
+        if (!_graphicsToDraw.Contains(uiGraphic))
         {
-            if (uiGraphics is UIInteractable uiInteractable)
+            if (uiGraphic is UIInteractable uiInteractable)
                 _interactableUIElements.Add(uiInteractable);
-            _graphicsToDraw.Add(uiGraphics);
+            _graphicsToDraw.Add(uiGraphic);
         }
     }
 
-    public void RemoveUIGraphic(UIGraphics uiGraphics)
+    public void RemoveUIGraphic(UIGraphic uiGraphic)
     {
-        if (uiGraphics is UIInteractable uiInteractable)
+        if (uiGraphic is UIInteractable uiInteractable)
             _interactableUIElements.Remove(uiInteractable);
-        _graphicsToDraw.Remove(uiGraphics);
+        _graphicsToDraw.Remove(uiGraphic);
     }
 
     public override void Update(float deltaTime)
@@ -96,7 +96,7 @@ public class Canvas : GameObject, IDrawable
         base.Update(deltaTime);
     }
 
-    public T GetGraphicByName<T>(string name) where T : UIGraphics
+    public T GetGraphicByName<T>(string name) where T : UIGraphic
     {
         var validGraphic = _graphicsToDraw.FirstOrDefault(x => x.Name == name);
 

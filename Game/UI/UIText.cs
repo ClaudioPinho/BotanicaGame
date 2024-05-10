@@ -6,7 +6,7 @@ using Velentr.Font;
 
 namespace BotanicaGame.Game.UI;
 
-public class UIText : UIInteractable
+public class UIText(string id) : UIInteractable(id)
 {
     public string Text
     {
@@ -49,14 +49,14 @@ public class UIText : UIInteractable
             var fontResource = $"Content/{value}";
             try
             {
-                Font = _canvas.FontManager.GetFont(fontResource, _fontSize);
+                Font = Canvas.FontManager.GetFont(fontResource, _fontSize);
                 _fontResource = fontResource;
             }
             catch (Exception e)
             {
                 DebugUtils.PrintError($"Couldn't load font resource from '{fontResource}'");
                 DebugUtils.PrintException(e);
-                Font = _canvas.DefaultFont;
+                Font = Canvas.DefaultFont;
             }
         }
     }
@@ -81,8 +81,8 @@ public class UIText : UIInteractable
         }
     }
 
-    private string _text;
-    private int _fontSize;
+    private string _text = "My Text";
+    private int _fontSize = -1;
     private Font _font;
     private string _fontResource;
     private Text _textToRender;
@@ -93,15 +93,16 @@ public class UIText : UIInteractable
     private bool _fontSizeIsDirty;
     private bool _textSizeIsDirty;
 
-    private readonly Canvas _canvas;
-
-    public UIText(Canvas canvas, SpriteBatch spriteBatch) : base(canvas, spriteBatch)
+    protected override void SetCanvas(Canvas canvas)
     {
-        _canvas = canvas;
-        _text = "My Text";
-        _fontResource = _canvas.DefaultFontResource;
-        _fontSize = _canvas.DefaultFont.Size;
-        Font = _canvas.DefaultFont;
+        base.SetCanvas(canvas);
+        if (canvas == null) return;
+        _fontResource ??= canvas.DefaultFontResource;
+        if (Font == null)
+        {
+            _fontSize = canvas.DefaultFont.Size;
+            Font = canvas.DefaultFont;
+        }
     }
 
     public override void Update(float deltaTime)
@@ -129,14 +130,15 @@ public class UIText : UIInteractable
     public override void Draw(GameTime gameTime)
     {
         base.Draw(gameTime);
+        if (Canvas == null) return;
         if (_useMarkdown)
         {
-            SpriteBatch.DrawStringWithMarkdown(_textToRender, Position.ToVector2(), Color, Rotation, Origin, Scale,
+            Canvas.SpriteBatch.DrawStringWithMarkdown(_textToRender, Position.ToVector2(), Color, Rotation, Origin, Scale,
                 SpriteEffects.None, 0);
         }
         else
         {
-            SpriteBatch.DrawString(_textToRender, Position.ToVector2(), Color, Rotation, Origin, Scale,
+            Canvas.SpriteBatch.DrawString(_textToRender, Position.ToVector2(), Color, Rotation, Origin, Scale,
                 SpriteEffects.None, 0);
         }
     }
@@ -151,7 +153,7 @@ public class UIText : UIInteractable
         }
         else
         {
-            _font = _canvas.FontManager.GetFont(_fontResource, _fontSize);
+            _font = Canvas.FontManager.GetFont(_fontResource, _fontSize);
         }
     }
 

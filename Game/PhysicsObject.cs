@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 
 namespace BotanicaGame.Game;
 
-public class PhysicsObject(string name) : MeshObject(name)
+public class PhysicsObject(string id) : MeshObject(id)
 {
     public bool IsStatic;
     public bool IsAffectedByGravity = true;

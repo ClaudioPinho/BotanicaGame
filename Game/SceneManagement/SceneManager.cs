@@ -35,24 +35,30 @@ public class SceneManager(ContentManager contentManager)
     public Scene Load(string sceneName, GamePhysics physicsContext = null)
     {
         var fullPath = GetFullScenePath(sceneName);
-        try
+        if (!File.Exists(fullPath))
         {
-            var sceneData = RetrieveSceneDataFromPath(fullPath);
-            if (sceneData == null)
-                return null;
-            var scene = new Scene((SceneData)sceneData, contentManager, physicsContext);
-            Load(scene);
+            DebugUtils.PrintError($"Scene '{sceneName}' does not exist on path: '{fullPath}'");
+        }
+        else
+        {
+            try
+            {
+                var sceneData = RetrieveSceneDataFromPath(fullPath);
+                if (sceneData == null)
+                    return null;
+                var scene = new Scene((SceneData)sceneData, contentManager, physicsContext);
+                Load(scene);
 #if DEVELOPMENT
-            SubscribeToSceneFileChanges(sceneName, fullPath, scene);
+                SubscribeToSceneFileChanges(sceneName, fullPath, scene);
 #endif
-            return scene;
+                return scene;
+            }
+            catch (Exception e)
+            {
+                DebugUtils.PrintError($"An error occurred when trying to read the scene '{sceneName}'");
+                DebugUtils.PrintException(e);
+            }
         }
-        catch (Exception e)
-        {
-            DebugUtils.PrintError($"An error occurred when trying to read the scene '{sceneName}'");
-            DebugUtils.PrintException(e);
-        }
-
         return null;
     }
 

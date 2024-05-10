@@ -4,21 +4,25 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace BotanicaGame.Game;
 
-public class MeshObject(string name) : GameObject(name), IDrawable
+public class MeshObject(string id) : GameObject(id), IDrawable
 {
     public int DrawOrder { get; }
 
-    public bool Visible
-    {
-        get => _isVisible && IsActive;
-        set => _isVisible = value;
+    public bool Visible {
+        get {
+            if (_parentDrawable != null)
+                return _isVisible && IsActive && _parentDrawable.Visible;
+            return _isVisible && IsActive;
+        }
+        set {
+            _isVisible = value;
+        }
     }
-    
+
     public event EventHandler<EventArgs> DrawOrderChanged;
     public event EventHandler<EventArgs> VisibleChanged;
-    
-    public Model Model
-    {
+
+    public Model Model {
         get => _model;
         set => SwapModel(value);
     }
@@ -27,12 +31,14 @@ public class MeshObject(string name) : GameObject(name), IDrawable
     public Texture2D SharedTexture;
     public Vector2 TextureTiling = Vector2.One;
     public Color DiffuseColor = Color.White;
-    
+
     private Model _model;
     private ModelMeshCollection _meshes;
     private ModelBoneCollection _bones;
 
     private bool _isVisible = true;
+
+    private IDrawable _parentDrawable;
 
     private static Matrix ViewMatrix => Camera.Current != null
         ? Camera.Current.ViewMatrix
@@ -47,7 +53,7 @@ public class MeshObject(string name) : GameObject(name), IDrawable
     {
         if (!Visible)
             return;
-        
+
         if (_meshes == null || _meshes.Count == 0)
             return;
 
@@ -58,7 +64,7 @@ public class MeshObject(string name) : GameObject(name), IDrawable
                 if (SharedEffect != null)
                     meshPart.Effect = SharedEffect;
             }
-            
+
             foreach (var effect in mesh.Effects)
             {
                 if (effect is BasicEffect basicEffect)
@@ -86,7 +92,13 @@ public class MeshObject(string name) : GameObject(name), IDrawable
             mesh.Draw();
         }
     }
-    
+
+    public override void SetParent(GameObject parentObject)
+    {
+        base.SetParent(parentObject);
+        _parentDrawable = FindInParents<IDrawable>();
+    }
+
     private void SwapModel(Model newModel)
     {
         _meshes = newModel.Meshes;
