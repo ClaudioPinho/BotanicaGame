@@ -55,7 +55,6 @@ public class Player : Entity
 
     public override void Update(float deltaTime)
     {
-
         UpdateAudioListenerState();
 
         // re-position the player back at origin if they fall
@@ -207,12 +206,8 @@ public class Player : Entity
 
     private void UpdateInput()
     {
-        var center = new Point(MainGame.GameInstance.Window.ClientBounds.Width / 2,
-            MainGame.GameInstance.Window.ClientBounds.Height / 2);
-        var delta = Mouse.GetState().Position - center;
-
-        // Reset mouse position to center of window
-        Mouse.SetPosition(center.X, center.Y);
+        
+        var delta = Mouse.GetState().Position - MainGame.WindowCenter;
 
         // Adjust camera orientation based on mouse movement
         var sensitivity = 0.005f;
@@ -223,6 +218,8 @@ public class Player : Entity
 
         // Clamp the pitch angle to prevent camera inversion
         pitch = MathHelper.Clamp(pitch, _minPitch, _maxPitch);
+        
+        if (!MainGame.LockCursor) return;
 
         Camera.Transform.Rotation = Quaternion.CreateFromYawPitchRoll(yaw, pitch, 0f);
         // Transform.Rotation = Quaternion.CreateFromYawPitchRoll(yaw - MathF.PI / 2, 0f, 0f);

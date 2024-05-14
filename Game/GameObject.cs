@@ -17,43 +17,47 @@ public class GameObject(string id = null) : IDisposable
 
     public bool CanOcclude = true;
 
-    public readonly Transform Transform = new Transform(Vector3.Zero, Quaternion.Identity, Vector3.One);
+    public readonly Transform Transform = new(Vector3.Zero, Quaternion.Identity, Vector3.One);
 
-    public GameObject Parent { get; private set; }
+    public GameObject Parent
+    {
+        get => _parent;
+        set
+        {
+            if (_parent == this)
+            {
+                DebugUtils.PrintError($"Game object with id '{Id}' is trying to parent to itself!", this);
+            }
+            else if (value != _parent)
+            {
+                _parentIsDirty = true;
+                _parent = value;
+            }
+        }
+    }
 
     public Scene SceneContext { get; set; }
 
     private readonly List<IExternalScript> _externalScripts = [];
-    private readonly Queue<IExternalScript> _scriptsToAdd = new Queue<IExternalScript>();
-    private readonly Queue<IExternalScript> _scriptsToRemove = new Queue<IExternalScript>();
+    private readonly Queue<IExternalScript> _scriptsToAdd = new();
+    private readonly Queue<IExternalScript> _scriptsToRemove = new();
 
+    private bool _parentIsDirty;
     private bool _isInitialized;
+    private GameObject _parent;
 
     public void AddExternalScript(IExternalScript externalScript) => _scriptsToAdd.Enqueue(externalScript);
 
     public void RemoveExternalScript(IExternalScript externalScript) => _scriptsToRemove.Enqueue(externalScript);
 
-    public T FindInParents<T>()
+    public T FindTypeInParents<T>()
     {
-        switch (Parent)
-        {
-            case null:
-                return default;
-            case T found:
-                return found;
-            default:
-            {
-                if (Parent.Parent != null)
-                {
-                    return Parent.Parent.FindInParents<T>();
-                }
-                break;
-            }
-        }
-        return default;
+        if (this is T foundType)
+            return foundType;
+        return Parent != null ? Parent.FindTypeInParents<T>() : default;
     }
 
-    public T FindInParent<T>()
+    public T FindTypeInParent<T>()
     {
         return Parent switch
         {
@@ -81,6 +85,11 @@ public class GameObject(string id = null) : IDisposable
 
     public virtual void Update(float deltaTime)
     {
+        if (_parentIsDirty)
+        {
+            UpdateParent(_parent);
+            _parentIsDirty = false;
+        }
         foreach (var externalScript in _externalScripts)
         {
             try
@@ -100,9 +109,9 @@ public class GameObject(string id = null) : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public virtual void SetParent(GameObject parentObject)
+    protected virtual void UpdateParent(GameObject parentObject)
     {
-        Parent = parentObject;
+        
     }
 
     protected virtual void OnExternalScriptAdded(IExternalScript externalScript)

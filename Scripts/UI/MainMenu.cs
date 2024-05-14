@@ -1,4 +1,3 @@
-using BotanicaGame.Debug;
 using BotanicaGame.Game;
 using BotanicaGame.Game.SceneManagement;
 using BotanicaGame.Game.UI;
@@ -10,28 +9,24 @@ public class MainMenu : IExternalScript
     private Scene _mainMenuScene;
     private Scene _playScene;
 
-    private Canvas _mainCanvas;
-
     private UIGraphic _spinningCube;
 
     private bool _isInitialized;
 
     public bool IsInitialized() => _isInitialized;
-
-    public void Start(object context)
+    
+    public void Start(GameObject gameObjectContext)
     {
-        // load the scene
-        _mainMenuScene = MainGame.GameInstance.SceneManager.Load("MainMenu");
-        
-        // get the main canvas from the scene
-        _mainCanvas = _mainMenuScene.GetGameObjectOfType<Canvas>();
-        
-        // get the spinning cube from the canvas
-        _spinningCube = _mainCanvas.GetGraphicByName<UIImage>("SpinningBoy");
-        
+        // retrieve the scene from the object that this script was attached to
+        _mainMenuScene = gameObjectContext.SceneContext;
+
+        // get the spinning cube object
+        _spinningCube = _mainMenuScene.GetGameObjectByName<UIImage>("SpinningBoy");
+
         // quit the game when we click on the exit button
-        _mainCanvas.GetGraphicByName<UIButton>("Exit Button").OnButtonClicked += MainGame.GameInstance.Exit;
-        // _mainCanvas.GetGraphicByName<UIButton>("Settings Button").OnButtonClicked += MainGame.GameInstance.ScreenController.ToggleBorderless;
+        _mainMenuScene.GetGameObjectByName<UIButton>("Play Button").OnButtonClicked += PlayGame;
+        _mainMenuScene.GetGameObjectByName<UIButton>("Exit Button").OnButtonClicked += MainGame.GameInstance.Exit;
+        _mainMenuScene.GetGameObjectByName<UIButton>("Settings Button").OnButtonClicked += MainGame.GameInstance.ScreenController.ToggleBorderless;
 
         _isInitialized = true;
     }
@@ -39,5 +34,12 @@ public class MainMenu : IExternalScript
     public void Update(float deltaTime)
     {
         _spinningCube.Rotation += 2f * deltaTime;
+    }
+
+    public void PlayGame()
+    {
+        // load the main scene
+        MainGame.SceneManager.Load("MainScene", MainGame.Physics);
+        MainGame.SceneManager.Unload(_mainMenuScene);
     }
 }

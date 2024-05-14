@@ -16,6 +16,8 @@ public class SceneManager(ContentManager contentManager)
     public string SceneRoot = Directory.GetCurrentDirectory() + "/Content/Scenes";
 
     private readonly List<Scene> _loadedScenes = [];
+    private readonly Queue<Scene> _scenesToAdd = new();
+    private readonly Queue<Scene> _scenesToRemove = new();
 
 #if DEVELOPMENT
     private const bool EnableHotReload = true;
@@ -64,13 +66,24 @@ public class SceneManager(ContentManager contentManager)
 
     public void Load(Scene scene)
     {
-        _loadedScenes.Add(scene);
-        InitializeScene(scene);
+        if (_loadedScenes.Contains(scene))
+        {
+            DebugUtils.PrintError("Can't load a scene that has been already loaded by this scene manager!", this);
+            return;
+        }
+        _scenesToAdd.Enqueue(scene);
+        scene.Load();
     }
 
     public void Unload(Scene scene)
     {
-        _loadedScenes.Remove(scene);
+        if (!_loadedScenes.Contains(scene))
+        {
+            DebugUtils.PrintError("Can't unload a scene that hasn't been loaded through this scene manager!", this);
+            return;
+        }
+        scene.Unload();
+        _scenesToRemove.Enqueue(scene);
 #if DEVELOPMENT
         if (_loadedScenesWatchers.Any(x => x.Value.Item2 == scene))
         {
@@ -81,16 +94,19 @@ public class SceneManager(ContentManager contentManager)
 #endif
     }
 
-    private void InitializeScene(Scene scene)
-    {
-        scene.Initialize();
-    }
-
     public void UpdateScenes(float deltaTime)
     {
+        while (_scenesToRemove.Count != 0)
+        {
+            _loadedScenes.Remove(_scenesToRemove.Dequeue());
+        }
         foreach (var loadedScene in _loadedScenes)
         {
             loadedScene.Update(deltaTime);
+        }
+        while (_scenesToAdd.Count != 0)
+        {
+            _loadedScenes.Add(_scenesToAdd.Dequeue());
         }
     }
 
@@ -155,12 +171,16 @@ public class SceneManager(ContentManager contentManager)
     {
         if (!_loadedScenes.Contains(sceneLoaded)) return;
         // before trying to reload the scene we will check if the new scene data is valid
-        if (RetrieveSceneDataFromPath(GetFullScenePath(sceneName)) != null)
+        var sceneData = RetrieveSceneDataFromPath(GetFullScenePath(sceneName));
+        if (sceneData != null)
         {
             // proceed by unloading the previous scene
-            Unload(sceneLoaded);
+            // Unload(sceneLoaded);
             // and loading it again which will refresh it with the newest scene data
-            Load(sceneName);
+            // Load(sceneName);
+
+            sceneLoaded.ReloadScene((SceneData)sceneData, contentManager);
+            
             DebugUtils.PrintMessage($"Scene '{sceneName}' was reloaded!");
         }
         else

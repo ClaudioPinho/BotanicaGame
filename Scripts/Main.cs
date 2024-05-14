@@ -1,4 +1,5 @@
 using BotanicaGame.Game;
+using BotanicaGame.Game.SceneManagement;
 using BotanicaGame.Scripts.UI;
 
 namespace BotanicaGame.Scripts;
@@ -9,11 +10,12 @@ public class Main : IExternalScript
 
     public bool IsInitialized() => _initialized;
 
-    public void Start(object context)
+    private Scene _mainMenuScene;
+
+    public void Start(GameObject gameObjectContext)
     {
-        // add the main menu script at the start of the game
-        MainGame.GameInstance.AddExternalScript(new MainMenu());
-        
+        // load the main menu scene when the game starts
+        _mainMenuScene = MainGame.SceneManager.Load("MainMenu");
         _initialized = true;
     }
 

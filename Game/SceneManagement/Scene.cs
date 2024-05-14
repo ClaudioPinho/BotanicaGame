@@ -18,11 +18,21 @@ namespace BotanicaGame.Game.SceneManagement;
 
 public class Scene : IDrawable
 {
+    public enum ESceneState
+    {
+        Unloaded = 0,
+        Loaded = 1
+    }
+
     public int DrawOrder { get; }
     public bool Visible { get; set; } = true;
     public event EventHandler<EventArgs> DrawOrderChanged;
 
     public event EventHandler<EventArgs> VisibleChanged;
+
+    public event Action OnSceneUnload;
+    public event Action OnSceneLoad;
+    public event Action OnSceneReloaded;
 
     private readonly List<GameObject> _sceneObjects = [];
     private readonly List<IDrawable> _drawableObjects = [];
@@ -32,6 +42,8 @@ public class Scene : IDrawable
 
     private readonly Skybox _sceneSkybox;
     private readonly GamePhysics _physicsContext;
+
+    private ESceneState _currentSceneState = ESceneState.Unloaded;
 
     public Scene(SceneData sceneData, ContentManager contentManager, GamePhysics physicsContext = null)
     {
@@ -47,16 +59,11 @@ public class Scene : IDrawable
         LoadSceneData(sceneData, contentManager);
     }
 
-    public void Initialize()
-    {
-        foreach (var sceneObject in _sceneObjects)
-        {
-            sceneObject.Initialize();
-        }
-    }
-
     public void Update(float deltaTime)
     {
+        // we shouldn't update this scene if it's unloaded!
+        if (_currentSceneState == ESceneState.Unloaded) return;
+
         // add any object that we marked for being added
         while (_gameObjectsToAdd.Count != 0)
         {
@@ -79,9 +86,66 @@ public class Scene : IDrawable
     {
         _sceneSkybox?.Draw();
 
-        foreach (var drawableObject in _drawableObjects.Where(x => x.Visible))
+        foreach (var drawableObject in _drawableObjects.Where(x => x.Visible).OrderBy(x => x.DrawOrder))
         {
             drawableObject.Draw(gameTime);
+        }
+    }
+
+    public void Load()
+    {
+        foreach (var sceneObject in _sceneObjects)
+        {
+            sceneObject.Initialize();
+        }
+        _currentSceneState = ESceneState.Loaded;
+        try
+        {
+            OnSceneLoad?.Invoke();
+        }
+        catch (Exception e)
+        {
+            DebugUtils.PrintException(e, this);
+        }
+    }
+
+    public void Unload()
+    {
+        _sceneObjects.ForEach(DestroyGameObject);
+        _currentSceneState = ESceneState.Unloaded;
+        try
+        {
+            OnSceneUnload?.Invoke();
+        }
+        catch (Exception e)
+        {
+            DebugUtils.PrintException(e, this);
+        }
+    }
+
+    public void ReloadScene(SceneData sceneData, ContentManager contentManager)
+    {
+        // no data for this scene so we are going to simply ignore it
+        if (sceneData.SceneObjectsData is not { Count: > 0 }) return;
+
+        // Unload();
+        // LoadSceneData(sceneData, contentManager);
+
+        // reloads the objects already in the scene
+        foreach (var sceneObject in sceneData.SceneObjectsData)
+        {
+            var correspondentObject = GetGameObjectById(sceneObject.Id);
+            if (correspondentObject == null) continue;
+            LoadObjectParameters(correspondentObject.GetType(), correspondentObject, sceneObject.Parameters, contentManager);
+        }
+
+        try
+        {
+            OnSceneReloaded?.Invoke();
+        }
+        catch (Exception e)
+        {
+            DebugUtils.PrintException(e);
         }
     }
 
@@ -99,11 +163,18 @@ public class Scene : IDrawable
         return _sceneObjects.OfType<T>();
     }
 
-    public T GetGameObjectOfName<T>(string name) where T : GameObject
+    public T GetGameObjectByName<T>(string name) where T : GameObject
     {
         if (_sceneObjects == null || _sceneObjects.Count == 0)
             return null;
-        return _sceneObjects.First(x => x.Name == name && x is T) as T;
+        return _sceneObjects.FirstOrDefault(x => x.Name == name && x is T) as T;
+    }
+    
+    public GameObject GetGameObjectByName(string name)
+    {
+        if (_sceneObjects == null || _sceneObjects.Count == 0)
+            return null;
+        return _sceneObjects.FirstOrDefault(x => x.Name == name);
     }
 
     public T GetGameObjectById<T>(string id) where T : GameObject
@@ -138,20 +209,11 @@ public class Scene : IDrawable
             return;
         }
 
-        // if (gameObject.SceneContext != this)
-        // {
-        //     DebugUtils.PrintError("Trying to add a GameObject that is not inside the same scene context", gameObject);
-        //     return;
-        // }
-
         _sceneObjects.Add(gameObject);
 
-        if (gameObject is IDrawable drawableObject)
-        {
-            // todo: temporary solution but this is bad
-            if (gameObject is not UIGraphic)
-                _drawableObjects.Add(drawableObject);
-        }
+        // todo: temporary solution but this is bad
+        if (gameObject is IDrawable drawableObject and not UIGraphic)
+            _drawableObjects.Add(drawableObject);
 
         if (_physicsContext != null && gameObject is PhysicsObject physicsObject)
         {
@@ -170,17 +232,9 @@ public class Scene : IDrawable
             return;
         }
 
-        // if (gameObject.SceneContext != this)
-        // {
-        //     DebugUtils.PrintError("Trying to remove a GameObject that is not inside the same scene context",
-        //         gameObject);
-        //     return;
-        // }
-
-        if (gameObject is IDrawable drawableObject)
-        {
+        // todo: temporary solution but this is bad
+        if (gameObject is IDrawable drawableObject and not UIGraphic)
             _drawableObjects.Remove(drawableObject);
-        }
 
         if (_physicsContext != null && gameObject is PhysicsObject physicsObject)
         {
@@ -192,7 +246,6 @@ public class Scene : IDrawable
     }
 
     // todo: remove scene loading logic from the Scene class, it makes no sense to exist here
-
     private void LoadSceneData(SceneData sceneData, ContentManager contentManager)
     {
         var loadedObjects = new Dictionary<GameObject, GameObjectData>();
@@ -248,12 +301,35 @@ public class Scene : IDrawable
                     }
                     else
                     {
-                        loadedObject.SetParent(parentObject);
+                        loadedObject.Parent = parentObject;
                     }
                 }
 
                 LoadObjectParameters(loadedObject.GetType(), loadedObject, loadedObjectData.Parameters,
                     contentManager);
+                
+                if (loadedObjectData.Scripts != null && loadedObjectData.Scripts.Count != 0)
+                {
+                    foreach (var scriptName in loadedObjectData.Scripts.Where(scriptName => !string.IsNullOrEmpty(scriptName)))
+                    {
+                        try
+                        {
+                            var scriptType = Type.GetType(scriptName);
+                            if (scriptType == null)
+                            {
+                                DebugUtils.PrintError($"Script named '{scriptName}' couldn't be found, ignoring...", this);
+                                continue;
+                            }
+                            var externalScript = Activator.CreateInstance(scriptType) as IExternalScript;
+                            loadedObject.AddExternalScript(externalScript);
+                        }
+                        catch (Exception e)
+                        {
+                            DebugUtils.PrintError($"An error occurred when trying to add a script named '{scriptName}'", this);
+                            DebugUtils.PrintException(e);
+                        }
+                    }
+                }
 
                 AddGameObject(loadedObject);
             }

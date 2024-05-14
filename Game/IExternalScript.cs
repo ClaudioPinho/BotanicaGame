@@ -12,8 +12,8 @@ public interface IExternalScript
     /// <summary>
     /// This is called when the object this script is attached to is trying to initialize this script
     /// </summary>
-    /// <param name="context"></param>
-    public void Start(object context);
+    /// <param name="gameObjectContext"></param>
+    public void Start(GameObject gameObjectContext);
     
     /// <summary>
     /// This is called for every object that has this script attached

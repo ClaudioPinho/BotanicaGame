@@ -5,45 +5,43 @@ namespace BotanicaGame.Game.UI;
 
 public class UIGraphic : GameObject, IDrawable
 {
-    public int DrawOrder { get; }
+    public int DrawOrder { get; set; }
 
-    public bool Visible {
-        get 
+    public bool Visible
+    {
+        get
         {
             if (_parentDrawable != null)
-            {
                 return _isVisible && IsActive && _parentDrawable.Visible;
-            }
             return _isVisible && IsActive;
         }
-        set 
-        {
-            _isVisible = value;
-        }
+        set => _isVisible = value;
     }
 
     public event EventHandler<EventArgs> DrawOrderChanged;
     public event EventHandler<EventArgs> VisibleChanged;
 
-    public Point AnchoredPosition {
+    public Point AnchoredPosition
+    {
         get => _anchoredPosition;
-        set {
+        set
+        {
             _anchoredPosition = value;
-            _position = new Point((int)(Anchor.X * Canvas.Width) + value.X - (int)(Size.X * Pivot.X),
-                (int)(Anchor.Y * Canvas.Height) + value.Y - (int)(Size.Y * Pivot.Y));
+            _position = new Point((int)(Anchor.X * CanvasWidth) + value.X - (int)(Size.X * Pivot.X),
+                (int)(Anchor.Y * CanvasHeight) + value.Y - (int)(Size.Y * Pivot.Y));
             _drawRectangleIsDirty = true;
         }
     }
 
-    public Point Position {
+    public Point Position
+    {
         get => _position;
-        set {
+        set
+        {
             _position.X = value.X - (int)(Size.X * Pivot.X);
             _position.Y = value.Y - (int)(Size.Y * Pivot.Y);
-            _anchoredPosition.X = (_position.X - (int)(Anchor.X * Canvas.Width) + (int)(Size.X * Pivot.X))
-                                  / Canvas.Width;
-            _anchoredPosition.Y = (_position.Y - (int)(Anchor.Y * Canvas.Height) + (int)(Size.Y * Pivot.Y))
-                                  / Canvas.Height;
+            _anchoredPosition.X = (_position.X - (int)(Anchor.X * Canvas.Width) + (int)(Size.X * Pivot.X)) / CanvasWidth;
+            _anchoredPosition.Y = (_position.Y - (int)(Anchor.Y * Canvas.Height) + (int)(Size.Y * Pivot.Y)) / CanvasHeight;
             _drawRectangleIsDirty = true;
         }
     }
@@ -52,11 +50,13 @@ public class UIGraphic : GameObject, IDrawable
     /// Since the canvas can be scaled this position is the true position of the graphic on the user's screen
     /// as opposed to the regular position that has no influence from the canvas scaling
     /// </summary>
-    public Point RealPosition => (_position.ToVector2() * (Canvas?.CanvasScale ?? Vector2.One)).ToPoint();
+    public Point RealPosition => (_position.ToVector2() * CanvasScale).ToPoint();
 
-    public Point Size {
+    public Point Size
+    {
         get => _size;
-        set {
+        set
+        {
             _size = value;
             AnchoredPosition = _anchoredPosition;
             _drawRectangleIsDirty = true;
@@ -69,9 +69,11 @@ public class UIGraphic : GameObject, IDrawable
     /// </summary>
     public Point RealSize => (_size.ToVector2() * (Canvas?.CanvasScale ?? Vector2.One)).ToPoint();
 
-    public Vector2 Pivot {
+    public Vector2 Pivot
+    {
         get => _pivot;
-        set {
+        set
+        {
             _pivot = value;
             _pivotIsDirty = true;
             _drawRectangleIsDirty = true;
@@ -96,10 +98,14 @@ public class UIGraphic : GameObject, IDrawable
 
     protected Vector2 Origin { get; private set; }
 
+    protected int CanvasWidth => Canvas?.Width ?? MainGame.GameInstance.GraphicsDevice.Viewport.Width;
+    protected int CanvasHeight => Canvas?.Width ?? MainGame.GameInstance.GraphicsDevice.Viewport.Height;
+    protected Vector2 CanvasScale => Canvas?.CanvasScale ?? Vector2.One;
+
     private Vector2 _pivot;
     private Point _anchoredPosition = Point.Zero;
     private Point _position = Point.Zero;
-    private Point _size = new Point(256, 256);
+    private Point _size = new(256, 256);
 
     private bool _pivotIsDirty;
     private bool _drawRectangleIsDirty;
@@ -108,7 +114,7 @@ public class UIGraphic : GameObject, IDrawable
 
     private IDrawable _parentDrawable;
 
-    protected UIGraphic(string id) : base(id)
+    public UIGraphic(string id) : base(id)
     {
         DrawRectangle = Rectangle.Empty;
         RealLocation = Rectangle.Empty;
@@ -129,11 +135,11 @@ public class UIGraphic : GameObject, IDrawable
         if (Canvas == null) return;
         if (!Canvas.DrawDebugBoxes) return;
         var destinationRectangle = new Rectangle(_position, _size);
-        var textSize = MainGame.DefaultFont.MeasureString(Name);
+        var textSize = MainGame.DefaultSpriteFont.MeasureString(Name);
         var labelPosition = new Point(_position.X, (int)(_position.Y - textSize.Y));
         Canvas.SpriteBatch.Draw(MainGame.SinglePixelTexture, new Rectangle(labelPosition, textSize.ToPoint()),
             Color.Yellow);
-        Canvas.SpriteBatch.DrawString(MainGame.DefaultFont, Name, labelPosition.ToVector2(), Color.Black);
+        Canvas.SpriteBatch.DrawString(MainGame.DefaultSpriteFont, Name, labelPosition.ToVector2(), Color.Black);
         Canvas.SpriteBatch.Draw(MainGame.SquareOutlineTexture, destinationRectangle, Color.Yellow);
     }
 
@@ -142,7 +148,7 @@ public class UIGraphic : GameObject, IDrawable
         // since the canvas changed the scale we need to recalculate the real positions and size 
         _drawRectangleIsDirty = true;
     }
-    
+
     protected virtual void SetCanvas(Canvas canvas)
     {
         if (canvas == null) return;
@@ -166,12 +172,13 @@ public class UIGraphic : GameObject, IDrawable
         return new Vector2(Size.X * _pivot.X, Size.Y * _pivot.Y);
     }
 
-    public override void SetParent(GameObject parentObject)
+    protected override void UpdateParent(GameObject parentObject)
     {
-        base.SetParent(parentObject);
+        base.UpdateParent(parentObject);
+        if (parentObject == null) return;
         // automatically set the canvas if this graphic is being parented to one
-        SetCanvas(FindInParents<Canvas>());
-        _parentDrawable = FindInParents<IDrawable>();
+        SetCanvas(parentObject.FindTypeInParents<Canvas>());
+        _parentDrawable = parentObject.FindTypeInParents<IDrawable>();
     }
 
     private void UpdateDrawRectangle()

@@ -17,6 +17,8 @@ public struct GameObjectData
 
     [JsonProperty("parentObject")] public string ParentObject;
     
+    [JsonProperty("scripts")] public List<string> Scripts;
+    
     [JsonProperty("params")] public Dictionary<string, object> Parameters;
 
     public static Type GetObjectTypeFromName(string typeName)

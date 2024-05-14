@@ -93,10 +93,10 @@ public class MeshObject(string id) : GameObject(id), IDrawable
         }
     }
 
-    public override void SetParent(GameObject parentObject)
+    protected override void UpdateParent(GameObject parentObject)
     {
-        base.SetParent(parentObject);
-        _parentDrawable = FindInParents<IDrawable>();
+        base.UpdateParent(parentObject);
+        _parentDrawable = FindTypeInParents<IDrawable>();
     }
 
     private void SwapModel(Model newModel)

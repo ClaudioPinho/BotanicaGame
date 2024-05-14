@@ -3,6 +3,111 @@
   "skyboxTexture": "Textures/Skybox/SkyRed",
   "sceneObjectsData": [
     {
+      "id": "39b60abd-3703-486b-9a07-edd8d211c430",
+      "objectType": "GameObject",
+      "name": "GameManager",
+      "scripts": ["BotanicaGame.Scripts.Gameplay.GameManager"],
+      "params": {
+        "IsStatic": true
+      }
+    },
+    {
+      "id": "05322ae8-12c8-46d8-893b-d240507d2d58",
+      "objectType": "Canvas",
+      "name": "GameCanvas",
+      "params": {
+        "DrawDebugBoxes": false,
+        "BackgroundColor": "#00000000"
+      }
+    },
+    {
+      "id": "ef361156-8c9a-47cb-a2e0-2ef5d82e5e8a",
+      "parentObject": "05322ae8-12c8-46d8-893b-d240507d2d58",
+      "objectType": "Graphic",
+      "name": "GameHUD",
+      "scripts": ["BotanicaGame.Scripts.UI.GameHud"],
+      "params": { 
+        "IsActive": false
+      }
+    },
+    {
+      "id": "cd71a6bd-24e8-48f7-8cde-bd53a3b12184",
+      "parentObject": "ef361156-8c9a-47cb-a2e0-2ef5d82e5e8a",
+      "objectType": "Image",
+      "name": "HUD background",
+      "params": {
+        "Color": "#00000080",
+        "Pivot": {
+          "X": 0,
+          "Y": 0
+        },
+        "Size": {
+          "X": 1280,
+          "Y": 720
+        },
+        "Rotation": 0
+      }
+    },
+    {
+      "id": "121ca8df-0ba0-460f-846f-e8a5a00ffbae",
+      "parentObject": "ef361156-8c9a-47cb-a2e0-2ef5d82e5e8a",
+      "objectType": "Button",
+      "name": "Home Button",
+      "params": {
+        "Image": "Textures/MainMenu/button-normal",
+        "HoverTexture": "Textures/MainMenu/button-hovered",
+        "SelectedTexture": "Textures/MainMenu/button-clicked",
+        "OnClickInSound": "Audio/ui-click-in",
+        "Size": {
+          "X": 320,
+          "Y": 64
+        },
+        "Anchor": {
+          "X": 0.5,
+          "Y": 1
+        },
+        "Pivot": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "AnchoredPosition": {
+          "X": 0,
+          "Y": -100
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    },
+    {
+      "id": "75c022fd-351c-4f05-8d0f-2ccc491606c7",
+      "parentObject": "121ca8df-0ba0-460f-846f-e8a5a00ffbae",
+      "objectType": "Text",
+      "name": "Home Button Text",
+      "params": {
+        "Text": "Return to Home",
+        "FontSize": 32,
+        "Anchor": {
+          "X": 0.5,
+          "Y": 1
+        },
+        "Pivot": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "Size": {
+          "X": 270,
+          "Y": 40
+        },
+        "AnchoredPosition": {
+          "X": 0,
+          "Y": -110
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    },
+    {
+      "id": "5178b8d8-eade-41c4-9651-a162746a4447",
       "objectType": "PhysicsObject",
       "name": "WorldPlane",
       "params": {
@@ -47,6 +152,7 @@
       }
     },
     {
+      "id": "4b809d2c-d6be-494d-b148-c36e81a6d9b3",
       "objectType": "PhysicsObject",
       "name": "Barrel",
       "params": {
@@ -74,8 +180,9 @@
       }
     },
     {
+      "id": "df54e0a9-f595-454a-9007-bc421864f155",
       "objectType": "Player",
-      "name": "Character",
+      "name": "Main Player",
       "params": {
         "Transform": {
           "Position": {

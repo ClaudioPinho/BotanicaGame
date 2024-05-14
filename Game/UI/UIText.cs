@@ -20,7 +20,10 @@ public class UIText(string id) : UIInteractable(id)
 
     public int FontSize
     {
-        get => _fontSize;
+        get
+        {
+            return _font == null ? MainGame.DefaultFont.Size : _fontSize;
+        }
         set
         {
             _fontSize = value;
@@ -30,7 +33,10 @@ public class UIText(string id) : UIInteractable(id)
 
     public Font Font
     {
-        get => _font;
+        get
+        {
+            return _font ?? MainGame.DefaultFont;
+        }
         set
         {
             _font = value;
@@ -44,19 +50,20 @@ public class UIText(string id) : UIInteractable(id)
     /// </summary>
     public string FontResource
     {
+        get => string.IsNullOrEmpty(_fontResource) ? MainGame.DefaultFontResource : _fontResource;
         set
         {
             var fontResource = $"Content/{value}";
             try
             {
-                Font = Canvas.FontManager.GetFont(fontResource, _fontSize);
+                Font = MainGame.FontManager.GetFont(fontResource, _fontSize);
                 _fontResource = fontResource;
             }
             catch (Exception e)
             {
                 DebugUtils.PrintError($"Couldn't load font resource from '{fontResource}'");
                 DebugUtils.PrintException(e);
-                Font = Canvas.DefaultFont;
+                Font = MainGame.DefaultFont;
             }
         }
     }
@@ -92,18 +99,6 @@ public class UIText(string id) : UIInteractable(id)
     private bool _textIsDirty;
     private bool _fontSizeIsDirty;
     private bool _textSizeIsDirty;
-
-    protected override void SetCanvas(Canvas canvas)
-    {
-        base.SetCanvas(canvas);
-        if (canvas == null) return;
-        _fontResource ??= canvas.DefaultFontResource;
-        if (Font == null)
-        {
-            _fontSize = canvas.DefaultFont.Size;
-            Font = canvas.DefaultFont;
-        }
-    }
 
     public override void Update(float deltaTime)
     {
@@ -147,20 +142,20 @@ public class UIText(string id) : UIInteractable(id)
 
     private void UpdateFontSize()
     {
-        if (string.IsNullOrEmpty(_fontResource))
+        if (string.IsNullOrEmpty(FontResource))
         {
             DebugUtils.PrintWarning("Trying to resize font without resource, ignoring...", this);
         }
         else
         {
-            _font = Canvas.FontManager.GetFont(_fontResource, _fontSize);
+            _font = MainGame.FontManager.GetFont(FontResource, _fontSize);
         }
     }
 
     private void UpdateText()
     {
         // todo: I am worried about the performance of caching the glyphs
-        _textToRender = _font.MakeText(_text, _useMarkdown);
+        _textToRender = Font.MakeText(_text, _useMarkdown);
         _textSizeIsDirty = true;
     }
 

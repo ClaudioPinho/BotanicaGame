@@ -1,17 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BotanicaGame.Debug;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Velentr.Font;
 
 namespace BotanicaGame.Game.UI;
 
 public class Canvas : GameObject, IDrawable
 {
-    public int DrawOrder { get; }
+    public int DrawOrder { get; set; } = 999;
     public bool Visible { get; set; } = true;
     public event EventHandler<EventArgs> DrawOrderChanged;
     public event EventHandler<EventArgs> VisibleChanged;
@@ -28,10 +26,6 @@ public class Canvas : GameObject, IDrawable
     public int Height => _fullViewportRectangle.Height;
 
     public Vector2 CanvasScale => _canvasScale;
-
-    public FontManager FontManager { get; }
-    public Font DefaultFont { get; private set; }
-    public string DefaultFontResource { get; private set; }
 
     public SpriteBatch SpriteBatch { get; } = new(MainGame.GraphicsDeviceManager.GraphicsDevice);
     
@@ -55,10 +49,7 @@ public class Canvas : GameObject, IDrawable
     public Canvas(string id) : base(id)
     {
         SetVirtualResolution(1280, 720);
-
-        FontManager = new FontManager(MainGame.GraphicsDeviceManager.GraphicsDevice);
-        DefaultFontResource = "Content/Fonts/BeonMedium.ttf";
-        DefaultFont = FontManager.GetFont(DefaultFontResource, 32);
+        
         MainGame.GameInstance.ScreenController.OnScreenResolutionChanged += OnScreenResolutionChanged;
         
         _canvasScale = Vector2.One;
@@ -96,25 +87,6 @@ public class Canvas : GameObject, IDrawable
         base.Update(deltaTime);
     }
 
-    public T GetGraphicByName<T>(string name) where T : UIGraphic
-    {
-        var validGraphic = _graphicsToDraw.FirstOrDefault(x => x.Name == name);
-
-        if (validGraphic == null)
-        {
-            DebugUtils.PrintError($"No graphic with name '{name}' found");
-            return default;
-        }
-
-        if (validGraphic.GetType().IsAssignableTo(typeof(T)))
-        {
-            return validGraphic as T;
-        }
-
-        DebugUtils.PrintError($"Graphic with '{name}' found but it's not of type '{typeof(T).Name}'");
-        return default;
-    }
-
     public void Draw(GameTime gameTime)
     {
         SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp,
@@ -122,7 +94,7 @@ public class Canvas : GameObject, IDrawable
 
         SpriteBatch.Draw(MainGame.SinglePixelTexture, _fullViewportRectangle, BackgroundColor);
 
-        foreach (var graphic in _graphicsToDraw.Where(graphic => graphic.Visible))
+        foreach (var graphic in _graphicsToDraw.Where(graphic => graphic.Visible).OrderBy(x => x.DrawOrder))
         {
             graphic.Draw(gameTime);
         }

@@ -11,6 +11,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
+using Velentr.Font;
 
 namespace BotanicaGame;
 
@@ -24,19 +25,27 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
     public static MainGame GameInstance;
 
+    public static bool HideCursor;
+    public static bool LockCursor;
+    
+    public static FontManager FontManager { get; private set; }
+    public static Font DefaultFont { get; private set; }
+    public static string DefaultFontResource { get; private set; }
+    public static SpriteFont DefaultSpriteFont { get; private set; }
+
     public ScreenController ScreenController { get; private set; }
     
     public static GraphicsDeviceManager GraphicsDeviceManager { private set; get; }
 
     public static JsonSerializerSettings JsonSerializerSettings { get; private set; }
     public static JsonSerializer JsonSerializer { get; private set; }
-
-    public static SpriteFont DefaultFont => GameInstance._defaultSpriteFont;
-
+    
     public static GamePhysics Physics { private set; get; }
 
-    public SceneManager SceneManager;
+    public static SceneManager SceneManager { get; private set; }
 
+    public static Point WindowCenter { get; private set; }
+    
     private FrameCounter _frameCounter = new();
 
     private float _deltaTime;
@@ -70,7 +79,7 @@ public class MainGame : Microsoft.Xna.Framework.Game
         _externalScripts.Add(externalScript);
         try
         {
-            externalScript.Start(this);
+            externalScript.Start(null);
         }
         catch (Exception e)
         {
@@ -135,12 +144,17 @@ public class MainGame : Microsoft.Xna.Framework.Game
         // the main script will be the entry point of the game, so it should be the first script to be loaded
         AddExternalScript(new Main());
 
+        FontManager = new FontManager(GraphicsDeviceManager.GraphicsDevice);
+        DefaultFontResource = "Content/Fonts/BeonMedium.ttf";
+        DefaultFont = FontManager.GetFont(DefaultFontResource, 32);
+        
         DebugUtils.PrintMessage("Game Initialized...");
         base.Initialize();
     }
 
     protected override void LoadContent()
     {
+        DefaultSpriteFont = Content.Load<SpriteFont>("Fonts/myFont");
         SquareOutlineTexture = Content.Load<Texture2D>("Textures/Primitives/square-outline");
         _cursorTexture = Content.Load<Texture2D>("Textures/UI/cursor");
         DebugUtils.PrintMessage("Content loaded...");
@@ -148,6 +162,9 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
     protected override void Update(GameTime gameTime)
     {
+        WindowCenter = new Point(GameInstance.Window.ClientBounds.Width / 2,
+            GameInstance.Window.ClientBounds.Height / 2);
+        
         _keyboardState = Keyboard.GetState();
         
         // if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
@@ -183,6 +200,11 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
         _previousKeyboardState = _keyboardState;
 
+        if (LockCursor)
+        {
+            Mouse.SetPosition(WindowCenter.X, WindowCenter.Y);
+        }
+
         base.Update(gameTime);
     }
 
@@ -200,7 +222,6 @@ public class MainGame : Microsoft.Xna.Framework.Game
 
         SceneManager.DrawScenes(gameTime);
 
-
         // draws some test lines for the Ui and a test cursor
         _testSpriteBatch ??= new SpriteBatch(GraphicsDevice);
         _testSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp);
@@ -212,14 +233,18 @@ public class MainGame : Microsoft.Xna.Framework.Game
         //     new Rectangle(0, GraphicsDevice.Viewport.Height / 2, GraphicsDevice.Viewport.Width, 1),
         //     Color.Gray);
         _mouseState = Mouse.GetState();
-        _testSpriteBatch.Draw(_cursorTexture, new Rectangle(_mouseState.X, _mouseState.Y, 32, 32), Color.White);
-        var cursorPositionString = $"X:{_mouseState.X} Y:{_mouseState.Y}";
-        var cursorStringPosition = new Vector2(_mouseState.X + 32, _mouseState.Y);
-        var measuredString = _defaultSpriteFont.MeasureString(cursorPositionString);
-        _testSpriteBatch.Draw(SinglePixelTexture,
-            new Rectangle((int)cursorStringPosition.X, (int)cursorStringPosition.Y, (int)measuredString.X + 2, (int)measuredString.Y),
-            new Color(255, 255, 255, 0));
-        _testSpriteBatch.DrawString(_defaultSpriteFont, cursorPositionString, cursorStringPosition, Color.Green);
+
+        if (!HideCursor)
+        {
+            _testSpriteBatch.Draw(_cursorTexture, new Rectangle(_mouseState.X, _mouseState.Y, 32, 32), Color.White);
+            var cursorPositionString = $"X:{_mouseState.X} Y:{_mouseState.Y}";
+            var cursorStringPosition = new Vector2(_mouseState.X + 32, _mouseState.Y);
+            var measuredString = _defaultSpriteFont.MeasureString(cursorPositionString);
+            _testSpriteBatch.Draw(SinglePixelTexture,
+                new Rectangle((int)cursorStringPosition.X, (int)cursorStringPosition.Y, (int)measuredString.X + 2, (int)measuredString.Y),
+                new Color(255, 255, 255, 0));
+            _testSpriteBatch.DrawString(_defaultSpriteFont, cursorPositionString, cursorStringPosition, Color.Green);
+        }
 
         _testSpriteBatch.End();
 
