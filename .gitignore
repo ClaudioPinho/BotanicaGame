@@ -411,3 +411,7 @@ obj/
 
 # End of https://www.toptal.com/developers/gitignore/api/csharp,dotnetcore
 
+#MonoGame Content
+Content/obj/
+Content/bin/
+

@@ -9,9 +9,7 @@
 
 matrix WorldViewProjection;
 
-float TillingX = 1;
-float TillingY = 1;
-
+float2 Tiling = float2(1, 1);
 float4 DiffuseColor = float4(1, 1, 1, 1);
 
 Texture2D Texture;
@@ -54,7 +52,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 
 float4 MainPS(PixelShaderInput input) : COLOR0
 {
-	float2 uv = float2(input.TexCoord.x * TillingX, input.TexCoord.y * TillingY); // apply tiling
+	float2 uv = float2(input.TexCoord.x * Tiling.x, input.TexCoord.y * Tiling.y); // apply tiling
 	uv -= floor(uv);
 
 	float4 color = tex2D(TextureSampler, uv) * DiffuseColor;

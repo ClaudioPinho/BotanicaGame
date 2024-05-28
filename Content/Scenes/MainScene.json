@@ -1,0 +1,114 @@
+{
+  "name": "MainScene",
+  "skyboxTexture": "Textures/Skybox/SkyRed",
+  "sceneObjectsData": [
+    {
+      "id": "39b60abd-3703-486b-9a07-edd8d211c430",
+      "objectType": "GameObject",
+      "name": "GameManager",
+      "scripts": ["BotanicaGame.Scripts.Gameplay.GameManager"],
+      "params": {
+        "IsStatic": true
+      }
+    },
+    {
+      "id": "5178b8d8-eade-41c4-9651-a162746a4447",
+      "objectType": "PhysicsObject",
+      "name": "WorldPlane",
+      "params": {
+        "IsStatic": true,
+        "IsAffectedByGravity": true,
+        "Model": "Models/Primitives/plane",
+        "SharedEffect": "Effects/TilingEffect",
+        "SharedTexture": "Textures/Ground/ground-sand",
+        "TextureTiling": {
+          "X": 50,
+          "Y": 50
+        },
+        "CanOcclude": false,
+        "CollisionOffset": {
+          "X": 0,
+          "Y": -0.5,
+          "Z": 0
+        },
+        "CollisionSize": {
+          "X": 100,
+          "Y": 1,
+          "Z": 100
+        },
+        "Transform": {
+          "Position": {
+            "X": 0,
+            "Y": 0,
+            "Z": 0
+          },
+          "Rotation": {
+            "X": 0,
+            "Y": 0,
+            "Z": 0,
+            "W": 1
+          },
+          "Scale": {
+            "X": 100,
+            "Y": 1,
+            "Z": 100
+          }
+        }
+      }
+    },
+    {
+      "id": "4b809d2c-d6be-494d-b148-c36e81a6d9b3",
+      "objectType": "PhysicsObject",
+      "name": "Barrel",
+      "params": {
+        "IsStatic": false,
+        "IsAffectedByGravity": true,
+        "CanBePushed": true,
+        "Model": "Models/Miscs/barrel",
+        "CollisionOffset": {
+          "X": 0,
+          "Y": 0.5,
+          "Z": 0
+        },
+        "CollisionSize": {
+          "X": 1,
+          "Y": 1,
+          "Z": 1
+        },
+        "Transform": {
+          "Position": {
+            "X": 5,
+            "Y": 1,
+            "Z": 5
+          }
+        }
+      }
+    },
+    {
+      "id": "df54e0a9-f595-454a-9007-bc421864f155",
+      "objectType": "Entity",
+      "name": "Main Player",
+      "scripts": ["BotanicaGame.Scripts.Gameplay.Player"],
+      "params": {
+        "Transform": {
+          "Position": {
+            "X": 0,
+            "Y": 0,
+            "Z": 0
+          },
+          "Rotation": {
+            "X": 0,
+            "Y": 0,
+            "Z": 0,
+            "W": 1
+          },
+          "Scale": {
+            "X": 1,
+            "Y": 1,
+            "Z": 1
+          }
+        }
+      }
+    }
+  ]
+}

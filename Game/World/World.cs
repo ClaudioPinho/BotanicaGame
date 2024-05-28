@@ -6,7 +6,7 @@ using WorldEngine.Noise;
 using WorldEngine.Rules;
 using WorldEngine.World;
 
-namespace TestMonoGame.Game.World;
+namespace BotanicaGame.Game.World;
 
 public class World
 {

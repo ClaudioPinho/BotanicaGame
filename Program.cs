@@ -1,3 +1,3 @@
 ﻿
-using var game = new TestMonoGame.MainGame();
+using var game = new BotanicaGame.MainGame();
 game.Run();

@@ -1,44 +1,51 @@
 using System;
+using BotanicaGame.Debug;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 
-namespace TestMonoGame.Game;
+namespace BotanicaGame.Game.Entities;
 
 public class Entity : PhysicsObject
 {
     private const float FallingDamageRatio = 0.1f;
     private const float CriticalFallSpeed = 15f;
 
-    public int Health = 10;
+    public float RunningSpeed = 12f;
+    public float WalkingSpeed = 7f;
+    public float SpeedOnAir = 2f;
+
+    public int MaxHealth = 10;
+    public int Health;
     public float JumpHeight = 1.5f;
 
     // AUDIO
-    public readonly AudioEmitter AudioEmitter;
+    public readonly AudioEmitter AudioEmitter = new();
 
     public SoundEffect JumpSfx;
     public SoundEffect FallSfx;
+
+    public Action<int> OnDamageReceived;
 
     public bool IsOnFloor { get; private set; } = true;
 
     public bool WasPreviouslyFalling { get; private set; }
     // public float MaxVelocity { get; set; }
 
-    public Entity(string name,
-        bool isAffectedByGravity = true,
-        Vector3? collisionSize = null,
-        Vector3? position = null,
-        Quaternion? rotation = null,
-        Vector3? scale = null,
-        Transform parent = null) : base(name, false, isAffectedByGravity, collisionSize, position, rotation, scale,
-        parent)
+    public Entity(string id) : base(id)
     {
+        IsStatic = false;
+        IsAffectedByGravity = true;
+
+        Health = MaxHealth;
+        
+        Mass = 1f;
+        Restitution = 1f;
+        
         AudioEmitter = new AudioEmitter();
     }
 
     public override void Update(float deltaTime)
     {
-        base.Update(deltaTime);
-
         UpdateAudioEmitterState();
 
         IsOnFloor = MainGame.Physics.BoxcastHitCheck(Transform.Position, Vector3.Down,
@@ -52,9 +59,11 @@ public class Entity : PhysicsObject
         }
 
         WasPreviouslyFalling = !IsOnFloor;
+        
+        base.Update(deltaTime);
     }
 
-    protected virtual bool TryJump()
+    public virtual bool TryJump()
     {
         if (!IsOnFloor) return false;
         Velocity.Y = MathF.Sqrt(2f * JumpHeight * Math.Abs(MainGame.Physics.WorldGravity.Y));
@@ -71,6 +80,14 @@ public class Entity : PhysicsObject
 
     public virtual void OnReceivedDamage(int damageReceived)
     {
+        try
+        {
+            OnDamageReceived?.Invoke(damageReceived);
+        }
+        catch (Exception e)
+        {
+            DebugUtils.PrintException(e);
+        }
     }
 
     private static int CalculateFallDamage(float fallingSpeed)

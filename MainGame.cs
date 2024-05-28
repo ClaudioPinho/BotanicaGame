@@ -1,61 +1,67 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using BotanicaGame.Data;
+using BotanicaGame.Debug;
+using BotanicaGame.Game;
+using BotanicaGame.Game.SceneManagement;
+using BotanicaGame.Physics;
+using BotanicaGame.Scripts;
+using BotanicaGame.Utils;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using TestMonoGame.Debug;
-using TestMonoGame.Game;
-using TestMonoGame.Game.World;
-using TestMonoGame.Physics;
-using TestMonoGame.Rendering;
+using Newtonsoft.Json;
+using Velentr.Font;
 
-namespace TestMonoGame;
+namespace BotanicaGame;
 
+// http://rbwhitaker.wikidot.com/c-sharp-tutorials
 public class MainGame : Microsoft.Xna.Framework.Game
 {
     public const int MaxRenderDistance = 20;
 
+    public static Texture2D SinglePixelTexture;
+    public static Texture2D SquareOutlineTexture;
+
     public static MainGame GameInstance;
+
+    public static bool HideCursor;
+    public static bool LockCursor;
+    
+    public static FontManager FontManager { get; private set; }
+    public static Font DefaultFont { get; private set; }
+    public static string DefaultFontResource { get; private set; }
+    public static SpriteFont DefaultSpriteFont { get; private set; }
+
+    public ScreenController ScreenController { get; private set; }
+    
     public static GraphicsDeviceManager GraphicsDeviceManager { private set; get; }
 
+    public static JsonSerializerSettings JsonSerializerSettings { get; private set; }
+    public static JsonSerializer JsonSerializer { get; private set; }
+    
     public static GamePhysics Physics { private set; get; }
 
-    // public Texture2D GrassTexture;
-    public Model CubeModel;
+    public static SceneManager SceneManager { get; private set; }
 
-    public SoundEffect FallSfx;
-    public SoundEffect WalkSfx;
-    public SoundEffect PlaceBlockSfx;
-    public SoundEffect RemoveBlockSfx;
-
-    public Texture2D SandTexture;
-
-    private SpriteBatch _spriteBatch;
-    private SpriteFont _fontSprite;
-
-    private Player _player;
-
-    private PhysicsObject _testMonkey;
-
-    // private MeshObject _skybox;
-    private MeshObject _plane;
-
-    private Skybox _skybox;
-
-    private Vector2 _reticlePosition;
-    private Texture2D _reticle;
-
-    private World _mainWorld;
-
-    private List<GameObject> _gameObjects;
-    private Queue<GameObject> _gameObjectsToAdd;
-    private Queue<GameObject> _gameObjectsToRemove;
-    private List<MeshObject> _meshObjects;
-
+    public static Point WindowCenter { get; private set; }
+    
     private FrameCounter _frameCounter = new();
 
+    private float _deltaTime;
+
+    private SpriteFont _defaultSpriteFont;
+
+    private Texture2D _cursorTexture;
+
+    private List<IExternalScript> _externalScripts = [];
+
+    private GameAudio _gameAudio;
+    
+    private MouseState _mouseState;
+    private KeyboardState _keyboardState;
+    private KeyboardState _previousKeyboardState;
+    
     public MainGame()
     {
         GameInstance = this;
@@ -67,269 +73,184 @@ public class MainGame : Microsoft.Xna.Framework.Game
         IsFixedTimeStep = false;
     }
 
-    public void AddNewGameObject(GameObject gameObject)
+    public void AddExternalScript(IExternalScript externalScript)
     {
-        _gameObjectsToAdd.Enqueue(gameObject);
+        if (_externalScripts.Contains(externalScript)) return;
+        _externalScripts.Add(externalScript);
+        try
+        {
+            externalScript.Start(null);
+        }
+        catch (Exception e)
+        {
+            DebugUtils.PrintException(e);
+        }
     }
 
-    public void DestroyGameObject(GameObject gameObject)
+    public void RemoveExternalScript(IExternalScript externalScript)
     {
-        _gameObjectsToRemove.Enqueue(gameObject);
-    }
-
-    public void Play3DAudio(AudioEmitter emitter, SoundEffect audio, float maxDistance, float volume)
-    {
-        // todo: currently only the player is able to listen for the audio but I might need to change this in the future
-        var audioListeners = _gameObjects.Where(x => x is Player)
-            .Select(x => ((Player)x).AudioListener)
-            .ToArray();
-
-        var soundInstance = audio.CreateInstance();
-        soundInstance.Apply3D(audioListeners, emitter);
-        soundInstance.Volume = volume;
-        soundInstance.Play();
+        if (!_externalScripts.Contains(externalScript)) return;
+        _externalScripts.Remove(externalScript);
     }
 
     protected override void Initialize()
     {
+        ScreenController = new ScreenController(GraphicsDeviceManager, Window);
+        
         GraphicsDeviceManager.IsFullScreen = false;
         GraphicsDeviceManager.PreferredBackBufferWidth = 1280;
         GraphicsDeviceManager.PreferredBackBufferHeight = 720;
         GraphicsDeviceManager.ApplyChanges();
 
+        JsonSerializerSettings = new JsonSerializerSettings
+        {
+            ContractResolver = new FieldContractResolver(),
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            Converters = new List<JsonConverter>
+            {
+                new Vector3Converter(),
+                new Vector2Converter(),
+                new Vector3NullConverter(),
+                new Vector2NullConverter(),
+                new ColorConverter(),
+                new PointConverter()
+            }
+        };
+        JsonSerializer = JsonSerializer.CreateDefault(JsonSerializerSettings);
+
+        DebugUtils.Initialize(GraphicsDevice);
+        
+        SinglePixelTexture = new Texture2D(GraphicsDevice, 1, 1);
+        SinglePixelTexture.SetData([new Color(255, 255, 255, 255)]);
+
+        // initialize the game audio with the group volumes
+        _gameAudio = new GameAudio(new Dictionary<GameAudio.EAudioGroup, float>
+        {
+            { GameAudio.EAudioGroup.None, 1f },
+            { GameAudio.EAudioGroup.UI, 0.5f },
+            { GameAudio.EAudioGroup.Background, 1f },
+            { GameAudio.EAudioGroup.Enemy, 1f },
+            { GameAudio.EAudioGroup.Friendly, 1f },
+        }, 1f);
+
         // initialize the physics engine for the game
         Physics = new GamePhysics();
 
-        DebugUtils.Initialize(GraphicsDevice);
+        // initialize the scene manager for the game
+        SceneManager = new SceneManager(Content);
+        
+        _defaultSpriteFont = Content.Load<SpriteFont>("Fonts/myFont");
 
-        _meshObjects = [];
-        _gameObjects = [];
-        _gameObjectsToAdd = new Queue<GameObject>();
-        _gameObjectsToRemove = new Queue<GameObject>();
+        // the main script will be the entry point of the game, so it should be the first script to be loaded
+        AddExternalScript(new Main());
 
-        _skybox = new Skybox("Textures/Skybox/SkyRed", Content);
-
-        CubeModel = Content.Load<Model>("Models/cube");
-        // GrassTexture = Content.Load<Texture2D>("Textures/Blocks/grass");
-
-        SandTexture = Content.Load<Texture2D>("Textures/Ground/ground-sand");
-
-        _plane = new MeshObject("WorldPlane", Vector3.Up*0.8f, Quaternion.Identity, new Vector3(1000f, 1f, 1000f));
-        _plane.MeshEffect = new GenericEffectAdapter(Content.Load<Effect>("Effects/TilingEffect"));
-        _plane.Model = Content.Load<Model>("Models/Primitives/plane");
-        _plane.Texture = SandTexture;
-        _plane.TextureTiling = Vector2.One * 20f;
-        _plane.CanOcclude = false;
-
-        // _testMonkey = new PhysicsObject("The monkey", false, false, null, new Vector3(5f, 5f, 0f),
-        //     Quaternion.CreateFromYawPitchRoll(0f, MathF.PI / 4, 0f));
-        // _testMonkey.MeshEffect = new GenericEffectAdapter(Content.Load<Effect>("Effects/TilingEffect"));
-        // _testMonkey.Model = Content.Load<Model>("Models/monkey");
-        // _testMonkey.Texture = Content.Load<Texture2D>("Textures/wooden-box");
-        // _testMonkey.TextureTiling = Vector2.One * 2f;
-        // _testMonkey.DiffuseColor = Color.Green;
-
-
-        _player = new Player("Main player", new Vector3(50f, 1f, 50f), Quaternion.Identity);
-        _player.DebugDrawCollision = true;
-
-        var dummyEntity = new Entity("Dummy", true, new Vector3(1, 2, 1),
-            new Vector3(55, 20, 55));
-        dummyEntity.Model = Content.Load<Model>("Models/Player/player");
-        dummyEntity.CollisionOffset = new Vector3(0, dummyEntity.CollisionSize.Y / 2, 0f);
-
-
-        AddGameObject(_plane);
-        // AddGameObject(_testMonkey);
-        // AddGameObject(cubeTest);
-        // AddGameObject(cubeTest2);
-        // AddGameObject(cubeTest3);
-        AddGameObject(_player);
-        AddGameObject(dummyEntity);
-
-        for (var x = 0; x < 100; x++)
-        {
-            for (var z = 0; z < 100; z++)
-            {
-                var cube = new PhysicsObject($"cube{x}/{z}", true, false,
-                    position: new Vector3(x + 0.5f, 0.5f, z + 0.5f));
-                cube.Model = CubeModel;
-                // cube.Texture = GrassTexture;
-                AddGameObject(cube);
-            }
-        }
-
-        // var cube = new PhysicsObject($"floor", true, false, position: new Vector3(0.5f, 0.5f, 0.5f));
-        // cube.Model = CubeModel;
-        // var cube2 = new PhysicsObject($"wall", true, false, position: new Vector3(1.5f, 1.5f, 0.5f));
-        // cube2.Model = CubeModel;
-
-        // AddGameObject(cube);
-        // AddGameObject(cube2);
-
-        _reticle = Content.Load<Texture2D>("Textures/UI/reticle");
-        _reticlePosition = new Vector2(GraphicsDevice.Viewport.Width / 2f - _reticle.Width / 2f,
-            GraphicsDevice.Viewport.Height / 2f - _reticle.Height / 2f);
-
-        _mainWorld = new World(123456789, 20, 20);
-
+        FontManager = new FontManager(GraphicsDeviceManager.GraphicsDevice);
+        DefaultFontResource = "Content/Fonts/BeonMedium.ttf";
+        DefaultFont = FontManager.GetFont(DefaultFontResource, 32);
+        
+        DebugUtils.PrintMessage("Game Initialized...");
         base.Initialize();
     }
 
     protected override void LoadContent()
     {
-        _spriteBatch = new SpriteBatch(GraphicsDevice);
-
-        FallSfx = Content.Load<SoundEffect>("Audio/fall-hurt");
-        WalkSfx = Content.Load<SoundEffect>("Audio/footstep");
-        PlaceBlockSfx = Content.Load<SoundEffect>("Audio/place-block");
-        RemoveBlockSfx = Content.Load<SoundEffect>("Audio/remove-block");
-
-
-        _fontSprite = Content.Load<SpriteFont>("Fonts/myFont");
-        // Debug.WriteLine(_fontSprite.Characters.Count);
-
-        // TODO: use this.Content to load your game content here
+        DefaultSpriteFont = Content.Load<SpriteFont>("Fonts/myFont");
+        SquareOutlineTexture = Content.Load<Texture2D>("Textures/Primitives/square-outline");
+        _cursorTexture = Content.Load<Texture2D>("Textures/UI/cursor");
+        DebugUtils.PrintMessage("Content loaded...");
     }
 
     protected override void Update(GameTime gameTime)
     {
-        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
-            Keyboard.GetState().IsKeyDown(Keys.Escape))
-            Exit();
-
-        var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-        // update the physics simulation
-
-        // Physics.UpdatePhysics(1f/100f);
-
-        _mainWorld.Update(gameTime);
-
-        // add any object that we marked for being added
-        while (_gameObjectsToAdd.Count != 0)
+        WindowCenter = new Point(GameInstance.Window.ClientBounds.Width / 2,
+            GameInstance.Window.ClientBounds.Height / 2);
+        
+        _keyboardState = Keyboard.GetState();
+        
+        // if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
+        //     Keyboard.GetState().IsKeyDown(Keys.Escape))
+        //     Exit();
+        
+        if (_keyboardState.IsKeyDown(Keys.F11) && !_previousKeyboardState.IsKeyDown(Keys.F11))
         {
-            AddGameObject(_gameObjectsToAdd.Dequeue());
+            ScreenController.ToggleBorderless();
         }
 
-        foreach (var gameObject in _gameObjects)
+        _deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+        SceneManager.UpdateScenes(_deltaTime);
+
+        Physics.UpdatePhysics(_deltaTime);
+        
+        foreach (var externalScript in _externalScripts)
         {
-            // todo: does it make sense to stop processing entities outside player view?
-            if (Vector3.Distance(gameObject.Transform.Position, _player.Transform.Position) >
-                MaxRenderDistance && gameObject.CanOcclude) continue;
-            gameObject.Update(deltaTime);
+            try
+            {
+                externalScript.Update(_deltaTime);
+            }
+            catch (Exception e)
+            {
+                DebugUtils.PrintException(e);
+            }
         }
+        
+        _gameAudio.PerformAudioCleanup();
+        
+        DebugUtils.Update(_deltaTime);
 
-        // remove the objects marked for clearing
-        while (_gameObjectsToRemove.Count != 0)
+        _previousKeyboardState = _keyboardState;
+
+        if (LockCursor)
         {
-            RemoveGameObject(_gameObjectsToRemove.Dequeue());
+            Mouse.SetPosition(WindowCenter.X, WindowCenter.Y);
         }
-
-        Physics.UpdatePhysics(deltaTime);
-
-        DebugUtils.Update(gameTime);
 
         base.Update(gameTime);
     }
 
+    private SpriteBatch _testSpriteBatch;
+
     protected override void Draw(GameTime gameTime)
     {
-        var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        _deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-        _frameCounter.Update(deltaTime);
+        _frameCounter.Update(_deltaTime);
 
         GraphicsDevice.Clear(Color.CornflowerBlue);
         GraphicsDevice.BlendState = BlendState.Opaque;
         GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-        // // Create a new SamplerState object
-        // SamplerState samplerState = new SamplerState();
-        //
-        // // Set the filter mode to point sampling
-        // samplerState.Filter = TextureFilter.Point;
-        //
-        // // Set the address mode to clamp
-        // samplerState.AddressU = TextureAddressMode.Clamp;
-        // samplerState.AddressV = TextureAddressMode.Clamp;
-        //
-        // // Set the GraphicsDevice's SamplerState
-        // GraphicsDevice.SamplerStates[0] = samplerState;
+        SceneManager.DrawScenes(gameTime);
 
-        _skybox.Draw();
+        // draws some test lines for the Ui and a test cursor
+        _testSpriteBatch ??= new SpriteBatch(GraphicsDevice);
+        _testSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp);
 
-        // _mainWorld.Draw(GraphicsDevice, gameTime);
+        // _testSpriteBatch.Draw(SinglePixelTexture,
+        //     new Rectangle(GraphicsDevice.Viewport.Width / 2, 0, 1, GraphicsDevice.Viewport.Height),
+        //     Color.Gray);
+        // _testSpriteBatch.Draw(SinglePixelTexture,
+        //     new Rectangle(0, GraphicsDevice.Viewport.Height / 2, GraphicsDevice.Viewport.Width, 1),
+        //     Color.Gray);
+        _mouseState = Mouse.GetState();
 
-        foreach (var meshObject in _meshObjects)
+        if (!HideCursor)
         {
-            if (Vector3.Distance(meshObject.Transform.Position, _player.Transform.Position) >
-                MaxRenderDistance && meshObject.CanOcclude) continue;
-            meshObject.Draw(GraphicsDevice, gameTime);
+            _testSpriteBatch.Draw(_cursorTexture, new Rectangle(_mouseState.X, _mouseState.Y, 32, 32), Color.White);
+            var cursorPositionString = $"X:{_mouseState.X} Y:{_mouseState.Y}";
+            var cursorStringPosition = new Vector2(_mouseState.X + 32, _mouseState.Y);
+            var measuredString = _defaultSpriteFont.MeasureString(cursorPositionString);
+            _testSpriteBatch.Draw(SinglePixelTexture,
+                new Rectangle((int)cursorStringPosition.X, (int)cursorStringPosition.Y, (int)measuredString.X + 2, (int)measuredString.Y),
+                new Color(255, 255, 255, 0));
+            _testSpriteBatch.DrawString(_defaultSpriteFont, cursorPositionString, cursorStringPosition, Color.Green);
         }
 
-        _spriteBatch.Begin();
-
-        _spriteBatch.DrawString(_fontSprite, $"FPS: {_frameCounter.CurrentFramesPerSecond}", Vector2.Zero,
-            Color.Yellow);
-        _spriteBatch.DrawString(_fontSprite, $"Player position: {_player.Transform.Position}", new Vector2(0f, 20f),
-            Color.Yellow);
-        _spriteBatch.DrawString(_fontSprite, $"Camera position: {_player.Camera.Transform.Position}",
-            new Vector2(0f, 40f), Color.Yellow);
-        _spriteBatch.DrawString(_fontSprite,
-            $"Player velocity: {_player.Velocity}", new Vector2(0f, 60f), Color.Yellow);
-        _spriteBatch.DrawString(_fontSprite, $"Player health: {_player.Health}", new Vector2(0f, 80f), Color.Yellow);
-        _spriteBatch.Draw(_reticle, _reticlePosition, Color.White);
-
-        _spriteBatch.End();
+        _testSpriteBatch.End();
 
         DebugUtils.DrawDebugAxis(Vector3.Zero);
-
-        DebugUtils.Draw(GraphicsDevice, gameTime);
+        DebugUtils.Draw(GraphicsDevice, _deltaTime);
 
         base.Draw(gameTime);
-    }
-
-    private void AddGameObject(GameObject gameObject)
-    {
-        if (_gameObjects.Contains(gameObject))
-        {
-            DebugUtils.PrintMessage("Trying to add game object already registered!", gameObject);
-            return;
-        }
-
-        _gameObjects.Add(gameObject);
-        if (gameObject is MeshObject meshObject)
-        {
-            _meshObjects.Add(meshObject);
-        }
-
-        if (gameObject is PhysicsObject physicsObject)
-        {
-            Physics.AddPhysicsObject(physicsObject);
-        }
-
-        gameObject.Initialize();
-    }
-
-    private void RemoveGameObject(GameObject gameObject)
-    {
-        if (!_gameObjects.Contains(gameObject))
-        {
-            DebugUtils.PrintMessage("Trying to remove a game object that isn't registered!", gameObject);
-            return;
-        }
-
-        if (gameObject is MeshObject meshObject)
-        {
-            _meshObjects.Remove(meshObject);
-        }
-
-        if (gameObject is PhysicsObject physicsObject)
-        {
-            Physics.RemovePhysicsObject(physicsObject);
-        }
-
-        _gameObjects.Remove(gameObject);
-        gameObject.Dispose();
     }
 }

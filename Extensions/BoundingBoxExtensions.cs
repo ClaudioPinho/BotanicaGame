@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace TestMonoGame.Extensions;
+namespace BotanicaGame.Extensions;
 
 public static class BoundingBoxExtensions
 {

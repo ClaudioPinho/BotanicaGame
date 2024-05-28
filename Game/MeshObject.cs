@@ -1,51 +1,109 @@
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using TestMonoGame.Rendering;
 
-namespace TestMonoGame.Game;
+namespace BotanicaGame.Game;
 
-public class MeshObject(
-    string name,
-    Vector3? position = null,
-    Quaternion? rotation = null,
-    Vector3? scale = null,
-    Transform parent = null)
-    : GameObject(name, position, rotation, scale, parent)
+public class MeshObject(string id) : GameObject(id), IDrawable
 {
-    public IEffect MeshEffect;
-    public Model Model;
-    public Texture2D Texture;
-    public Vector2 TextureTiling = new(1f, 1f);
-    public Color DiffuseColor = Color.White;
-    public bool ReceiveLighting = true;
+    public int DrawOrder { get; }
 
-    public virtual void Draw(GraphicsDevice graphicsDevice, GameTime gameTime)
+    public bool Visible {
+        get {
+            if (_parentDrawable != null)
+                return _isVisible && IsActive && _parentDrawable.Visible;
+            return _isVisible && IsActive;
+        }
+        set {
+            _isVisible = value;
+        }
+    }
+
+    public event EventHandler<EventArgs> DrawOrderChanged;
+    public event EventHandler<EventArgs> VisibleChanged;
+
+    public Model Model {
+        get => _model;
+        set => SwapModel(value);
+    }
+
+    public Effect SharedEffect;
+    public Texture2D SharedTexture;
+    public Vector2 TextureTiling = Vector2.One;
+    public Color DiffuseColor = Color.White;
+
+    private Model _model;
+    private ModelMeshCollection _meshes;
+    private ModelBoneCollection _bones;
+
+    private bool _isVisible = true;
+
+    private IDrawable _parentDrawable;
+
+    private static Matrix ViewMatrix => Camera.Current != null
+        ? Camera.Current.ViewMatrix
+        : Matrix.CreateLookAt(Vector3.Zero, Vector3.Forward, Vector3.Up);
+
+    private static Matrix ProjectionMatrix => Camera.Current != null
+        ? Camera.Current.ProjectionMatrix
+        : Matrix.CreatePerspectiveFieldOfView(MathF.PI / 2,
+            MainGame.GraphicsDeviceManager.GraphicsDevice.DisplayMode.AspectRatio, 0.01f, 1000f);
+
+    public virtual void Draw(GameTime gameTime)
     {
-        // todo: should we output an error or something here?
-        if (Model == null)
+        if (!Visible)
             return;
 
-        foreach (var mesh in Model.Meshes)
+        if (_meshes == null || _meshes.Count == 0)
+            return;
+
+        foreach (var mesh in _model.Meshes)
         {
+            foreach (var meshPart in mesh.MeshParts)
+            {
+                if (SharedEffect != null)
+                    meshPart.Effect = SharedEffect;
+            }
+
             foreach (var effect in mesh.Effects)
             {
                 if (effect is BasicEffect basicEffect)
                 {
                     basicEffect.World = Transform.WorldMatrix;
-                    basicEffect.View = Camera.Current.ViewMatrix;
-                    basicEffect.Projection = Camera.Current.ProjectionMatrix;
+                    basicEffect.View = ViewMatrix;
+                    basicEffect.Projection = ProjectionMatrix;
                     basicEffect.Alpha = 1f;
-
+                    basicEffect.DiffuseColor = DiffuseColor.ToVector3();
+                    if (SharedTexture != null)
+                    {
+                        basicEffect.Texture = SharedTexture;
+                        basicEffect.TextureEnabled = SharedTexture != null;
+                    }
                 }
                 else
                 {
-                    effect.Parameters["WorldViewProjection"].SetValue(Matrix.Multiply(
-                        Matrix.Multiply(Transform.WorldMatrix, Camera.Current.ViewMatrix),
-                        Camera.Current.ProjectionMatrix));
+                    effect.Parameters["WorldViewProjection"].SetValue(
+                        Matrix.Multiply(Matrix.Multiply(Transform.WorldMatrix, ViewMatrix), ProjectionMatrix));
+                    effect.Parameters["Texture"].SetValue(SharedTexture);
+                    effect.Parameters["DiffuseColor"].SetValue(DiffuseColor.ToVector4());
+                    effect.Parameters["Tiling"].SetValue(TextureTiling);
                 }
-
             }
             mesh.Draw();
         }
     }
+
+    protected override void UpdateParent(GameObject parentObject)
+    {
+        base.UpdateParent(parentObject);
+        _parentDrawable = FindTypeInParents<IDrawable>();
+    }
+
+    private void SwapModel(Model newModel)
+    {
+        _meshes = newModel.Meshes;
+        _bones = newModel.Bones;
+        _model = newModel;
+    }
+
 }

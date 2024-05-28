@@ -34,8 +34,14 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     float4 viewPosition = mul(worldPosition, View);
     output.Position = mul(viewPosition, Projection);
 
-    float4 VertexPosition = mul(input.Position, World);
-    output.TextureCoordinate = VertexPosition - CameraPosition;
+    // Remove translation from world position to keep the skybox static
+    float4 skyboxPosition = worldPosition;
+    skyboxPosition.xyz -= CameraPosition;
+    
+    output.TextureCoordinate = skyboxPosition.xyz;
+
+    //float4 VertexPosition = mul(input.Position, World);
+    //output.TextureCoordinate = VertexPosition - CameraPosition;
 
     return output;
 }

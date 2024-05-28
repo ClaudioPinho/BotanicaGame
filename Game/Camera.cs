@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace TestMonoGame.Game;
+namespace BotanicaGame.Game;
 
 public class Camera : GameObject
 {
@@ -19,8 +19,7 @@ public class Camera : GameObject
 
     public Matrix ViewMatrix;
 
-    public Camera(string name, Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null,
-        Transform parent = null) : base(name, position, rotation, scale, parent)
+    public Camera(string id) : base(id)
     {
         Current = this;
         AspectRatio = MainGame.GraphicsDeviceManager.GraphicsDevice.DisplayMode.AspectRatio;
@@ -42,7 +41,8 @@ public class Camera : GameObject
 
     public override void Update(float deltaTime)
     {
-        base.Update(deltaTime);
         UpdateViewMatrix();
+        base.Update(deltaTime);
     }
+
 }

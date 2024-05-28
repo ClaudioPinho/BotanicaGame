@@ -1,0 +1,329 @@
+{
+  "name": "Main Menu",
+  "sceneObjectsData": [
+    {
+      "id": "168ee0ed-2b57-473e-9a46-2081d35bd8c6",
+      "objectType": "Canvas",
+      "name": "MainCanvas",
+      "params": {
+        "DrawDebugBoxes": false,
+        "BackgroundColor": "#000000"
+      }
+    },
+    {
+      "id": "5550be58-b314-4b61-b98a-4925166da9f2",
+      "objectType": "Graphic",
+      "name": "MainMenu",
+      "parentObject": "168ee0ed-2b57-473e-9a46-2081d35bd8c6",
+      "scripts": ["BotanicaGame.Scripts.UI.MainMenu"],
+      "params": {
+        "IsActive": true,
+        "Pivot": {
+          "X": 0,
+          "Y": 0
+        },
+        "Size": {
+          "X": 1280,
+          "Y": 720
+        },
+        "Rotation": 0
+      }
+    },
+    {
+      "id": "d4bf694b-06a4-49ae-bfa9-139008bd08fd",
+      "objectType": "Image",
+      "name": "MainMenu Background",
+      "parentObject": "5550be58-b314-4b61-b98a-4925166da9f2",
+      "params": {
+        "Pivot": {
+          "X": 0,
+          "Y": 0
+        },
+        "Image": "Textures/MainMenu/background",
+        "Size": {
+          "X": 1280,
+          "Y": 720
+        },
+        "Rotation": 0
+      }
+    },
+    {
+      "id": "c1ae1249-13d8-4b47-9f26-7aea0a2555ba",
+      "parentObject": "5550be58-b314-4b61-b98a-4925166da9f2",
+      "objectType": "Image",
+      "name": "SpinningBoy",
+      "params": {
+        "Image": "Textures/Primitives/square-fill",
+        "Anchor": {
+          "X": 0.5,
+          "Y": 0.5
+        },
+        "Pivot": {
+          "X": 0.5,
+          "Y": 0.5
+        },
+        "Size": {
+          "X": 64,
+          "Y": 64
+        },
+        "AnchoredPosition": {
+          "X": 0,
+          "Y": 0
+        },
+        "Rotation": 0,
+        "Color": "#22ff006b"
+      }
+    },
+    {
+      "id": "2282a136-4909-45ea-a549-41733883d446",
+      "parentObject": "5550be58-b314-4b61-b98a-4925166da9f2",
+      "objectType": "Image",
+      "name": "MainMenuOptionsBackground",
+      "params": {
+        "Image": "Textures/Primitives/square-fill",
+        "Anchor": {
+          "X": 0,
+          "Y": 0
+        },
+        "Pivot": {
+          "X": 0,
+          "Y": 0
+        },
+        "Size": {
+          "X": 370,
+          "Y": 434
+        },
+        "AnchoredPosition": {
+          "X": 58,
+          "Y": 58
+        },
+        "Rotation": 0,
+        "Color": "#242728A0"
+      }
+    },
+    {
+      "id": "a69ab4c7-e0cd-469b-9d8a-54530034b119",
+      "parentObject": "2282a136-4909-45ea-a549-41733883d446",
+      "objectType": "Image",
+      "name": "MainMenuOptionsOutline",
+      "params": {
+        "Image": "Textures/MainMenu/Outline-Options",
+        "Anchor": {
+          "X": 0,
+          "Y": 0
+        },
+        "Pivot": {
+          "X": 0,
+          "Y": 0
+        },
+        "Size": {
+          "X": 384,
+          "Y": 448
+        },
+        "AnchoredPosition": {
+          "X": 50,
+          "Y": 50
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    },
+    {
+      "id": "917f7e78-3ed2-4cb4-8fd9-7f111c33a529",
+      "parentObject": "2282a136-4909-45ea-a549-41733883d446",
+      "objectType": "Text",
+      "name": "MainTitle",
+      "params": {
+        "Text": "Botanica",
+        "FontSize": 64,
+        "Anchor": {
+          "X": 0,
+          "Y": 0
+        },
+        "Pivot": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "Size": {
+          "X": 305,
+          "Y": 90
+        },
+        "AnchoredPosition": {
+          "X": 242,
+          "Y": 80
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    },
+    {
+      "id": "4c80267e-ca89-4d1c-adb3-4db27b65d19b",
+      "parentObject": "2282a136-4909-45ea-a549-41733883d446",
+      "objectType": "Button",
+      "name": "Play Button",
+      "params": {
+        "Image": "Textures/MainMenu/button-normal",
+        "HoverTexture": "Textures/MainMenu/button-hovered",
+        "SelectedTexture": "Textures/MainMenu/button-clicked",
+        "OnClickInSound": "Audio/ui-click-in",
+        "Size": {
+          "X": 320,
+          "Y": 64
+        },
+        "Anchor": {
+          "X": 0,
+          "Y": 0
+        },
+        "Pivot": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "AnchoredPosition": {
+          "X": 242,
+          "Y": 190
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    },
+    {
+      "id": "9856da1f-fc52-48a8-93cc-008163b2284e",
+      "parentObject": "4c80267e-ca89-4d1c-adb3-4db27b65d19b",
+      "objectType": "Text",
+      "name": "Play Button Text",
+      "params": {
+        "Text": "Play Game",
+        "FontSize": 32,
+        "Anchor": {
+          "X": 0,
+          "Y": 0
+        },
+        "Pivot": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "Size": {
+          "X": 180,
+          "Y": 40
+        },
+        "AnchoredPosition": {
+          "X": 242,
+          "Y": 200
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    },
+    {
+      "id": "bb28747f-ef80-416d-b743-bfc41c3215e0",
+      "parentObject": "2282a136-4909-45ea-a549-41733883d446",
+      "objectType": "Button",
+      "name": "Settings Button",
+      "params": {
+        "IsActive": true,
+        "Image": "Textures/MainMenu/button-normal",
+        "HoverTexture": "Textures/MainMenu/button-hovered",
+        "SelectedTexture": "Textures/MainMenu/button-clicked",
+        "OnClickInSound": "Audio/ui-click-in",
+        "Size": {
+          "X": 320,
+          "Y": 64
+        },
+        "Anchor": {
+          "X": 0,
+          "Y": 0
+        },
+        "Pivot": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "AnchoredPosition": {
+          "X": 242,
+          "Y": 286
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    },
+    {
+      "id": "b80ed4c5-4282-4c11-a57f-d9464c5b7d5c",
+      "parentObject": "bb28747f-ef80-416d-b743-bfc41c3215e0",
+      "objectType": "Text",
+      "name": "Settings Button Text",
+      "params": {
+        "Text": "Settings",
+        "FontSize": 32,
+        "AutoResize": true,
+        "Anchor": {
+          "X": 0,
+          "Y": 0
+        },
+        "Pivot": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "AnchoredPosition": {
+          "X": 242,
+          "Y": 296
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    },
+    {
+      "id": "0e3953e8-c5d2-42af-92bc-ca3633056643",
+      "parentObject": "2282a136-4909-45ea-a549-41733883d446",
+      "objectType": "Button",
+      "name": "Exit Button",
+      "params": {
+        "Image": "Textures/MainMenu/button-normal",
+        "HoverTexture": "Textures/MainMenu/button-hovered",
+        "SelectedTexture": "Textures/MainMenu/button-clicked",
+        "OnClickInSound": "Audio/ui-click-in",
+        "Size": {
+          "X": 320,
+          "Y": 64
+        },
+        "Anchor": {
+          "X": 0,
+          "Y": 0
+        },
+        "Pivot": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "AnchoredPosition": {
+          "X": 242,
+          "Y": 382
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    },
+    {
+      "id": "99be2810-8495-4e73-9738-81234622346d",
+      "parentObject": "0e3953e8-c5d2-42af-92bc-ca3633056643",
+      "objectType": "Text",
+      "name": "Exit Button Text",
+      "params": {
+        "Text": "Exit",
+        "FontSize": 32,
+        "AutoResize": true,
+        "Anchor": {
+          "X": 0,
+          "Y": 0
+        },
+        "Pivot": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "AnchoredPosition": {
+          "X": 242,
+          "Y": 392
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    }
+  ]
+}
