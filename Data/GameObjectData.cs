@@ -10,7 +10,7 @@ namespace BotanicaGame.Data;
 public struct GameObjectData
 {
     [JsonProperty("id")] public string Id;
-    
+
     [JsonProperty("objectType")] public string ObjectType;
 
     [JsonProperty("name")] public string Name;
@@ -32,7 +32,6 @@ public struct GameObjectData
             "Canvas" => typeof(Canvas),
             "Camera" => typeof(Camera),
             "Entity" => typeof(Entity),
-            "Player" => typeof(Player),
             "Image" => typeof(UIImage),
             "Text" => typeof(UIText),
             "Button" => typeof(UIButton),

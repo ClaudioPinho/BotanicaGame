@@ -1,4 +1,5 @@
 using System;
+using BotanicaGame.Debug;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 
@@ -9,7 +10,12 @@ public class Entity : PhysicsObject
     private const float FallingDamageRatio = 0.1f;
     private const float CriticalFallSpeed = 15f;
 
-    public int Health = 10;
+    public float RunningSpeed = 12f;
+    public float WalkingSpeed = 7f;
+    public float SpeedOnAir = 2f;
+
+    public int MaxHealth = 10;
+    public int Health;
     public float JumpHeight = 1.5f;
 
     // AUDIO
@@ -17,6 +23,8 @@ public class Entity : PhysicsObject
 
     public SoundEffect JumpSfx;
     public SoundEffect FallSfx;
+
+    public Action<int> OnDamageReceived;
 
     public bool IsOnFloor { get; private set; } = true;
 
@@ -27,6 +35,8 @@ public class Entity : PhysicsObject
     {
         IsStatic = false;
         IsAffectedByGravity = true;
+
+        Health = MaxHealth;
         
         Mass = 1f;
         Restitution = 1f;
@@ -36,7 +46,6 @@ public class Entity : PhysicsObject
 
     public override void Update(float deltaTime)
     {
-
         UpdateAudioEmitterState();
 
         IsOnFloor = MainGame.Physics.BoxcastHitCheck(Transform.Position, Vector3.Down,
@@ -54,7 +63,7 @@ public class Entity : PhysicsObject
         base.Update(deltaTime);
     }
 
-    protected virtual bool TryJump()
+    public virtual bool TryJump()
     {
         if (!IsOnFloor) return false;
         Velocity.Y = MathF.Sqrt(2f * JumpHeight * Math.Abs(MainGame.Physics.WorldGravity.Y));
@@ -71,6 +80,14 @@ public class Entity : PhysicsObject
 
     public virtual void OnReceivedDamage(int damageReceived)
     {
+        try
+        {
+            OnDamageReceived?.Invoke(damageReceived);
+        }
+        catch (Exception e)
+        {
+            DebugUtils.PrintException(e);
+        }
     }
 
     private static int CalculateFallDamage(float fallingSpeed)

@@ -82,10 +82,22 @@ public class UIGraphic : GameObject, IDrawable
 
     public Vector2 Anchor = Vector2.Zero;
 
-
     public Rectangle? Source = null;
 
-    public Vector2 Scale = Vector2.One;
+    public Vector2 Scale
+    {
+        get
+        {
+            if (_parentGraphic != null)
+                return _scale * _parentGraphic.Scale;
+            return _scale;
+        }
+        set
+        {
+            _scale = value;
+            _drawRectangleIsDirty = true;
+        }
+    }
 
     public Color Color = Color.White;
 
@@ -99,10 +111,11 @@ public class UIGraphic : GameObject, IDrawable
     protected Vector2 Origin { get; private set; }
 
     protected int CanvasWidth => Canvas?.Width ?? MainGame.GameInstance.GraphicsDevice.Viewport.Width;
-    protected int CanvasHeight => Canvas?.Width ?? MainGame.GameInstance.GraphicsDevice.Viewport.Height;
+    protected int CanvasHeight => Canvas?.Height ?? MainGame.GameInstance.GraphicsDevice.Viewport.Height;
     protected Vector2 CanvasScale => Canvas?.CanvasScale ?? Vector2.One;
 
     private Vector2 _pivot;
+    private Vector2 _scale = Vector2.One;
     private Point _anchoredPosition = Point.Zero;
     private Point _position = Point.Zero;
     private Point _size = new(256, 256);
@@ -113,6 +126,7 @@ public class UIGraphic : GameObject, IDrawable
     private bool _isVisible = true;
 
     private IDrawable _parentDrawable;
+    private UIGraphic _parentGraphic;
 
     public UIGraphic(string id) : base(id)
     {
@@ -159,7 +173,7 @@ public class UIGraphic : GameObject, IDrawable
         }
         Canvas = canvas;
         Canvas.AddUIGraphic(this);
-        UpdateDrawRectangle();
+        // UpdateDrawRectangle();
     }
 
     protected void RecalculatePivotOrigin()
@@ -179,11 +193,14 @@ public class UIGraphic : GameObject, IDrawable
         // automatically set the canvas if this graphic is being parented to one
         SetCanvas(parentObject.FindTypeInParents<Canvas>());
         _parentDrawable = parentObject.FindTypeInParents<IDrawable>();
+        _parentGraphic = parentObject.FindTypeInParents<UIGraphic>();
+        _drawRectangleIsDirty = true;
     }
 
     private void UpdateDrawRectangle()
     {
-        DrawRectangle = new Rectangle(Position + new Point((int)(Size.X * Pivot.X), (int)(Size.Y * Pivot.Y)), Size);
+        DrawRectangle = new Rectangle(Position + new Point((int)(Size.X * Pivot.X), (int)(Size.Y * Pivot.Y)), 
+            (Size.ToVector2() * Scale).ToPoint());
         RealLocation = new Rectangle(RealPosition, RealSize);
         _drawRectangleIsDirty = false;
     }

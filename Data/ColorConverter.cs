@@ -20,27 +20,29 @@ public class ColorConverter : JsonConverter<Color>
 
         if (string.IsNullOrEmpty(hex))
             return Color.CornflowerBlue;
-        
+
         if (hex.StartsWith('#'))
             hex = hex[1..];
 
         switch (hex.Length)
         {
-            // if no transparency specified the color is opaque
+            // If no transparency specified, the color is opaque
             case 6:
-                hex = "FF" + hex;
+                hex += "FF";
                 break;
-            // if transparency specified we need to flip the hex for R to A and vice-versa since we want the alpha to be last and XNA color has it at the start
+            // If transparency specified, ensure the hex is already in ARGB format
             case 8:
-            {
-                var transparencyHex = hex.Substring(6, 2);
-                hex = hex[..6];
-                hex = transparencyHex + hex;
                 break;
-            }
+            default:
+                throw new ArgumentException("Invalid hex color format.");
         }
 
-        var color = new Color(uint.Parse(hex, System.Globalization.NumberStyles.HexNumber));
+        var r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
+        var g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
+        var b = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
+        var a = byte.Parse(hex.Substring(6, 2), System.Globalization.NumberStyles.HexNumber);
+
+        var color = new Color(r, g, b, a);
 
         return color;
     }

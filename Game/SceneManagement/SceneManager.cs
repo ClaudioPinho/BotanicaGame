@@ -34,6 +34,13 @@ public class SceneManager(ContentManager contentManager)
 #endif
     }
 
+    public Scene GetScene(string name)
+    {
+        if (_loadedScenes == null || _loadedScenes.Count == 0)
+            return null;
+        return _loadedScenes.FirstOrDefault(x => x.Name == name);
+    }
+    
     public Scene Load(string sceneName, GamePhysics physicsContext = null)
     {
         var fullPath = GetFullScenePath(sceneName);

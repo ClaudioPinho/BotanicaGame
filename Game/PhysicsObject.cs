@@ -1,3 +1,4 @@
+using BotanicaGame.Debug;
 using Microsoft.Xna.Framework;
 
 namespace BotanicaGame.Game;
@@ -23,10 +24,13 @@ public class PhysicsObject(string id) : MeshObject(id)
 
     public virtual void PhysicsTick(float deltaTime)
     {
-        // DebugUtils.DrawWireCube(Transform.Position, customCorners: CollisionBox.GetCorners());
-        // DebugUtils.DrawWirePoint(CollisionBox.Min, color: Color.Red);
-        // DebugUtils.DrawWirePoint(CollisionBox.Max, color: Color.Green);
-        // DebugUtils.DrawDebugAxis(Transform.Position, Transform.Rotation, Transform.Scale);
+        if (DebugDrawCollision)
+        {
+            DebugUtils.DrawWireCube(Transform.Position, customCorners: CollisionBox.GetCorners());
+            DebugUtils.DrawWirePoint(CollisionBox.Min, color: Color.Red);
+            DebugUtils.DrawWirePoint(CollisionBox.Max, color: Color.Green);
+            DebugUtils.DrawDebugAxis(Transform.Position, Transform.Rotation, Transform.Scale);
+        }
     }
 
     public void CalculateAABB()

@@ -23,13 +23,15 @@ public class Scene : IDrawable
         Unloaded = 0,
         Loaded = 1
     }
+    
+    public string Name { get; private set; }
 
     public int DrawOrder { get; }
     public bool Visible { get; set; } = true;
     public event EventHandler<EventArgs> DrawOrderChanged;
 
     public event EventHandler<EventArgs> VisibleChanged;
-
+    
     public event Action OnSceneUnload;
     public event Action OnSceneLoad;
     public event Action OnSceneReloaded;
@@ -47,6 +49,8 @@ public class Scene : IDrawable
 
     public Scene(SceneData sceneData, ContentManager contentManager, GamePhysics physicsContext = null)
     {
+        Name = sceneData.Name;
+        
         _physicsContext = physicsContext;
         if (!string.IsNullOrEmpty(sceneData.SkyboxTexture))
         {

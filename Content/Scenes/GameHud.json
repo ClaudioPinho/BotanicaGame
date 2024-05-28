@@ -1,0 +1,328 @@
+{
+  "name": "GameHud",
+  "sceneObjectsData": [
+    {
+      "id": "05322ae8-12c8-46d8-893b-d240507d2d58",
+      "objectType": "Canvas",
+      "name": "GameCanvas",
+      "params": {
+        "DrawDebugBoxes": false,
+        "BackgroundColor": "#00000000"
+      }
+    },
+    
+    {
+      "id": "a2050949-aa8f-4927-a754-1c63d777eb97",
+      "parentObject": "05322ae8-12c8-46d8-893b-d240507d2d58",
+      "objectType": "Graphic",
+      "name": "GameHud",
+      "scripts": ["BotanicaGame.Scripts.UI.GameHud"],
+      "params": {
+        "IsActive": true
+      }
+    },
+    {
+      "id": "ea19dae7-ae38-4fc3-979e-7f0aaf3929c7",
+      "parentObject": "a2050949-aa8f-4927-a754-1c63d777eb97",
+      "objectType": "Image",
+      "name": "O2bar",
+      "params": {
+        "IsActive": true,
+        "Image": "Textures/UI/HUD/fillbar",
+        "Anchor": {
+          "X": 0,
+          "Y": 1
+        },
+        "Scale":{
+          "X": 0.8,
+          "Y": 0.8
+        },
+        "Pivot": {
+          "X": 0,
+          "Y": 1
+        },
+        "AnchoredPosition": {
+          "X": 10,
+          "Y": -50
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    },
+    {
+      "id": "8eef0464-4e07-483b-8ad7-3bec663792d1",
+      "parentObject": "ea19dae7-ae38-4fc3-979e-7f0aaf3929c7",
+      "objectType": "Image",
+      "name": "O2bar-fill",
+      "params": {
+        "IsActive": true,
+        "Image": "Textures/UI/HUD/fillbar-fill",
+        "Anchor": {
+          "X": 0,
+          "Y": 1
+        },
+        "Pivot": {
+          "X": 0,
+          "Y": 1
+        },
+        "AnchoredPosition": {
+          "X": 14,
+          "Y": -55
+        },
+        "Rotation": 0,
+        "Color": "#4b95c6"
+      }
+    },
+    {
+      "id": "7728e335-aae4-4c8b-a5f2-3a54646ac44d",
+      "parentObject": "ea19dae7-ae38-4fc3-979e-7f0aaf3929c7",
+      "objectType": "Text",
+      "name": "O2bar-value",
+      "params": {
+        "IsActive": true,
+        "AutoResize": true,
+        "FontSize": 16,
+        "FontResource": "Fonts/PixelEmulator.ttf",
+        "Text": "100",
+        "Anchor": {
+          "X": 0,
+          "Y": 1
+        },
+        "Pivot": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "AnchoredPosition": {
+          "X": 34,
+          "Y": -75
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    },
+    {
+      "id": "545e7584-64e9-4450-a7bf-420fffc0868e",
+      "parentObject": "ea19dae7-ae38-4fc3-979e-7f0aaf3929c7",
+      "objectType": "Text",
+      "name": "O2Label",
+      "params": {
+        "IsActive": true,
+        "AutoResize": true,
+        "FontSize": 24,
+        "FontResource": "Fonts/PixelEmulator.ttf",
+        "Text": "O2",
+        "Anchor": {
+          "X": 0,
+          "Y": 1
+        },
+        "Pivot": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "AnchoredPosition": {
+          "X": 34,
+          "Y": -50
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    },
+
+    {
+      "id": "4335f828-ebaf-46a4-97c4-e84ecb96e2af",
+      "parentObject": "a2050949-aa8f-4927-a754-1c63d777eb97",
+      "objectType": "Image",
+      "name": "Healthbar",
+      "params": {
+        "IsActive": true,
+        "Image": "Textures/UI/HUD/fillbar",
+        "Anchor": {
+          "X": 0,
+          "Y": 1
+        },
+        "Scale":{
+          "X": 0.8,
+          "Y": 0.8
+        },
+        "Pivot": {
+          "X": 0,
+          "Y": 1
+        },
+        "AnchoredPosition": {
+          "X": 64,
+          "Y": -50
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    },
+    {
+      "id": "40e4f520-0f00-492b-9158-d90c033136d8",
+      "parentObject": "4335f828-ebaf-46a4-97c4-e84ecb96e2af",
+      "objectType": "Image",
+      "name": "Healthbar-fill",
+      "params": {
+        "IsActive": true,
+        "Image": "Textures/UI/HUD/fillbar-fill",
+        "Anchor": {
+          "X": 0,
+          "Y": 1
+        },
+        "Pivot": {
+          "X": 0,
+          "Y": 1
+        },
+        "AnchoredPosition": {
+          "X": 68,
+          "Y": -55
+        },
+        "Rotation": 0,
+        "Color": "#c64b4d"
+      }
+    },
+    {
+      "id": "3cd56219-581d-4e08-9c12-ba9eba088e4f",
+      "parentObject": "4335f828-ebaf-46a4-97c4-e84ecb96e2af",
+      "objectType": "Text",
+      "name": "Healthbar-value",
+      "params": {
+        "IsActive": true,
+        "AutoResize": true,
+        "FontSize": 16,
+        "FontResource": "Fonts/PixelEmulator.ttf",
+        "Text": "100",
+        "Anchor": {
+          "X": 0,
+          "Y": 1
+        },
+        "Pivot": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "AnchoredPosition": {
+          "X": 88,
+          "Y": -75
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    },
+    {
+      "id": "13d1b371-81ef-4bd7-92e0-0a7092022ce6",
+      "parentObject": "4335f828-ebaf-46a4-97c4-e84ecb96e2af",
+      "objectType": "Image",
+      "name": "Healthbar-label",
+      "params": {
+        "IsActive": true,
+        "Image": "Textures/Icons/heart",
+        "Anchor": {
+          "X": 0,
+          "Y": 1
+        },
+        "Pivot": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "Scale": {
+          "X": 2,
+          "Y": 2
+        },
+        "AnchoredPosition": {
+          "X": 84,
+          "Y": -50
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    },
+    
+
+
+    {
+      "id": "ef361156-8c9a-47cb-a2e0-2ef5d82e5e8a",
+      "parentObject": "05322ae8-12c8-46d8-893b-d240507d2d58",
+      "objectType": "Graphic",
+      "name": "PauseMenu",
+      "scripts": ["BotanicaGame.Scripts.UI.PauseMenu"],
+      "params": { 
+        "IsActive": false
+      }
+    },
+    {
+      "id": "cd71a6bd-24e8-48f7-8cde-bd53a3b12184",
+      "parentObject": "ef361156-8c9a-47cb-a2e0-2ef5d82e5e8a",
+      "objectType": "Image",
+      "name": "HUD background",
+      "params": {
+        "Color": "#00000080",
+        "Pivot": {
+          "X": 0,
+          "Y": 0
+        },
+        "Size": {
+          "X": 1280,
+          "Y": 720
+        },
+        "Rotation": 0
+      }
+    },
+    {
+      "id": "121ca8df-0ba0-460f-846f-e8a5a00ffbae",
+      "parentObject": "ef361156-8c9a-47cb-a2e0-2ef5d82e5e8a",
+      "objectType": "Button",
+      "name": "Home Button",
+      "params": {
+        "Image": "Textures/MainMenu/button-normal",
+        "HoverTexture": "Textures/MainMenu/button-hovered",
+        "SelectedTexture": "Textures/MainMenu/button-clicked",
+        "OnClickInSound": "Audio/ui-click-in",
+        "Size": {
+          "X": 320,
+          "Y": 64
+        },
+        "Anchor": {
+          "X": 0.5,
+          "Y": 1
+        },
+        "Pivot": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "AnchoredPosition": {
+          "X": 0,
+          "Y": -100
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    },
+    {
+      "id": "75c022fd-351c-4f05-8d0f-2ccc491606c7",
+      "parentObject": "121ca8df-0ba0-460f-846f-e8a5a00ffbae",
+      "objectType": "Text",
+      "name": "Home Button Text",
+      "params": {
+        "Text": "Return to Home",
+        "FontSize": 32,
+        "Anchor": {
+          "X": 0.5,
+          "Y": 1
+        },
+        "Pivot": {
+          "X": 0.5,
+          "Y": 0
+        },
+        "Size": {
+          "X": 270,
+          "Y": 40
+        },
+        "AnchoredPosition": {
+          "X": 0,
+          "Y": -90
+        },
+        "Rotation": 0,
+        "Color": "#FFFFFF"
+      }
+    }
+  ]
+}

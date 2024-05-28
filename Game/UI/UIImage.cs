@@ -11,6 +11,7 @@ public class UIImage(string id) : UIInteractable(id)
         set
         {
             _image = value;
+            Size = new Point(value.Width, value.Height);
             RecalculatePivotOrigin();
         }
     }
@@ -18,7 +19,7 @@ public class UIImage(string id) : UIInteractable(id)
     private Texture2D _image;
 
     protected virtual Texture2D GetTextureToDraw() => Image;
-    
+
     public override void Draw(GameTime gameTime)
     {
         base.Draw(gameTime);
